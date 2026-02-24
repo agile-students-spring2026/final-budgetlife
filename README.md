@@ -11,6 +11,7 @@
 | Developer & Designer | Arnav Arora | https://github.com/arroarnav |
 | Developer | Samuel Tang | TBD |
 | Developer | Zoe Chow | TBD |
+| Developer | TBD | TBD |
 
 ## Description
 
@@ -31,11 +32,11 @@ CONTRIBUTING.md contains the information about contributing.
 
 ## Additional Documentation
 
-1. App Map & Wireframes: instructions-0a-app-map-wireframes.md  
-2. Prototyping: instructions-0b-prototyping.md  
-3. Project Setup: instructions-0c-project-setup.md  
-4. Sprint Planning: instructions-0d-sprint-planning.md  
-5. Front-End Development: instructions-1-front-end.md  
-6. Back-End Development: instructions-2-back-end.md  
-7. Database Integration: instructions-3-database.md  
-8. Deployment: instructions-4-deployment.md
+1. [App Map & Wireframes](instructions-0a-app-map-wireframes.md) 
+2. [Prototyping](instructions-0b-prototyping.md) 
+3. [Project Setup](instructions-0c-project-setup.md)  
+4. [Sprint Planning](instructions-0d-sprint-planning.md)
+5. [Front-End Development](instructions-1-front-end.md)  
+6. [Back-End Development](instructions-2-back-end.md)  
+7. [Database Integration](instructions-3-database.md)  
+8. [Deployment](instructions-4-deployment.md)
