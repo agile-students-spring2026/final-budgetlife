@@ -1,19 +1,43 @@
-# Project Repository
+# BudgetLife (working title)
 
-This repository will be used for team projects.
+## Product Vision Statement
 
-Several sets of instructions are included in this repository. They should each be treated as separate assignments with their own due dates and sets of requirements.
+**BudgetLife** helps people build healthier spending habits by transforming personal budgeting into a city-building experience, where responsible real-world financial decisions directly shape the growth, success, and visual identity of a virtual city.
 
-1. See the [App Map & Wireframes](instructions-0a-app-map-wireframes.md) and [Prototyping](./instructions-0b-prototyping.md) instructions for the requirements of the initial user experience design of the app.
+## Description
 
-1. Delete the contents of this file and replace with the contents of a proper README.md, as described in the [project setup instructions](./instructions-0c-project-setup.md)
+BudgetLife is a gamified budgeting application designed for users who want a fun, low-pressure way to manage their money. Inspired by city builder games such as Cities: Skylines and Clash of Clans, and budgeting tools like Rocket Money, the app reframes money management as city management.
 
-1. See the [Sprint Planning instructions](instructions-0d-sprint-planning.md) for the requirements of Sprint Planning for each Sprint.
+Users act as the mayor of a digital city. Each budget category—such as food, housing, or health—is represented as a building within the city. How responsibly users spend their real-world money determines whether these buildings upgrade, stagnate, or decay. Monthly budget outcomes drive city progression, giving users a clear and engaging visual reflection of their financial behavior.
 
-1. See the [Front-End Development instructions](./instructions-1-front-end.md) for the requirements of the initial Front-End Development.
+BudgetLife emphasizes non-predatory design, requires no paid currency, and avoids invasive data collection. Its goal is to encourage long-term financial mindfulness through playful, meaningful feedback rather than punishment or pressure.
 
-1. See the [Back-End Development instructions](./instructions-2-back-end.md) for the requirements of the initial Back-End Development.
+## Core Team Members
 
-1. See the [Database Integration instructions](./instructions-3-database.md) for the requirements of integrating a database into the back-end.
+| Role | Name | GitHub |
+|------|------|--------|
+| Developer & Designer | Arnav Arora | https://github.com/arroarnav |
+| Developer | Samuel Tang | TBD |
+| Developer | Zoe Chow | TBD |
 
-1. See the [Deployment instructions](./instructions-4-deployment.md) for the requirements of deploying an app.
+
+## Project History & Contributing
+
+BudgetLife began as an exploration into how game design principles can be applied to real-world behavioral change. The project evolved from a simple budgeting concept into a fully gamified city simulation focused on financial awareness, motivation, and accountability.The project builds on well-established budgeting app patterns while differentiating itself through interactive feedback and playful systems.
+
+CONTRIBUTING.md contains the information about contributing.
+
+## Building and Testing
+
+TBD
+
+## Additional Documentation
+
+1. App Map & Wireframes: instructions-0a-app-map-wireframes.md  
+2. Prototyping: instructions-0b-prototyping.md  
+3. Project Setup: instructions-0c-project-setup.md  
+4. Sprint Planning: instructions-0d-sprint-planning.md  
+5. Front-End Development: instructions-1-front-end.md  
+6. Back-End Development: instructions-2-back-end.md  
+7. Database Integration: instructions-3-database.md  
+8. Deployment: instructions-4-deployment.md
