@@ -6,12 +6,12 @@
 
 ## Core Team Members
 
-| Role | Name | GitHub |
-|------|------|--------|
-| Developer & Designer | Arnav Arora | https://github.com/arroarnav |
-| Developer | Samuel Tang | https://github.com/stango1234556 |
-| Developer & Designer | Zoe Chow | https://github.com/pancakeru |
-| Developer | TBD | TBD |
+| Role                 | Name        | GitHub                           |
+| -------------------- | ----------- | -------------------------------- |
+| Developer & Designer | Arnav Arora | https://github.com/arroarnav     |
+| Developer            | Samuel Tang | https://github.com/stango1234556 |
+| Developer & Designer | Zoe Chow    | https://github.com/pancakeru     |
+| Developer            | Meili Liang | https://github.com/ml8397        |
 
 ## Description
 
@@ -22,6 +22,7 @@ Users act as the mayor of a digital city. Each budget category—such as food, h
 BudgetLife emphasizes non-predatory design, requires no paid currency, and avoids invasive data collection. Its goal is to encourage long-term financial mindfulness through playful, meaningful feedback rather than punishment or pressure.
 
 ## Building and Testing
+
 TBD
 
 ## Project History & Contributing
@@ -32,11 +33,11 @@ CONTRIBUTING.md contains the information about contributing.
 
 ## Additional Documentation
 
-1. [App Map & Wireframes](instructions-0a-app-map-wireframes.md) 
-2. [Prototyping](instructions-0b-prototyping.md) 
-3. [Project Setup](instructions-0c-project-setup.md)  
+1. [App Map & Wireframes](instructions-0a-app-map-wireframes.md)
+2. [Prototyping](instructions-0b-prototyping.md)
+3. [Project Setup](instructions-0c-project-setup.md)
 4. [Sprint Planning](instructions-0d-sprint-planning.md)
-5. [Front-End Development](instructions-1-front-end.md)  
-6. [Back-End Development](instructions-2-back-end.md)  
-7. [Database Integration](instructions-3-database.md)  
+5. [Front-End Development](instructions-1-front-end.md)
+6. [Back-End Development](instructions-2-back-end.md)
+7. [Database Integration](instructions-3-database.md)
 8. [Deployment](instructions-4-deployment.md)
