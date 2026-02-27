@@ -26,7 +26,7 @@ Delete the contents of this file and replace with the contents of a proper guide
 _TBD_
 
 ### Coding Standards
-1. Designate a code editor and code linter all team members will use to standardize code formatting. (_TBD_)
+1. Designate a code editor and code linter all team members will use to standardize code formatting (Visual Studio Code).
 2. Don't over-engineer. Write minimum code to get things working end to end, only then iterate to improve. - Code for each task and spike must be peer-reviewed and pass tests before merging into the main/master branch of code.
 3. Always push working code, if you break the pipeline/build then fix it.
 4. Make granular and small commits, per feature or per bug fix.
