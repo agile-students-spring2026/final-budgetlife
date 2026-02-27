@@ -10,7 +10,7 @@
 |------|------|--------|
 | Developer & Designer | Arnav Arora | https://github.com/arroarnav |
 | Developer | Samuel Tang | TBD |
-| Developer | Zoe Chow | TBD |
+| Developer & Designer | Zoe Chow | https://github.com/pancakeru |
 | Developer | TBD | TBD |
 
 ## Description
