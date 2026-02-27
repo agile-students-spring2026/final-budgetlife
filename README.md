@@ -9,7 +9,7 @@
 | Role | Name | GitHub |
 |------|------|--------|
 | Developer & Designer | Arnav Arora | https://github.com/arroarnav |
-| Developer | Samuel Tang | TBD |
+| Developer | Samuel Tang | https://github.com/stango1234556 |
 | Developer & Designer | Zoe Chow | https://github.com/pancakeru |
 | Developer | TBD | TBD |
 
