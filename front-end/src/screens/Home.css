@@ -1,0 +1,37 @@
+.home-page {
+  display: flex;
+  justify-content: center;
+  min-height: 100vh;
+  background: #efefef;
+  font-family: Arial, Helvetica, sans-serif;
+}
+
+.home-screen {
+  width: min(90vw, 900px);
+  min-height: 100vh;
+  background: #bdbdbd;
+
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+
+.home-title {
+  margin-bottom: 10px;
+}
+
+.home-subtitle {
+  font-size: 18px;
+  margin-bottom: 30px;
+}
+
+.home-button {
+  padding: 16px 24px;
+  font-size: 18px;
+  border: none;
+  border-radius: 10px;
+  background: black;
+  color: white;
+  cursor: pointer;
+}

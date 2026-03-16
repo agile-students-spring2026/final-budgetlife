@@ -1,25 +1,25 @@
 import React from "react";
+import "./Home.css";
 
 function Home({ goToFriends }) {
   return (
-    <div style={{ padding: "40px", textAlign: "center" }}>
-      <h1>BudgetLife</h1>
-      <p>Main page</p>
+    <div className="home-page">
+      <div className="home-screen">
 
-      <button
-        onClick={goToFriends}
-        style={{
-          padding: "12px 20px",
-          fontSize: "16px",
-          borderRadius: "8px",
-          border: "none",
-          backgroundColor: "#2563eb",
-          color: "white",
-          cursor: "pointer"
-        }}
-      >
-        Open Friends List
-      </button>
+        <h1 className="home-title">BudgetLife</h1>
+
+        <p className="home-subtitle">
+          Main Page
+        </p>
+
+        <button
+          className="home-button"
+          onClick={goToFriends}
+        >
+          Open Friends Screen
+        </button>
+
+      </div>
     </div>
   );
 }
