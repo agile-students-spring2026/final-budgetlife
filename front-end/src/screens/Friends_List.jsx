@@ -1,32 +1,54 @@
 import React from "react";
+import "./Friends_List.css";
 
-function Friends({ goHome }) {
+function Friends_List({ goHome }) {
   const friends = [
-    { id: 1, name: "Name", info: "Info", username: "User0" },
-    { id: 2, name: "Name", info: "Info", username: "User0" },
-    { id: 3, name: "Name", info: "Info", username: "User0" }
+    { id: 1, username: "User1", name: "Name", info: "Info" },
+    { id: 2, username: "User2", name: "Name", info: "Info" },
+    { id: 3, username: "User3", name: "Name", info: "Info" },
+    { id: 4, username: "User4", name: "Name", info: "Info" },
   ];
 
   return (
-    <div style={{ padding: "30px" }}>
-      <button onClick={goHome}>← Back</button>
+    <div className="friends-page">
+      <div className="friends-screen">
+        <div className="friends-top">
+          <div className="player-icon">Player Icon</div>
 
-      <h1>Friends Cities</h1>
+          <div className="user-text">
+            <div className="username">Username</div>
+            <div className="userid">userID</div>
+          </div>
 
-      <input
-        type="text"
-        placeholder="Search"
-        style={{ marginBottom: "20px", padding: "8px" }}
-      />
-
-      {friends.map(friend => (
-        <div key={friend.id} style={{ marginBottom: "15px" }}>
-          <strong>{friend.name}</strong>
-          <div>{friend.info}</div>
+          <button className="close-btn" onClick={goHome}>
+            ×
+          </button>
         </div>
-      ))}
+
+        <div className="friends-search-row">
+          <div className="friends-title">Friends Cities</div>
+          <input className="search-input" type="text" placeholder="Search" />
+        </div>
+
+        <div className="friends-list">
+          {friends.map((friend) => (
+            <div key={friend.id} className="friend-card">
+              <div className="friend-icon">{friend.username}</div>
+
+              <div className="friend-text">
+                <div className="friend-name">{friend.name}</div>
+                <div className="friend-info">{friend.info}</div>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        <div className="friends-bottom">
+          <button className="add-btn">+</button>
+        </div>
+      </div>
     </div>
   );
 }
 
-export default Friends;
+export default Friends_List;
