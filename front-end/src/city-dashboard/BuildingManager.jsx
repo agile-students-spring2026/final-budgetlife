@@ -29,7 +29,7 @@ function createDefaultCity() {
   };
 }
 
-export function BuildingManager() {
+export function BuildingManager({ onBuildingClick, onCloseMenu, showBudget = true }) {
 	// Pan state
 	const [pan, setPan] = useState({ x: 0, y: 0 });
 	const dragging = useRef(false);
@@ -180,61 +180,62 @@ export function BuildingManager() {
 	const [zoom, setZoom] = useState(0.67);
 	const lastDistance = useRef(null);
 
-	return (
-		<div
-			className="building-manager"
-			style={{
-				position: "relative",
-				overflow: "auto",
-				minHeight: "600px",
-				width: "100vw",
-				maxWidth: "100vw",
-				cursor: dragging.current ? "grabbing" : "grab",
-				touchAction: "none",
-				display: "flex",
-				justifyContent: "center",
-				marginTop: 0
-			}}
-			onMouseDown={handleMouseDown}
-			onMouseUp={handleMouseUp}
-			onMouseLeave={handleMouseUp}
-			onMouseMove={handleMouseMove}
-			onTouchStart={handleTouchStart}
-			onTouchEnd={handleTouchEnd}
-			onTouchCancel={handleTouchEnd}
-			onTouchMove={handleTouchMove}
-			onWheel={handleWheel}
-		>
-			<div
-				style={{
-					position: "relative",
-					width: `${CITY_WIDTH}px`,
-					height: `${CITY_HEIGHT}px`,
-					background: "#e0e0e0",
-					borderRadius: "20px",
-					margin: 0,
-					transform: `translateY(-50vh) scale(${zoom})`,
-					transformOrigin: "center center",
-					transition: dragging.current ? "none" : "transform 0.2s"
-				}}
-			>
-				{city.buildings.map((b) => (
-                    <div
-                        key={b.i}
-                        style={{
-                        position: "absolute",
-                        left: `${CITY_WIDTH / 2 + b.location.x + pan.x - BUILDING_SIZE / 2}px`,
-                        top: `${CITY_HEIGHT / 2 + b.location.y + pan.y - BUILDING_SIZE / 2}px`,
-                        zIndex: b.type === "primary" ? 2 : 1,
-                        transition: dragging.current ? "none" : "left 0.2s, top 0.2s"
-                        }}
-                    >
-                        <BuildingBox i={b.i} {...b} />
-                    </div>
-                    ))}
-			</div>
-		</div>
-	);
+	 return (
+		 <div
+			 className="building-manager"
+			 style={{
+				 position: "relative",
+				 overflow: "auto",
+				 minHeight: "600px",
+				 width: "100vw",
+				 maxWidth: "100vw",
+				 cursor: dragging.current ? "grabbing" : "grab",
+				 touchAction: "none",
+				 display: "flex",
+				 justifyContent: "center",
+				 marginTop: 0
+			 }}
+			 onMouseDown={handleMouseDown}
+			 onMouseUp={handleMouseUp}
+			 onMouseLeave={handleMouseUp}
+			 onMouseMove={handleMouseMove}
+			 onTouchStart={handleTouchStart}
+			 onTouchEnd={handleTouchEnd}
+			 onTouchCancel={handleTouchEnd}
+			 onTouchMove={handleTouchMove}
+			 onWheel={handleWheel}
+			 onClick={onCloseMenu}
+		 >
+			 <div
+				 style={{
+					 position: "relative",
+					 width: `${CITY_WIDTH}px`,
+					 height: `${CITY_HEIGHT}px`,
+					 background: "#e0e0e0",
+					 borderRadius: "20px",
+					 margin: 0,
+					 transform: `translateY(-50vh) scale(${zoom})`,
+					 transformOrigin: "center center",
+					 transition: dragging.current ? "none" : "transform 0.2s"
+				 }}
+			 >
+				 {city.buildings.map((b) => (
+						 <div
+								 key={b.i}
+								 style={{
+								 position: "absolute",
+								 left: `${CITY_WIDTH / 2 + b.location.x + pan.x - BUILDING_SIZE / 2}px`,
+								 top: `${CITY_HEIGHT / 2 + b.location.y + pan.y - BUILDING_SIZE / 2}px`,
+								 zIndex: b.type === "primary" ? 2 : 1,
+								 transition: dragging.current ? "none" : "left 0.2s, top 0.2s"
+								 }}
+						 >
+								<BuildingBox building={{ ...b, showBudget }} onClick={() => onBuildingClick && onBuildingClick(b)} />
+						 </div>
+						 ))}
+			 </div>
+		 </div>
+	 );
 }
 
 // stores a list of all the buildings in the city, and allows the user to add/remove buildings
