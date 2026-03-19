@@ -1,0 +1,68 @@
+.budget-header {
+  width: 100%;
+  background: #444;
+  padding: 16px 24px;
+  box-sizing: border-box;
+}
+
+.header-row {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+.player-icon {
+  width: 70px;
+  height: 70px;
+  border-radius: 50%;
+  background: #000;
+  color: #fff;
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1.1;
+  flex-shrink: 0;
+}
+
+.budget-panel {
+  flex: 1;
+}
+
+.budget-title {
+  background: #000;
+  color: #fff;
+  border-radius: 10px;
+  padding: 8px 12px;
+  font-size: 16px;
+  font-weight: 800;
+  margin-bottom: 6px;
+}
+
+.budget-values {
+  display: flex;
+  width: 100%;
+}
+
+.budget-left {
+  background: #111;
+  color: #fff;
+  padding: 6px 10px;
+  font-size: 14px;
+  font-weight: 800;
+  flex: 1;
+}
+
+.budget-right {
+  background: #8d8d8d;
+  color: #fff;
+  padding: 6px 10px;
+  font-size: 14px;
+  font-weight: 800;
+  min-width: 60px;
+  text-align: center;
+}
