@@ -1,9 +1,9 @@
 import React from "react";
 import "./Home.css";
 
-function Home({ goToFriends, goToShop }) {
+function Home({ goToFriends, goToShop, goToCityLayout }) {
   return (
-     <div className="home-page">
+    <div className="home-page">
       <div className="home-screen">
         <h1 className="home-title">BudgetLife</h1>
         <p className="home-subtitle">Main Page</p>
@@ -15,7 +15,11 @@ function Home({ goToFriends, goToShop }) {
         <button className="home-button" onClick={goToShop}>
           Go to Shop
         </button>
-      </div> 
+
+        <button className="home-button" onClick={goToCityLayout}>
+          Go to City Layout
+        </button>
+      </div>
     </div>
   );
 }
