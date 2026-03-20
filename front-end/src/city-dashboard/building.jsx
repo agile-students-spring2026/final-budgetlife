@@ -100,7 +100,6 @@ export function DisplayMenu({ building, onClose }) {
 				 style={{
 					 background: "#222",
 					 color: "#fff",
-					 boxShadow: "0 4px 16px rgba(0,0,0,0.25)",
 					 borderBottomLeftRadius: 24,
 					 borderBottomRightRadius: 24,
 					 padding: "32px 24px 24px 24px",
@@ -123,17 +122,25 @@ export function DisplayMenu({ building, onClose }) {
 				<div style={{ marginBottom: 18, width: '100%', maxWidth: 400 }}>
 					{displayBudget({ budget: building.budget, spent: building.spent, width: 400, isPrimary: building.type === 'primary' })}
 				</div>
-				{building.savingGoal && (
-					<div style={{ marginBottom: 10, fontSize: 18, wordBreak: 'break-word', maxWidth: '100%' }}><b>Saving Goal:</b> ${building.savingGoal}</div>
-				)}
+				<div style={{ marginBottom: 18, width: '100%', maxWidth: 400 }}>
+					<div style={{ fontWeight: 700, fontSize: 18, marginBottom: 6 }}>Savings goal</div>
+					<div style={{ background: '#333', borderRadius: 8, padding: '8px 16px', fontSize: 16, color: '#fff' }}>
+						{building.savingGoal ? `$${building.savingGoal}` : 'No goal set'}
+					</div>
+				</div>
+				<div style={{ marginBottom: 18, width: '100%', maxWidth: 400 }}>
+					<div style={{ fontWeight: 700, fontSize: 18, marginBottom: 6 }}>History</div>
+					<div style={{ background: '#222', borderRadius: 8, padding: '8px 16px', color: '#fff', fontSize: 15 }}>
+						<div>- $10 on Tacobell</div>
+						<div>- $25 on Groceries</div>
+						<div>- $5 on Coffee</div>
+						<div>- $40 on Utilities</div>
+					</div>
+				</div>
 			 </div>
 		 </div>
 	 );
     }
-// - The name of the building at the top of the menu in large font
-// - Category and level are beneath the name formatted like tags (colored boxes around the words)
-// - make DisplayBudget bar bigger and move it to the menu window beneath the category and level elements
-
 
 // DisplayBudget function:
 // - health bar style display of current budget + amount spent on top of the building box
@@ -196,7 +203,7 @@ export function displayBudget({ budget, spent, width = 200, isPrimary = false })
 							height: '100%',
 						}}
 					>
-						${spent} spent
+						-${spent}
 					</div>
 				)}
 			</div>

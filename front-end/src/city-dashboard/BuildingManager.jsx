@@ -4,7 +4,7 @@ import { BuildingBox } from "./building";
 // Helper to create default city state
 function createDefaultCity() {
   const buildings = [
-    { type: "primary", i: 1, location: { x: 0, y: 0 }, level: 1, name: "City Hall", category: "government", budget: 1000, spent: 0 }
+    { type: "primary", i: 1, location: { x: 0, y: 0 }, level: 1, name: "City Hall", category: "government", budget: 1000, spent: 300 }
   ];
   const angleStep = (2 * Math.PI) / 5;
   const radius = 500, jitter = 40;
@@ -19,7 +19,7 @@ function createDefaultCity() {
       name: `Building ${idx + 2}`,
       category: "residential",
       budget: 500,
-      spent: 0
+      spent: 100
     });
   }
   return {
@@ -35,7 +35,14 @@ export function BuildingManager({ onBuildingClick, onCloseMenu, showBudget = tru
 	const dragging = useRef(false);
 	const lastPos = useRef({ x: 0, y: 0 });
 
-    const [city, setCity] = useState(() => {
+	// When menu closes (showBudget becomes true), zoom out and pan down
+	useEffect(() => {
+		if (showBudget) {
+			setZoom(0.67); // zoomed out
+		}
+	}, [showBudget]);
+
+	const [city, setCity] = useState(() => {
     const saved = localStorage.getItem("cityState");
     if (saved) {
         try { return JSON.parse(saved); } catch {}
@@ -62,6 +69,47 @@ export function BuildingManager({ onBuildingClick, onCloseMenu, showBudget = tru
             maxY: Math.max(...ys)
         };
 }
+
+// Zoom and center a building in the bottom half of the view
+		function ZoomOnBuilding(building) {
+			// Target zoom level (fully zoomed in)
+			const targetZoom = 1;
+			setZoom(targetZoom);
+
+			// Center of the visible area (bottom half)
+			const viewportWidth = window.innerWidth;
+			const viewportHeight = window.innerHeight;
+			const CITY_WIDTH = 1200;
+			const CITY_HEIGHT = 1200;
+			const BUILDING_SIZE = building.type === 'primary' ? 280 : 200;
+
+			// Building's position in city coordinates
+			const buildingX = building.location.x;
+			const buildingY = building.location.y;
+
+			// Target center: horizontally center, vertically 3/4 down the city view
+			const targetScreenX = viewportWidth / 2;
+			const targetScreenY = viewportHeight * 0.75;
+
+			// City center in screen coordinates
+			const cityCenterX = CITY_WIDTH / 2;
+			const cityCenterY = CITY_HEIGHT / 2;
+            
+            let xOffset = 0, yOffset = 0;
+
+            if (building.type === 'secondary') {
+                xOffset = 1.9*BUILDING_SIZE;
+                yOffset = 1.5*BUILDING_SIZE;
+            } else if (building.type === 'primary') {
+                xOffset = 1.22*BUILDING_SIZE;
+                yOffset = 1.1*BUILDING_SIZE;
+            }
+
+			const dx = targetScreenX - (cityCenterX + buildingX - xOffset);
+            const dy = targetScreenY - (cityCenterY + buildingY - yOffset);
+
+			setPan({ x: dx, y: dy });
+		}
 
 	// Mouse and touch event handlers for panning
 	function handleMouseDown(e) {
@@ -230,7 +278,10 @@ export function BuildingManager({ onBuildingClick, onCloseMenu, showBudget = tru
 								 transition: dragging.current ? "none" : "left 0.2s, top 0.2s"
 								 }}
 						 >
-								<BuildingBox building={{ ...b, showBudget }} onClick={() => onBuildingClick && onBuildingClick(b)} />
+								<BuildingBox building={{ ...b, showBudget }} onClick={() => {
+									if (onBuildingClick) onBuildingClick(b);
+									ZoomOnBuilding(b);
+								}} />
 						 </div>
 						 ))}
 			 </div>
