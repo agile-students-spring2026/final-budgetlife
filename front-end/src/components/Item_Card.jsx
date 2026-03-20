@@ -1,26 +1,33 @@
-import { PlayerContext } from "../context/Player_Context";
-import { useContext } from "react";
- // optional styling
+import React from "react";
 
-function ItemCard({ item }) {
-  const { money, inventory, buyItem } = useContext(PlayerContext);
-
+function Item_Card({ item, money, inventory, buyItem }) {
   const owned = inventory.includes(item.id);
-  const canBuy = money >= item.price && !owned;
+  const canBuy = money >= item.price;
 
   return (
-    <div className="item-card">
-      <div className="item-name">{item.name}</div>
-      <div className="item-price">${item.price}</div>
+    <div className="shop-card">
+
+      <div className="shop-card-left">
+        <div className="shop-icon">{item.name}</div>
+
+        <div className="shop-text">
+          <div className="shop-name">{item.name}</div>
+          <div className="shop-info">
+            ${item.price} • {item.info}
+          </div>
+        </div>
+      </div>
+
       <button
+        className="buy-btn"
         onClick={() => buyItem(item)}
-        disabled={!canBuy}
-        className={canBuy ? "buy-btn" : "buy-btn-disabled"}
+        disabled={owned || !canBuy}
       >
-        {owned ? "Owned" : canBuy ? "Buy" : "Too Expensive"}
+        {owned ? "✓" : "Buy"}
       </button>
+
     </div>
   );
 }
 
-export default ItemCard;
+export default Item_Card;
