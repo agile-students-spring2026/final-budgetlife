@@ -38,7 +38,7 @@ function Friends_List({ goHome }) {
             <div className="userid">userID</div>
           </div>
 
-          <button className="close-btn" onClick={goHome}>
+          <button className="close-btn" onClick={() => navigate("/home")}>
             ×
           </button>
         </div>
