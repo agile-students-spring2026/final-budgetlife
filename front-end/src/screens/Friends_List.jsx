@@ -1,9 +1,8 @@
-import React from "react";
-import { useNavigate } from "react-router-dom";
+import React, { useState } from "react";
 import "./Friends_List.css";
 
-function Friends_List() {
-  const navigate = useNavigate();
+function Friends_List({ goHome }) {
+  const [showMenu, setShowMenu] = useState(false);
 
   const friends = [
     { id: 1, username: "User1", name: "Name", info: "Info" },
@@ -39,7 +38,7 @@ function Friends_List() {
             <div className="userid">userID</div>
           </div>
 
-          <button className="close-btn" onClick={() => navigate("/home")}>
+          <button className="close-btn" onClick={goHome}>
             ×
           </button>
         </div>
