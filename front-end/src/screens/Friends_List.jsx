@@ -1,7 +1,9 @@
-import React from "react";
+import React, { useState } from "react";
 import "./Friends_List.css";
 
 function Friends_List({ goHome }) {
+  const [showMenu, setShowMenu] = useState(false);
+
   const friends = [
     { id: 1, username: "User1", name: "Name", info: "Info" },
     { id: 2, username: "User2", name: "Name", info: "Info" },
@@ -13,8 +15,24 @@ function Friends_List({ goHome }) {
     <div className="friends-page">
       <div className="friends-screen">
         <div className="friends-top">
-          <div className="player-icon">Player Icon</div>
+          <div className="profile-menu-wrapper">
+            <button
+              className="player-icon-button"
+              onClick={() => setShowMenu(!showMenu)}
+            >
+              <div className="player-photo">Player Icon</div>
+            </button>
 
+            <div className={`menu-layer ${showMenu ? "open" : "closed"}`}>
+              <div className="dropdown-ellipse"></div>
+
+              <div className="profile-dropdown">
+                <button className="dropdown-item">Friends</button>
+                <button className="dropdown-item">Shop</button>
+                <button className="dropdown-item">Logout</button>
+              </div>
+            </div>
+          </div>
           <div className="user-text">
             <div className="username">Username</div>
             <div className="userid">userID</div>
@@ -36,8 +54,8 @@ function Friends_List({ goHome }) {
               <div className="friend-icon">{friend.username}</div>
 
               <div className="friend-text">
-                <div className="friend-name">{friend.name}</div>
-                <div className="friend-info">{friend.info}</div>
+                <div className="friend-name">Name: {friend.name}</div>
+                <div className="friend-info">Info: {friend.info}</div>
               </div>
             </div>
           ))}
