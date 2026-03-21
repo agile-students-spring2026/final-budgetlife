@@ -12,30 +12,22 @@ import Sign_up from "./screens/Sign_up.jsx";
 
 function App() {
   return (
-    <>
-      {page === "home" && (
-        <Home
-          goToFriends={() => setPage("friends")}
-          goToShop={() => setPage("shop")}
-          goToCityLayout={() => setPage("cityLayout")}
-        />
-      )}
-
-      {page === "friends" && (
-        <Friends_List goHome={() => setPage("home")} />
-      )}
-
-      {page === "shop" && (
-        <Shop goHome={() => setPage("home")} />
-      )}
-
-      {page === "cityLayout" && (
-        <>
-          <BudgetHeader />
-          <BuildingManager />
-        </>
-      )}
-    </>
+      <Router basename={import.meta.env.BASE_URL}>
+        <Routes>
+          <Route path="/" element={<Login />} />
+          <Route path="/login" element={<Login_In />} />
+          <Route path="/signup" element={<Sign_up />} />
+          <Route path="/home" element={<Home />} />
+          <Route path="/friends" element={<Friends_List />} />
+          <Route path="/city-layout" element={<>
+              <BudgetHeader />
+              <BuildingManager />
+            </>}
+          />
+          <Route path="/account" element={<Account />} />
+          <Route path="/shop" element={<Shop />} />
+        </Routes>
+      </Router>
   );
 }
 
