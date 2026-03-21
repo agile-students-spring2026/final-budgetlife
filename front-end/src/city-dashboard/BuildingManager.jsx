@@ -10,7 +10,7 @@ function createDefaultCity() {
   const radius = 500, jitter = 40;
   for (let idx = 0; idx < 5; idx++) {
     const angle = idx * angleStep;
-    const r = radius + (Math.random() - 0.5) * jitter;
+    const r = radius + (Math.random() - 0.55) * jitter;
     buildings.push({
       type: "secondary",
       i: idx + 2,
@@ -38,7 +38,7 @@ export function BuildingManager({ onBuildingClick, onCloseMenu, showBudget = tru
 	// When menu closes (showBudget becomes true), zoom out and pan down
 	useEffect(() => {
 		if (showBudget) {
-			setZoom(0.67); // zoomed out
+			setZoom(0.5); // zoomed out
 		}
 	}, [showBudget]);
 
@@ -169,7 +169,7 @@ export function BuildingManager({ onBuildingClick, onCloseMenu, showBudget = tru
 				const delta = dist - lastDistance.current;
 				setZoom((prev) => {
 					let next = prev + delta * 0.002;
-					next = Math.max(0.67, Math.min(1, next));
+					next = Math.max(0.5, Math.min(1, next));
 					return next;
 				});
 			}
@@ -198,7 +198,7 @@ export function BuildingManager({ onBuildingClick, onCloseMenu, showBudget = tru
 		let delta = e.deltaY;
 		setZoom((prev) => {
 			let next = prev - delta * 0.001;
-			next = Math.max(0.67, Math.min(1, next));
+			next = Math.max(0.5, Math.min(1, next));
 			return next;
 		});
 		e.preventDefault();
@@ -225,7 +225,7 @@ export function BuildingManager({ onBuildingClick, onCloseMenu, showBudget = tru
 		};
 	}, []);
 
-	const [zoom, setZoom] = useState(0.67);
+	const [zoom, setZoom] = useState(0.5);
 	const lastDistance = useRef(null);
 
 	 return (

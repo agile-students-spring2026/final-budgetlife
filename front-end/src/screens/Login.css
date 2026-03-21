@@ -10,7 +10,7 @@
 width: min(90vw, 900px);
 min-height: 100vh;
 background: #bdbdbd;
-
+min-width: 100vw;
 display: flex;
 flex-direction: column;
 justify-content: center;
