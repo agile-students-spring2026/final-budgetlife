@@ -1,7 +1,10 @@
 import React from "react";
+import { useNavigate } from "react-router-dom";
 import "./Friends_List.css";
 
-function Friends_List({ goHome }) {
+function Friends_List() {
+  const navigate = useNavigate();
+
   const friends = [
     { id: 1, username: "User1", name: "Name", info: "Info" },
     { id: 2, username: "User2", name: "Name", info: "Info" },
@@ -20,7 +23,7 @@ function Friends_List({ goHome }) {
             <div className="userid">userID</div>
           </div>
 
-          <button className="close-btn" onClick={goHome}>
+          <button className="close-btn" onClick={() => navigate("/home")}>
             ×
           </button>
         </div>
