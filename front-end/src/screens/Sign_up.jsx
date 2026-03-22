@@ -21,15 +21,15 @@ function Login() {
 
             <p className="login-p">Email</p>
 
-            <p className="input">{email}</p>
+            <p className="input">{email()}</p>
 
             <p className="login-p">Password</p>
 
-            <p className="input">{password}</p>
+            <p className="input">{password()}</p>
             
             <button
             className="login-button"
-            onClick={() => navigate("/home")}
+            onClick={() => navigate("/city-layout")}
             >
             Confirm
             </button>
