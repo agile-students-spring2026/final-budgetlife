@@ -1,39 +1,93 @@
-import React, { useState } from "react";
+import React, { useContext, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { PlayerContext } from "../context/Player_Context";
 import "./Friends_List.css";
-import DropdownMenu from "../components/Dropdown";
+
+function FriendRow({ friend, onRemove }) {
+  const [dragX, setDragX] = useState(0);
+  const [open, setOpen] = useState(false);
+  const startX = useRef(null);
+
+  const handlePointerDown = (e) => {
+    startX.current = e.clientX;
+  };
+
+  const handlePointerMove = (e) => {
+    if (startX.current === null) return;
+
+    const delta = e.clientX - startX.current;
+
+    if (delta < 0) {
+      setDragX(Math.max(delta, -160));
+    } else {
+      setDragX(Math.min(delta, 160));
+    }
+  };
+
+  const handlePointerUp = () => {
+    if (startX.current === null) return;
+
+    if (dragX <= -70) {
+      setOpen(true);
+      setDragX(-160);
+    } else if (dragX >= 70) {
+      setOpen(false);
+      setDragX(0);
+    } else {
+      setDragX(open ? -160 : 0);
+    }
+
+    startX.current = null;
+  };
+
+  return (
+    <div className="friend-row-shell">
+      <button className="remove-friend-btn" onClick={() => onRemove(friend.id)}>
+        Remove
+      </button>
+
+      <div
+        className={`friend-card-swipe ${open ? "open" : ""}`}
+        style={{ transform: `translateX(${dragX}px)` }}
+        onPointerDown={handlePointerDown}
+        onPointerMove={handlePointerMove}
+        onPointerUp={handlePointerUp}
+        onPointerLeave={handlePointerUp}
+      >
+        <div className="friend-card">
+          <div className="friend-icon">{friend.username}</div>
+
+          <div className="friend-text">
+            <div className="friend-name">Name: {friend.name}</div>
+            <div className="friend-info">Info: {friend.info}</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
 
 function Friends_List() {
-  const [showMenu, setShowMenu] = useState(false);
   const navigate = useNavigate();
+  const { friends, removeFriend } = useContext(PlayerContext);
+  const [search, setSearch] = useState("");
 
-  const friends = [
-    { id: 1, username: "User1", name: "Name", info: "Info" },
-    { id: 2, username: "User2", name: "Name", info: "Info" },
-    { id: 3, username: "User3", name: "Name", info: "Info" },
-    { id: 4, username: "User4", name: "Name", info: "Info" },
-  ];
+  const filteredFriends = useMemo(() => {
+    return friends.filter((friend) => {
+      const q = search.toLowerCase();
+      return (
+        friend.username.toLowerCase().includes(q) ||
+        friend.name.toLowerCase().includes(q)
+      );
+    });
+  }, [friends, search]);
 
   return (
     <div className="friends-page">
       <div className="friends-screen">
         <div className="friends-top">
           <div className="profile-menu-wrapper">
-            <button
-              className="player-icon-button"
-              onClick={() => setShowMenu(!showMenu)}
-            >
-              <div className="player-photo">Player Icon</div>
-            </button>
-
-            <DropdownMenu
-              isOpen={showMenu}
-              items={[
-                { label: "Friends", onClick: () => navigate("/friends") },
-                { label: "Shop", onClick: () => navigate("/shop") },
-                { label: "Logout", onClick: () => navigate("/") },
-              ]}
-            />
+            <div className="player-photo">Player Icon</div>
           </div>
 
           <div className="user-text">
@@ -41,31 +95,45 @@ function Friends_List() {
             <div className="userid">userID</div>
           </div>
 
-          <button className="close-btn" onClick={() => navigate("/home")}>
+          <button
+            className="close-btn"
+            onClick={() => navigate("/city-layout")}
+          >
             ×
           </button>
         </div>
 
         <div className="friends-search-row">
           <div className="friends-title">Friends Cities</div>
-          <input className="search-input" type="text" placeholder="Search" />
+          <input
+            className="search-input"
+            type="text"
+            placeholder="Search"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+          />
         </div>
 
         <div className="friends-list">
-          {friends.map((friend) => (
-            <div key={friend.id} className="friend-card">
-              <div className="friend-icon">{friend.username}</div>
-
-              <div className="friend-text">
-                <div className="friend-name">Name: {friend.name}</div>
-                <div className="friend-info">Info: {friend.info}</div>
-              </div>
-            </div>
-          ))}
+          {friends.length === 0 ? (
+            <div className="friends-empty">No friends added</div>
+          ) : filteredFriends.length > 0 ? (
+            filteredFriends.map((friend) => (
+              <FriendRow
+                key={friend.id}
+                friend={friend}
+                onRemove={removeFriend}
+              />
+            ))
+          ) : (
+            <div className="friends-empty">No matching users</div>
+          )}
         </div>
 
         <div className="friends-bottom">
-          <button className="add-btn">+</button>
+          <button className="add-btn" onClick={() => navigate("/add-friends")}>
+            +
+          </button>
         </div>
       </div>
     </div>

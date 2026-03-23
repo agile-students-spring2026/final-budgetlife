@@ -1,32 +1,15 @@
 .budget-header {
   width: 100%;
+  min-height: 180px;
   background: #444;
-  padding: 16px 24px;
+  padding: 47.5px 10px;
   box-sizing: border-box;
 }
 
 .header-row {
   display: flex;
-  gap: 12px;
+  gap: 24px;
   align-items: center;
-}
-
-.player-icon {
-  width: 70px;
-  height: 70px;
-  border-radius: 50%;
-  background: #000;
-  color: #fff;
-
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-
-  font-size: 12px;
-  font-weight: 700;
-  line-height: 1.1;
-  flex-shrink: 0;
 }
 
 .budget-panel {
@@ -65,4 +48,39 @@
   font-weight: 800;
   min-width: 60px;
   text-align: center;
+}
+
+.player-menu-wrapper {
+  position: relative;
+  width: 85px;
+  flex-shrink: 0;
+  isolation: isolate;
+}
+
+.player-icon-button {
+  position: relative;
+  z-index: 3;
+  background: transparent;
+  border: none;
+  padding: 0;
+  margin: 0;
+  cursor: pointer;
+}
+
+.player-icon {
+  position: relative;
+  z-index: 3;
+  width: 85px;
+  height: 85px;
+  border-radius: 50%;
+  background: #000;
+  color: #fff;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  font-weight: 700;
+  line-height: 1.1;
+  flex-shrink: 0;
 }

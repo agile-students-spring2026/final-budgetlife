@@ -1,13 +1,25 @@
+import React, { useState } from "react";
 import "./BudgetHeader.css";
+import DropdownMenu from "../components/Dropdown";
 
 function BudgetHeader() {
+  const [menuOpen, setMenuOpen] = useState(false);
+
   return (
     <div className="budget-header">
       <div className="header-row">
-        
-        <div className="player-icon">
-          <span>Player</span>
-          <span>Icon</span>
+        <div className="player-menu-wrapper">
+          <button
+            className="player-icon-button"
+            onClick={() => setMenuOpen(!menuOpen)}
+          >
+            <div className="player-icon">
+              <span>Player</span>
+              <span>Icon</span>
+            </div>
+          </button>
+
+          <DropdownMenu isOpen={menuOpen} />
         </div>
 
         <div className="budget-panel">
@@ -18,7 +30,6 @@ function BudgetHeader() {
             <div className="budget-right">-$20</div>
           </div>
         </div>
-
       </div>
     </div>
   );

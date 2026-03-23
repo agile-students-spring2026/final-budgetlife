@@ -1,13 +1,22 @@
 import React from "react";
+import { useNavigate } from "react-router-dom";
 import "./Dropdown.css";
 
-function DropdownMenu({ isOpen, items = [] }) {
+function DropdownMenu({ isOpen }) {
+  const navigate = useNavigate();
+
+  const menuItems = [
+    { label: "Friends", onClick: () => navigate("/friends") },
+    { label: "Shop", onClick: () => navigate("/shop") },
+    { label: "Logout", onClick: () => navigate("/") },
+  ];
+
   return (
     <div className={`menu-layer ${isOpen ? "open" : "closed"}`}>
       <div className="dropdown-ellipse"></div>
 
       <div className="profile-dropdown">
-        {items.map((item, index) => (
+        {menuItems.map((item, index) => (
           <button
             key={item.label}
             className="dropdown-item"
