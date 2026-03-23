@@ -1,48 +1,50 @@
-import React from "react";
+import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import "./Login.css";
 
 function Login() {
-    const navigate = useNavigate();
+  const navigate = useNavigate();
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
 
-    const email = function () {
-        return <input type="text" placeholder="Enter Your Email" />;
-    }
+  return (
+    <div className="login-page">
+      <div className="login-screen">
+        <h1 className="login-title">BudgetLife</h1>
+        <p className="login-subtitle">Sign Up</p>
 
-    const password = function () {
-        return <input type="text" placeholder="Enter Your Password" />;
-    }
+        <input
+          className="login-input"
+          type="text"
+          placeholder="Email"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+        />
 
-    return (
-        <div className="login-page">
-        <div className="login-screen">
-            <h1 className="login-title">BudgetLife</h1>
-            <p className="login-subtitle">Sign Up</p>
+        <input
+          className="login-input"
+          type="password"
+          placeholder="Password"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+        />
 
-            <p className="login-p">Email</p>
+        <button
+          className="login-button"
+          onClick={() => navigate("/city-layout")}
+        >
+          Confirm
+        </button>
 
-            <p className="input">{email()}</p>
-
-            <p className="login-p">Password</p>
-
-            <p className="input">{password()}</p>
-            
-            <button
-            className="login-button"
-            onClick={() => navigate("/city-layout")}
-            >
-            Confirm
-            </button>
-
-            <button
-            className="login-button"
-            onClick={() => navigate("/")}
-            >
-            Back
-            </button>
-        </div>
-        </div>
-    );
+        <button
+          className="login-button"
+          onClick={() => navigate("/")}
+        >
+          Back
+        </button>
+      </div>
+    </div>
+  );
 }
 
 export default Login;

@@ -7,24 +7,23 @@ function Login() {
 
     return (
         <div className="login-page">
-        <div className="login-screen">
-            <h1 className="login-title">BudgetLife</h1>
-            <p className="login-subtitle">Login Screen</p>
-            
-            <button
-            className="login-button"
-            onClick={() => navigate("/login")}
-            >
-            Login
-            </button>
+            <div className="login-screen">
+                <h1 className="login-title">BudgetLife</h1>
+                
+                <button
+                    className="login-button"
+                    onClick={() => navigate("/login")}
+                >
+                    Login
+                </button>
 
-            <button
-            className="login-button"
-            onClick={() => navigate("/signup")}
-            >
-            Sign Up
-            </button>
-        </div>
+                <button
+                    className="login-button"
+                    onClick={() => navigate("/signup")}
+                >
+                    Sign Up
+                </button>
+            </div>
         </div>
     );
 }

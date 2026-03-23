@@ -98,10 +98,10 @@ export function BuildingManager({ onBuildingClick, onCloseMenu, showBudget = tru
             let xOffset = 0, yOffset = 0;
 
             if (building.type === 'secondary') {
-                xOffset = 1.9*BUILDING_SIZE;
+                xOffset = 2.9*BUILDING_SIZE;
                 yOffset = 1.5*BUILDING_SIZE;
             } else if (building.type === 'primary') {
-                xOffset = 1.22*BUILDING_SIZE;
+                xOffset = 1.9*BUILDING_SIZE;
                 yOffset = 1.1*BUILDING_SIZE;
             }
 
