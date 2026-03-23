@@ -9,6 +9,7 @@ import Account from "./screens/Account.jsx";
 import Login from "./screens/login.jsx";
 import Login_In from "./screens/Login_In.jsx";
 import Sign_up from "./screens/Sign_up.jsx";
+import Add_Friends from "./screens/Add_Friends";
 
 function App() {
   return (
@@ -19,6 +20,7 @@ function App() {
           <Route path="/signup" element={<Sign_up />} />
           <Route path="/home" element={<Home />} />
           <Route path="/friends" element={<Friends_List />} />
+          <Route path="/add-friends" element={<Add_Friends />} />
           <Route path="/city-layout" element={<>
               <BudgetHeader />
               <BuildingManager />

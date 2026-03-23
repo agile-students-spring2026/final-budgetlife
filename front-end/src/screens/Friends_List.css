@@ -89,14 +89,43 @@ body {
   overflow-y: auto;
 }
 
+.friend-row-shell {
+  position: relative;
+  overflow: hidden;
+  border-bottom: 12px solid #bdbdbd;
+  background: #d7d7d7;
+}
+
+.remove-friend-btn {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 140px;
+  height: 100%;
+  border: none;
+  background: black;
+  color: white;
+  font-size: 18px;
+  font-weight: bold;
+  cursor: pointer;
+  z-index: 1;
+}
+
+.friend-card-swipe {
+  position: relative;
+  z-index: 2;
+  transition: transform 0.2s ease;
+  touch-action: pan-y;
+}
+
 .friend-card {
   display: flex;
   align-items: center;
   gap: 18px;
   background: #d7d7d7;
   padding: 18px;
-  border-bottom: 12px solid #bdbdbd;
   box-sizing: border-box;
+  min-height: 140px;
 }
 
 .friend-icon {
@@ -120,6 +149,13 @@ body {
   font-size: 22px;
   font-weight: bold;
   color: black;
+}
+
+.friends-empty {
+  padding: 24px;
+  font-size: 20px;
+  font-weight: bold;
+  color: #666;
 }
 
 .friends-bottom {
