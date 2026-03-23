@@ -1,10 +1,8 @@
-import React, { useState } from "react";
+import React from "react";
 import { useNavigate } from "react-router-dom";
 import "./Friends_List.css";
-import DropdownMenu from "../components/Dropdown";
 
 function Friends_List() {
-  const [showMenu, setShowMenu] = useState(false);
   const navigate = useNavigate();
 
   const friends = [
@@ -19,21 +17,7 @@ function Friends_List() {
       <div className="friends-screen">
         <div className="friends-top">
           <div className="profile-menu-wrapper">
-            <button
-              className="player-icon-button"
-              onClick={() => setShowMenu(!showMenu)}
-            >
-              <div className="player-photo">Player Icon</div>
-            </button>
-
-            <DropdownMenu
-              isOpen={showMenu}
-              items={[
-                { label: "Friends", onClick: () => navigate("/friends") },
-                { label: "Shop", onClick: () => navigate("/shop") },
-                { label: "Logout", onClick: () => navigate("/") },
-              ]}
-            />
+            <div className="player-photo">Player Icon</div>
           </div>
 
           <div className="user-text">
@@ -41,7 +25,7 @@ function Friends_List() {
             <div className="userid">userID</div>
           </div>
 
-          <button className="close-btn" onClick={() => navigate("/home")}>
+          <button className="close-btn" onClick={() => navigate("/city-layout")}>
             ×
           </button>
         </div>

@@ -26,7 +26,9 @@ function Shop({ goHome }) {
             <div className="userid">${money}</div>
           </div>
 
-          <button className="close-btn" onClick={goHome}>×</button>
+          <button className="close-btn" onClick={() => navigate("/city-layout")}>
+            ×
+          </button>
         </div>
 
         {/* HEADER ROW */}
