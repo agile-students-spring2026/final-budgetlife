@@ -79,8 +79,8 @@ export function BuildingManager({ onBuildingClick, onCloseMenu, showBudget = tru
 			// Center of the visible area (bottom half)
 			const viewportWidth = window.innerWidth;
 			const viewportHeight = window.innerHeight;
-			const CITY_WIDTH = 1200;
-			const CITY_HEIGHT = 1200;
+			const CITY_WIDTH = 1600;
+			const CITY_HEIGHT = 1600;
 			const BUILDING_SIZE = building.type === 'primary' ? 280 : 200;
 
 			// Building's position in city coordinates
@@ -123,8 +123,8 @@ export function BuildingManager({ onBuildingClick, onCloseMenu, showBudget = tru
 		// Only clamp while dragging
 		if (!dragging.current) return nextPan;
 		const BUILDING_SIZE = 200;
-		const CITY_WIDTH = 1200;
-		const CITY_HEIGHT = 1200;
+		const CITY_WIDTH = 1600;
+		const CITY_HEIGHT = 1600;
 		const bounds = getBuildingBounds();
 		// Calculate the visible area center (city center)
 		// Scale pan bounds with zoom (smaller bounds when zoomed out)
@@ -206,8 +206,8 @@ export function BuildingManager({ onBuildingClick, onCloseMenu, showBudget = tru
 
 	// Center buildings in a fixed city map area for consistent layout
 	const BUILDING_SIZE = 200;
-	const CITY_WIDTH = 1200;
-	const CITY_HEIGHT = 1200;
+	const CITY_WIDTH = 1600;
+	const CITY_HEIGHT = 1600;
 	const HEADER_HEIGHT = 100;
 
 	// Prevent page scroll (lock body scroll)
@@ -262,7 +262,7 @@ export function BuildingManager({ onBuildingClick, onCloseMenu, showBudget = tru
 					 background: "#e0e0e0",
 					 borderRadius: "20px",
 					 margin: 0,
-					 transform: `translateY(-50vh) scale(${zoom})`,
+					 transform: `translateY(-45vh) scale(${zoom})`,
 					 transformOrigin: "center center",
 					 transition: dragging.current ? "none" : "transform 0.2s"
 				 }}
