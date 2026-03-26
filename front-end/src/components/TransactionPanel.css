@@ -1,0 +1,150 @@
+.transaction-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 2000;
+  display: flex;
+  justify-content: center;
+}
+
+
+
+.transaction-overlay.popup {
+  align-items: center;
+  background: rgba(0, 0, 0, 0.25);
+}
+
+.transaction-overlay.popup .transaction-panel {
+  border-radius: 16px; 
+}
+
+.transaction-overlay.slide {
+  align-items: flex-start;
+}
+
+.transaction-panel {
+  position: relative; 
+  width: min(90vw, 900px);
+  background: #bdbdbd;
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  transition: transform 0.25s ease;
+}
+
+
+.transaction-panel.slide.open {
+  transform: translateY(0);
+}
+
+.transaction-panel.slide.closing {
+  transform: translateY(-110%);
+}
+.transaction-panel.closing {
+  transform: translateY(-110%);
+}
+
+
+.transaction-overlay.slide .transaction-panel {
+  width: 100%;
+  border-radius: 0;
+  border-bottom: 8px solid #efefef;
+}
+
+
+.transaction-slide-header {
+  display: flex;
+  justify-content: space-between;
+  font-weight: bold;
+}
+
+.transaction-header-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-right: 50px; 
+  padding-bottom: 20px;
+}
+
+.transaction-title {
+  font-weight: bold;
+}
+
+/* INPUT */
+.transaction-row {
+  display: flex;
+  gap: 10px;
+}
+
+.transaction-row select,
+.transaction-row input {
+  flex: 1;
+  height: 36px;
+  border-radius: 8px;
+  border: none;
+  background: black;
+  color: white;
+  padding: 0 10px;
+}
+
+/* +/- */
+.transaction-type-row {
+  display: flex;
+  gap: 10px; 
+  margin-top: 4px;
+}
+
+.transaction-type-row button {
+  flex: 1;
+  height: 36px;
+  border-radius: 8px;
+  border: none;
+  font-size: 18px;
+}
+
+
+.transaction-type-row button.active {
+  background: #888;
+  color: black;
+}
+
+.transaction-type-row button.inactive {
+  background: black;
+  color: white;
+}
+
+
+.transaction-submit {
+  height: 40px;
+  background: black;
+  color: white;
+  border-radius: 8px;
+  border: none;
+}
+
+
+.transaction-close {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  width: 36px;
+  height: 36px;
+  border-radius: 100%;
+  background: black;
+  color: white;
+  border: none;
+  font-size: 20px;
+}
+
+
+.drag-handle.bottom {
+  width: 40px;
+  height: 4px;
+  background: #888;
+  border-radius: 2px;
+  margin: 6px auto 0;
+  cursor: grab;
+}
