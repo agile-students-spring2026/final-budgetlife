@@ -70,7 +70,7 @@ function CityLayout() {
           className="slide-trigger-btn"
           onClick={() => setShowSlide(true)}
         >
-          Test Slide
+          Test Notificaton
         </button>
       )}
 
