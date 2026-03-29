@@ -1,16 +1,15 @@
 import { Route, BrowserRouter as Router, Routes } from 'react-router-dom';
 
-import Home from "./screens/Home";
-import Friends_List from "./screens/Friends_List";
-import Shop from "./screens/Shop";
-import BudgetHeader from "./city-dashboard/cityLayout.jsx";
-import { BuildingManager } from "./city-dashboard/BuildingManager";
+import CityLayout from "./city-dashboard/cityLayout.jsx";
 import Account from "./screens/Account.jsx";
+import Add_Friends from "./screens/Add_Friends";
+import Friends_List from "./screens/Friends_List";
+import Home from "./screens/Home";
 import Login from "./screens/login.jsx";
 import Login_In from "./screens/Login_In.jsx";
+import PlayerCustomization from "./screens/Player_Customization.jsx";
+import Shop from "./screens/Shop";
 import Sign_up from "./screens/Sign_up.jsx";
-import Add_Friends from "./screens/Add_Friends";
-import CityLayout from "./city-dashboard/cityLayout.jsx";
 
 function App() {
   return (
@@ -25,6 +24,7 @@ function App() {
           <Route path="/city-layout" element={<CityLayout />} />
           <Route path="/account" element={<Account />} />
           <Route path="/shop" element={<Shop />} />
+          <Route path="/player_customization" element={<PlayerCustomization />} />
         </Routes>
       </Router>
   );
