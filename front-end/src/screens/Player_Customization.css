@@ -18,8 +18,8 @@
 
 .customization-header {
     width: 100%;
-    height: 56px;
-    background: #3a3a3a;
+    height: 66px;
+    background: #444;
     color: white;
     display: flex;
     justify-content: center;
@@ -29,7 +29,8 @@
 }
 
 .customization-title {
-    font-size: 18px;
+    height: 15px;
+    font-size: 22px;
     margin: 0;
     font-weight: 700;
 }
@@ -103,11 +104,13 @@
 }
 
 .tab {
-    padding: 6px 12px;
+    padding: 4px 12px;
     border: none;
     border-radius: 20px;
     background: #ddd;
     cursor: pointer;
+    font-size: 16px;
+    font-weight: 500;
 }
 
 .tab.active {

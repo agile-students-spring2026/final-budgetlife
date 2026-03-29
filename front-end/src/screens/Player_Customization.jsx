@@ -43,7 +43,6 @@ function PlayerCustomization() {
             </button>
             </div>
 
-            {/* Main Meme Preview */}
             <div className="preview-section">
             {selected ? (
                 <img src={selected} className="main-preview" />
@@ -53,7 +52,6 @@ function PlayerCustomization() {
             </div>
 
             <div className="container">
-            {/* Tabs */}
             <div className="tabs">
             {categories.map((tab) => (
                 <button
@@ -69,7 +67,6 @@ function PlayerCustomization() {
             ))}
             </div>
 
-            {/* Small circle preview (你的“颜色条”替代方案) */}
             <div className="circle-row">
             {mockData[activeTab].map((img, i) => (
                 <img

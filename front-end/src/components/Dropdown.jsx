@@ -8,7 +8,9 @@ function DropdownMenu({ isOpen }) {
   const menuItems = [
     { label: "Friends", onClick: () => navigate("/friends") },
     { label: "Shop", onClick: () => navigate("/shop") },
-    { label: "Logout", onClick: () => navigate("/") },
+    { label: "Look", onClick: () => navigate("/player_customization") },
+    { label: "Account", onClick: () => navigate("/account") },
+    { label: "Logout", onClick: () => navigate("/") }
   ];
 
   return (
