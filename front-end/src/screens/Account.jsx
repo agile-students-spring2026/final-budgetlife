@@ -15,7 +15,7 @@ function Account() {
             <div className="account-screen">
             <div className="account-header">
             <h1 className="account-title">Edit Profile</h1>
-            <button className="close-button" onClick={() => navigate("/home")}>
+            <button className="close-button" onClick={() => navigate("/city-layout")}>
                 ×
             </button>
             </div>
