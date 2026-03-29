@@ -1,29 +1,14 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import userIcon from "../assets/user_icon_temp.png";
-import user1 from "../data/mock_user.js";
 import "./Account.css";
 
 function Account() {
     
     const navigate = useNavigate();
 
-    const [name, setName] = useState(user1.name);
-    const [email, setEmail] = useState(user1.email);
+    const [name, setName] = useState("Just A Lonely farmer");
+    const [email, setEmail] = useState("JustALonlyEmail@gmail.com");
 
-    function changeName() {
-        const newName = prompt("Enter new name");
-        if (newName) {
-            setName(newName);
-        }
-    }
-
-    function changeEmail() {
-        const newE = prompt("Enter new Email");
-        if (newE) {
-            setEmail(newE);
-        }
-    }
 
     return (
         <div className="account-page">
@@ -39,20 +24,24 @@ function Account() {
                 <button
                     className="user-icon-button"
                     >
-                    <img src={userIcon} alt="User Icon" className="user-icon" />
+                    <div className="shop-player-icon">Player Icon</div>
                 </button>
 
                 <div className="info-column">
-                    <button
-                        className="information"
-                        onClick={() => changeName()}>
-                            {name}
-                    </button>
-                    <button
-                        className="information"
-                        onClick={() => changeEmail()}>
-                            {email}
-                    </button>
+                        <input
+                        className="info"
+                        type="text"
+                        placeholder="Just A Lonely farmer"
+                        value={name}
+                        onChange={(n) => setName(n.target.value)}
+                        />
+                        <input
+                        className="info"
+                        type="text"
+                        placeholder="JustALonelyEmail@gmail.com"
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                        />
                 </div>
             </div>
 
