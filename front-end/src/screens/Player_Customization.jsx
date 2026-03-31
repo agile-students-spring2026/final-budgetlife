@@ -37,7 +37,7 @@ function PlayerCustomization() {
             <h1 className="customization-title">Customization</h1>
             <button
                 className="close-button"
-                onClick={() => navigate("/home")}
+                onClick={() => navigate("/city-layout")}
             >
                 ×
             </button>
