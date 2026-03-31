@@ -1,5 +1,6 @@
 import React, { useRef, useState, useEffect } from "react";
 import { BuildingBox } from "./building";
+import { PlayerBox } from "./Player";
 
 // Helper to create default city state
 function createDefaultCity() {
@@ -29,11 +30,40 @@ function createDefaultCity() {
   };
 }
 
+
 export function BuildingManager({ onBuildingClick, onCloseMenu, showBudget = true }) {
 	// Pan state
 	const [pan, setPan] = useState({ x: 0, y: 0 });
 	const dragging = useRef(false);
 	const lastPos = useRef({ x: 0, y: 0 });
+
+	// Player position in city grid coordinates (not screen coordinates)
+	const [playerPos, setPlayerPos] = useState(() => ({
+		x: 0,
+		y: -240 // above City Hall by default
+	}));
+	const [targetPos, setTargetPos] = useState(null);
+
+	// Move player towards targetPos (city grid coordinates)
+	useEffect(() => {
+		if (!targetPos) return;
+		if (playerPos.x === targetPos.x && playerPos.y === targetPos.y) return;
+		const speed = 6;
+		const dx = targetPos.x - playerPos.x;
+		const dy = targetPos.y - playerPos.y;
+		const dist = Math.sqrt(dx * dx + dy * dy);
+		if (dist < speed) {
+			setPlayerPos(targetPos);
+			setTargetPos(null);
+		} else {
+			setPlayerPos({
+				x: playerPos.x + (dx / dist) * speed,
+				y: playerPos.y + (dy / dist) * speed
+			});
+		}
+		const id = requestAnimationFrame(() => setTargetPos(targetPos));
+		return () => cancelAnimationFrame(id);
+	}, [targetPos, playerPos]);
 
 	// When menu closes (showBudget becomes true), zoom out and pan down
 	useEffect(() => {
@@ -228,65 +258,100 @@ export function BuildingManager({ onBuildingClick, onCloseMenu, showBudget = tru
 	const [zoom, setZoom] = useState(0.5);
 	const lastDistance = useRef(null);
 
-	 return (
-		 <div
-			 className="building-manager"
-			 style={{
-				 position: "relative",
-				 overflow: "auto",
-				 minHeight: "600px",
-				 width: "100vw",
-				 maxWidth: "100vw",
-				 cursor: dragging.current ? "grabbing" : "grab",
-				 touchAction: "none",
-				 display: "flex",
-				 justifyContent: "center",
-				 marginTop: 0
-			 }}
-			 onMouseDown={handleMouseDown}
-			 onMouseUp={handleMouseUp}
-			 onMouseLeave={handleMouseUp}
-			 onMouseMove={handleMouseMove}
-			 onTouchStart={handleTouchStart}
-			 onTouchEnd={handleTouchEnd}
-			 onTouchCancel={handleTouchEnd}
-			 onTouchMove={handleTouchMove}
-			 onWheel={handleWheel}
-			 onClick={onCloseMenu}
-		 >
-			 <div
-				 style={{
-					 position: "relative",
-					 width: `${CITY_WIDTH}px`,
-					 height: `${CITY_HEIGHT}px`,
-					 background: "#e0e0e0",
-					 borderRadius: "20px",
-					 margin: 0,
-					 transform: `translateY(-45vh) scale(${zoom})`,
-					 transformOrigin: "center center",
-					 transition: dragging.current ? "none" : "transform 0.2s"
-				 }}
-			 >
-				 {city.buildings.map((b) => (
-						 <div
-								 key={b.i}
-								 style={{
-								 position: "absolute",
-								 left: `${CITY_WIDTH / 2 + b.location.x + pan.x - BUILDING_SIZE / 2}px`,
-								 top: `${CITY_HEIGHT / 2 + b.location.y + pan.y - BUILDING_SIZE / 2}px`,
-								 zIndex: b.type === "primary" ? 2 : 1,
-								 transition: dragging.current ? "none" : "left 0.2s, top 0.2s"
-								 }}
-						 >
-								<BuildingBox building={{ ...b, showBudget }} onClick={() => {
-									if (onBuildingClick) onBuildingClick(b);
-									ZoomOnBuilding(b);
-								}} />
-						 </div>
-						 ))}
-			 </div>
-		 </div>
-	 );
+		// Handle click to move player (city grid coordinates)
+		function handleCityClick(e) {
+			// Only move player if not dragging
+			if (dragging.current) return;
+			// Find the city grid div
+			const cityGrid = e.currentTarget.querySelector('[data-city-grid]');
+			if (!cityGrid) return;
+			const rect = cityGrid.getBoundingClientRect();
+			// Only respond if click is inside the city grid area
+			if (
+				e.clientX >= rect.left &&
+				e.clientX <= rect.right &&
+				e.clientY >= rect.top &&
+				e.clientY <= rect.bottom
+			) {
+				const clickX = e.clientX - rect.left;
+				const clickY = e.clientY - rect.top;
+				// Correct for CSS transform order: (screen - center) / zoom - pan
+				const centerX = CITY_WIDTH / 2;
+				const centerY = CITY_HEIGHT / 2;
+				const cityX = (clickX - centerX) / zoom - pan.x;
+				const cityY = (clickY - centerY) / zoom - pan.y;
+				setTargetPos({ x: cityX, y: cityY });
+			}
+			if (onCloseMenu) onCloseMenu();
+		}
+
+		return (
+			<div
+				className="building-manager"
+				style={{
+					position: "relative",
+					overflow: "auto",
+					minHeight: "600px",
+					width: "100vw",
+					maxWidth: "100vw",
+					cursor: dragging.current ? "grabbing" : "grab",
+					touchAction: "none",
+					display: "flex",
+					justifyContent: "center",
+					marginTop: 0
+				}}
+				onMouseDown={handleMouseDown}
+				onMouseUp={handleMouseUp}
+				onMouseLeave={handleMouseUp}
+				onMouseMove={handleMouseMove}
+				onTouchStart={handleTouchStart}
+				onTouchEnd={handleTouchEnd}
+				onTouchCancel={handleTouchEnd}
+				onTouchMove={handleTouchMove}
+				onWheel={handleWheel}
+				onClick={handleCityClick}
+			>
+			<div
+				data-city-grid
+				style={{
+					position: "relative",
+					width: `${CITY_WIDTH}px`,
+					height: `${CITY_HEIGHT}px`,
+					background: "#e0e0e0",
+					borderRadius: "20px",
+					margin: 0,
+					transform: `translateY(-45vh) scale(${zoom})`,
+					transformOrigin: "center center",
+					transition: dragging.current ? "none" : "transform 0.2s"
+				}}
+			>
+	        {/* Render PlayerBox at playerPos, affected by pan */}
+				{/* Center PlayerBox visually at playerPos (city coordinates) */}
+				<PlayerBox
+					x={CITY_WIDTH / 2 + playerPos.x + pan.x - 30}
+					y={CITY_HEIGHT / 2 + playerPos.y + pan.y - 60}
+					size={60}
+				/>
+				{city.buildings.map((b) => (
+					<div
+						key={b.i}
+						style={{
+							position: "absolute",
+							left: `${CITY_WIDTH / 2 + b.location.x + pan.x - BUILDING_SIZE / 2}px`,
+							top: `${CITY_HEIGHT / 2 + b.location.y + pan.y - BUILDING_SIZE / 2}px`,
+							zIndex: b.type === "primary" ? 2 : 1,
+							transition: dragging.current ? "none" : "left 0.2s, top 0.2s"
+						}}
+					>
+						<BuildingBox building={{ ...b, showBudget }} onClick={() => {
+							if (onBuildingClick) onBuildingClick(b);
+							ZoomOnBuilding(b);
+						}} />
+					</div>
+				))}
+			</div>
+		</div>
+	);
 }
 
 // stores a list of all the buildings in the city, and allows the user to add/remove buildings
