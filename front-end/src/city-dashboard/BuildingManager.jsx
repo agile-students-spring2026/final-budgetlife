@@ -1,6 +1,38 @@
 import React, { useRef, useState, useEffect, useContext } from "react";
 import { BuildingContext } from "../context/Building_Context";
 import { BuildingBox } from "./building";
+import { PlayerBox } from "./Player";
+
+
+// Helper to create default city state
+function createDefaultCity() {
+  const buildings = [
+    { type: "primary", i: 1, location: { x: 0, y: 0 }, level: 1, name: "City Hall", category: "government", budget: 1000, spent: 300 }
+  ];
+  const angleStep = (2 * Math.PI) / 5;
+  const radius = 500, jitter = 40;
+  for (let idx = 0; idx < 5; idx++) {
+    const angle = idx * angleStep;
+    const r = radius + (Math.random() - 0.55) * jitter;
+    buildings.push({
+      type: "secondary",
+      i: idx + 2,
+      location: { x: Math.round(r * Math.cos(angle)), y: Math.round(r * Math.sin(angle)) },
+      level: 1,
+      name: `Building ${idx + 2}`,
+      category: "residential",
+      budget: 500,
+      spent: 100
+    });
+  }
+  return {
+    buildings,
+    decorations: [],
+    // add more city state as needed
+  };
+}
+
+
 
 export function BuildingManager({ onBuildingClick, onCloseMenu, showBudget = true }) {
 	// Pan state
@@ -8,7 +40,99 @@ export function BuildingManager({ onBuildingClick, onCloseMenu, showBudget = tru
 	const dragging = useRef(false);
 	const lastPos = useRef({ x: 0, y: 0 });
 
-	const { city } = useContext(BuildingContext);
+	// Player position in city grid coordinates (not screen coordinates)
+	const [playerPos, setPlayerPos] = useState(() => ({
+		x: 0,
+		y: -240 // above City Hall by default
+	}));
+	const [targetPos, setTargetPos] = useState(null);
+
+	const [city, setCity] = useState(() => {
+    const saved = localStorage.getItem("cityState");
+    if (saved) {
+        try { return JSON.parse(saved); } catch {}
+    }
+    const defaults = createDefaultCity();
+    localStorage.setItem("cityState", JSON.stringify(defaults));
+    return defaults;
+    });
+
+    useEffect(() => {
+    localStorage.setItem("cityState", JSON.stringify(city));
+    }, [city]);
+
+
+	// Move player towards targetPos (city grid coordinates)
+	// Time-based movement for true constant speed
+	useEffect(() => {
+		if (!targetPos) return;
+		let animationId;
+		let lastTime = performance.now();
+		const speed = 800; // units per second
+
+		// Helper: check if line from (x1, y1) to (x2, y2) intersects a building's bounding box
+		function lineIntersectsBuilding(x1, y1, x2, y2, building) {
+			const boxSize = building.type === 'primary' ? 280 : 200;
+			const half = boxSize / 2;
+			const left = building.location.x - half;
+			const right = building.location.x + half;
+			const top = building.location.y - half;
+			const bottom = building.location.y + half;
+			// Simple AABB check: does the line segment cross the box?
+			// We'll use a simple approach: if either endpoint is inside, or if the line crosses any edge
+			function pointInBox(x, y) {
+				return x >= left && x <= right && y >= top && y <= bottom;
+			}
+			if (pointInBox(x1, y1) || pointInBox(x2, y2)) return true;
+			// Check for intersection with each edge
+			function lineIntersectsEdge(x1, y1, x2, y2, ex1, ey1, ex2, ey2) {
+				// Line AB and edge CD
+				const det = (x2 - x1) * (ey2 - ey1) - (y2 - y1) * (ex2 - ex1);
+				if (det === 0) return false; // parallel
+				const t = ((ex1 - x1) * (ey2 - ey1) - (ey1 - y1) * (ex2 - ex1)) / det;
+				const u = ((ex1 - x1) * (y2 - y1) - (ey1 - y1) * (x2 - x1)) / det;
+				return t >= 0 && t <= 1 && u >= 0 && u <= 1;
+			}
+			// Edges: left, right, top, bottom
+			if (
+				lineIntersectsEdge(x1, y1, x2, y2, left, top, left, bottom) ||
+				lineIntersectsEdge(x1, y1, x2, y2, right, top, right, bottom) ||
+				lineIntersectsEdge(x1, y1, x2, y2, left, top, right, top) ||
+				lineIntersectsEdge(x1, y1, x2, y2, left, bottom, right, bottom)
+			) {
+				return true;
+			}
+			return false;
+		}
+
+		function step(now) {
+			const dt = (now - lastTime) / 1000; // seconds
+			lastTime = now;
+			const dx = targetPos.x - playerPos.x;
+			const dy = targetPos.y - playerPos.y;
+			const dist = Math.sqrt(dx * dx + dy * dy);
+			const moveDist = speed * dt;
+
+			// --- Collision detection: check if path to target crosses any building ---
+			const collision = city.buildings.some(b => lineIntersectsBuilding(playerPos.x, playerPos.y, targetPos.x, targetPos.y, b));
+			if (collision) {
+				// For now, just log collision (next step: path around)
+				console.log('Collision detected with building!');
+			}
+
+			if (dist <= moveDist) {
+				setPlayerPos(targetPos);
+				setTargetPos(null);
+				return;
+			}
+			const moveX = (dx / dist) * moveDist;
+			const moveY = (dy / dist) * moveDist;
+			setPlayerPos(pos => ({ x: pos.x + moveX, y: pos.y + moveY }));
+			animationId = requestAnimationFrame(step);
+		}
+		animationId = requestAnimationFrame(step);
+		return () => cancelAnimationFrame(animationId);
+	}, [targetPos, playerPos, city.buildings]);
 
 	// When menu closes (showBudget becomes true), zoom out and pan down
 	useEffect(() => {
@@ -188,33 +312,67 @@ export function BuildingManager({ onBuildingClick, onCloseMenu, showBudget = tru
 	const [zoom, setZoom] = useState(0.5);
 	const lastDistance = useRef(null);
 
-	return (
-		<div
-			className="building-manager"
-			style={{
-				position: "relative",
-				overflow: "auto",
-				minHeight: "600px",
-				width: "100vw",
-				maxWidth: "100vw",
-				cursor: dragging.current ? "grabbing" : "grab",
-				touchAction: "none",
-				display: "flex",
-				justifyContent: "center",
-				marginTop: 0,
-			}}
-			onMouseDown={handleMouseDown}
-			onMouseUp={handleMouseUp}
-			onMouseLeave={handleMouseUp}
-			onMouseMove={handleMouseMove}
-			onTouchStart={handleTouchStart}
-			onTouchEnd={handleTouchEnd}
-			onTouchCancel={handleTouchEnd}
-			onTouchMove={handleTouchMove}
-			onWheel={handleWheel}
-			onClick={onCloseMenu}
-		>
+		// Handle click to move player (city grid coordinates)
+		function handleCityClick(e) {
+			// Only move player if not dragging
+			if (dragging.current) return;
+			// Find the city grid div
+			const cityGrid = e.currentTarget.querySelector('[data-city-grid]');
+			if (!cityGrid) return;
+			const rect = cityGrid.getBoundingClientRect();
+			// Only respond if click is inside the city grid area
+			if (
+				e.clientX >= rect.left &&
+				e.clientX <= rect.right &&
+				e.clientY >= rect.top &&
+				e.clientY <= rect.bottom
+			) {
+				// Only move player if the click target is the city grid (not when closing menu)
+				if (e.target === cityGrid) {
+					const clickX = e.clientX - rect.left;
+					const clickY = e.clientY - rect.top;
+					// Use scaled city width/height for center calculation
+					const scaledWidth = CITY_WIDTH * zoom;
+					const scaledHeight = CITY_HEIGHT * zoom;
+					const centerX = scaledWidth / 2;
+					const centerY = scaledHeight / 2;
+					// Convert click to city coordinates
+					const cityX = (clickX - centerX) / zoom - pan.x;
+					const cityY = (clickY - centerY) / zoom - pan.y;
+					setTargetPos({ x: cityX, y: cityY });
+				}
+			}
+			if (onCloseMenu) onCloseMenu();
+		}
+
+		return (
 			<div
+				className="building-manager"
+				style={{
+					position: "relative",
+					overflow: "auto",
+					minHeight: "600px",
+					width: "100vw",
+					maxWidth: "100vw",
+					cursor: dragging.current ? "grabbing" : "grab",
+					touchAction: "none",
+					display: "flex",
+					justifyContent: "center",
+					marginTop: 0
+				}}
+				onMouseDown={handleMouseDown}
+				onMouseUp={handleMouseUp}
+				onMouseLeave={handleMouseUp}
+				onMouseMove={handleMouseMove}
+				onTouchStart={handleTouchStart}
+				onTouchEnd={handleTouchEnd}
+				onTouchCancel={handleTouchEnd}
+				onTouchMove={handleTouchMove}
+				onWheel={handleWheel}
+				onClick={handleCityClick}
+			>
+			<div
+				data-city-grid
 				style={{
 					position: "relative",
 					width: `${CITY_WIDTH}px`,
@@ -224,9 +382,16 @@ export function BuildingManager({ onBuildingClick, onCloseMenu, showBudget = tru
 					margin: 0,
 					transform: `translateY(-45vh) scale(${zoom})`,
 					transformOrigin: "center center",
-					transition: dragging.current ? "none" : "transform 0.2s",
+					transition: dragging.current ? "none" : "transform 0.2s"
 				}}
 			>
+	        {/* Render PlayerBox at playerPos, affected by pan */}
+				{/* Center PlayerBox visually at playerPos (city coordinates) */}
+				<PlayerBox
+					x={CITY_WIDTH / 2 + playerPos.x + pan.x - 30}
+					y={CITY_HEIGHT / 2 + playerPos.y + pan.y - 60}
+					size={60}
+				/>
 				{city.buildings.map((b) => (
 					<div
 						key={b.i}
@@ -235,19 +400,26 @@ export function BuildingManager({ onBuildingClick, onCloseMenu, showBudget = tru
 							left: `${CITY_WIDTH / 2 + b.location.x + pan.x - BUILDING_SIZE / 2}px`,
 							top: `${CITY_HEIGHT / 2 + b.location.y + pan.y - BUILDING_SIZE / 2}px`,
 							zIndex: b.type === "primary" ? 2 : 1,
-							transition: dragging.current ? "none" : "left 0.2s, top 0.2s",
+							transition: dragging.current ? "none" : "left 0.2s, top 0.2s"
 						}}
 					>
-						<BuildingBox
-							building={{ ...b, showBudget }}
-							onClick={() => {
-								if (onBuildingClick) onBuildingClick(b);
-								ZoomOnBuilding(b);
-							}}
-						/>
+						<BuildingBox building={{ ...b, showBudget }} onClick={() => {
+							// Move player to center of building and a bit below
+							const offsetY = 60; // pixels below center
+							setTargetPos({
+								x: b.location.x,
+								y: b.location.y + offsetY
+							});
+							if (onBuildingClick) onBuildingClick(b);
+							ZoomOnBuilding(b);
+						}} />
 					</div>
 				))}
 			</div>
 		</div>
 	);
 }
+
+// stores a list of all the buildings in the city, and allows the user to add/remove buildings
+// saves the state of the buildings even when the app is closed and reopened
+// spawns the building components on the cityLayout screen (always at set locations)
