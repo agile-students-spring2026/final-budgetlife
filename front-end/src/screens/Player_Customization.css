@@ -49,15 +49,42 @@
 }
 
 .preview-section {
-    width: 100%;
+    position: relative;
+    width: 260px;
     height: 260px;
-    display: flex;
-    justify-content: center;
-    align-items: center;
+}
+
+.head {
+    position: absolute;
+    top: 0%;
+    left: 33%;
+}
+
+.h {
+    width: 80px;
+}
+
+.shirt {
+    position: absolute;
+    top: 30%;
+    left: 33%;
+}
+
+.s {
+    width: 80px;
+}
+
+.pant {
+    position: absolute;
+    top: 60%;
+    left: 33%;
+}
+
+.p {
+    width: 80px;
 }
 
 .main-preview {
-    max-height: 75%;
     border-radius: 12px;
 }
 

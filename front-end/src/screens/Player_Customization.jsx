@@ -3,30 +3,32 @@ import { useNavigate } from "react-router-dom";
 import data from "../assets/customization_temp_data";
 import "./Player_Customization.css";
 
-const categories = ["hairstyle", "nose", "eyes"];
+const categories = ["head", "shirts", "pants"];
 
 const mockData = {
-    hairstyle: [
-        data.hairstyle[0].img,
-        data.hairstyle[1].img,
-        data.hairstyle[2].img,
-        data.hairstyle[3].img,
+    head: [
+        data.head[0].img,
+        data.head[1].img,
+        data.head[2].img,
+        data.head[3].img,
     ],
-    nose: [
-        data.nose[0].img,
-        data.nose[1].img,
+    shirts: [
+        data.shirts[0].img,
+        data.shirts[1].img,
     ],
-    eyes: [
-        data.eyes[0].img,
-        data.eyes[1].img,
+    pants: [
+        data.pants[0].img,
+        data.pants[1].img,
     ],
 };
 
 function PlayerCustomization() {
     const navigate = useNavigate();
 
-    const [activeTab, setActiveTab] = useState("hairstyle");
-    const [selected, setSelected] = useState(null);
+    const [activeTab, setActiveTab] = useState("head");
+    const [selectedHead, setSelectedHead] = useState(null);
+    const [selectedShirt, setSelectedShirt] = useState(null);
+    const [selectedPant, setSelectedPant] = useState(null);
 
     return (
         <div className="customization-page">
@@ -44,11 +46,17 @@ function PlayerCustomization() {
             </div>
 
             <div className="preview-section">
-            {selected ? (
-                <img src={selected} className="main-preview" />
-            ) : (
-                <img src={data.hairstyle[0].img} className="main-preview" />
-            )}
+                <div className="head">
+                    <img src={selectedHead || data.head[0].img} className="main-preview h" />
+                </div>
+
+                <div className="shirt">
+                    <img src={selectedShirt || data.shirts[0].img} className="main-preview s" />
+                </div>
+
+                <div className="pant">
+                    <img src={selectedPant || data.pants[0].img} className="main-preview p" />
+                </div>
             </div>
 
             <div className="container">
@@ -59,7 +67,6 @@ function PlayerCustomization() {
                 className={`tab ${activeTab === tab ? "active" : ""}`}
                 onClick={() => {
                     setActiveTab(tab);
-                    setSelected(null);
                 }}
                 >
                 {tab}
@@ -73,9 +80,21 @@ function PlayerCustomization() {
                 key={i}
                 src={img}
                 className={`circle-item ${
-                    selected === img ? "active" : ""
+                    (activeTab === "head" && selectedHead === img) ||
+                    (activeTab === "shirts" && selectedShirt === img) ||
+                    (activeTab === "pants" && selectedPant === img)
+                        ? "active"
+                        : ""
                 }`}
-                onClick={() => setSelected(img)}
+                onClick={() => {
+                    if (activeTab === "head") {
+                        setSelectedHead(img);
+                    } else if (activeTab === "shirts") {
+                        setSelectedShirt(img);
+                    } else if (activeTab === "pants") {
+                        setSelectedPant(img);
+                    }
+                }}
                 />
             ))}
             </div>
@@ -87,7 +106,15 @@ function PlayerCustomization() {
                 key={i}
                 src={img}
                 className="grid-item"
-                onClick={() => setSelected(img)}
+                onClick={() => {
+                    if (activeTab === "head") {
+                        setSelectedHead(img);
+                    } else if (activeTab === "shirts") {
+                        setSelectedShirt(img);
+                    } else if (activeTab === "pants") {
+                        setSelectedPant(img);
+                    }
+                }}
                 />
             ))}
             </div>

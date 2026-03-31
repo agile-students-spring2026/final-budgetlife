@@ -1,6 +1,8 @@
-import React, { useRef, useState, useEffect } from "react";
+import React, { useRef, useState, useEffect, useContext } from "react";
+import { BuildingContext } from "../context/Building_Context";
 import { BuildingBox } from "./building";
 import { PlayerBox } from "./Player";
+
 
 // Helper to create default city state
 function createDefaultCity() {
@@ -29,6 +31,7 @@ function createDefaultCity() {
     // add more city state as needed
   };
 }
+
 
 
 export function BuildingManager({ onBuildingClick, onCloseMenu, showBudget = true }) {
@@ -139,85 +142,84 @@ export function BuildingManager({ onBuildingClick, onCloseMenu, showBudget = tru
 	}, [showBudget]);
 
 	// Helper to get building bounds
-    function getBuildingBounds() {
-        const xs = city.buildings.map(b => b.location.x);
-        const ys = city.buildings.map(b => b.location.y);
-        
-        return {
-            minX: Math.min(...xs),
-            maxX: Math.max(...xs),
-            minY: Math.min(...ys),
-            maxY: Math.max(...ys)
-        };
-}
+	function getBuildingBounds() {
+		const xs = city.buildings.map((b) => b.location.x);
+		const ys = city.buildings.map((b) => b.location.y);
 
-// Zoom and center a building in the bottom half of the view
-		function ZoomOnBuilding(building) {
-			// Target zoom level (fully zoomed in)
-			const targetZoom = 1;
-			setZoom(targetZoom);
+		return {
+			minX: Math.min(...xs),
+			maxX: Math.max(...xs),
+			minY: Math.min(...ys),
+			maxY: Math.max(...ys),
+		};
+	}
 
-			// Center of the visible area (bottom half)
-			const viewportWidth = window.innerWidth;
-			const viewportHeight = window.innerHeight;
-			const CITY_WIDTH = 1600;
-			const CITY_HEIGHT = 1600;
-			const BUILDING_SIZE = building.type === 'primary' ? 280 : 200;
+	// Zoom and center a building in the bottom half of the view
+	function ZoomOnBuilding(building) {
+		const targetZoom = 1;
+		setZoom(targetZoom);
 
-			// Building's position in city coordinates
-			const buildingX = building.location.x;
-			const buildingY = building.location.y;
+		const viewportWidth = window.innerWidth;
+		const viewportHeight = window.innerHeight;
+		const CITY_WIDTH = 1600;
+		const CITY_HEIGHT = 1600;
+		const BUILDING_SIZE = building.type === "primary" ? 280 : 200;
 
-			// Target center: horizontally center, vertically 3/4 down the city view
-			const targetScreenX = viewportWidth / 2;
-			const targetScreenY = viewportHeight * 0.75;
+		const buildingX = building.location.x;
+		const buildingY = building.location.y;
 
-			// City center in screen coordinates
-			const cityCenterX = CITY_WIDTH / 2;
-			const cityCenterY = CITY_HEIGHT / 2;
-            
-            let xOffset = 0, yOffset = 0;
+		const targetScreenX = viewportWidth / 2;
+		const targetScreenY = viewportHeight * 0.75;
 
-            if (building.type === 'secondary') {
-                xOffset = 2.9*BUILDING_SIZE;
-                yOffset = 1.5*BUILDING_SIZE;
-            } else if (building.type === 'primary') {
-                xOffset = 1.9*BUILDING_SIZE;
-                yOffset = 1.1*BUILDING_SIZE;
-            }
+		const cityCenterX = CITY_WIDTH / 2;
+		const cityCenterY = CITY_HEIGHT / 2;
 
-			const dx = targetScreenX - (cityCenterX + buildingX - xOffset);
-            const dy = targetScreenY - (cityCenterY + buildingY - yOffset);
+		let xOffset = 0,
+			yOffset = 0;
 
-			setPan({ x: dx, y: dy });
+		if (building.type === "secondary") {
+			xOffset = 2.9 * BUILDING_SIZE;
+			yOffset = 1.5 * BUILDING_SIZE;
+		} else if (building.type === "primary") {
+			xOffset = 1.9 * BUILDING_SIZE;
+			yOffset = 1.1 * BUILDING_SIZE;
 		}
+
+		const dx = targetScreenX - (cityCenterX + buildingX - xOffset);
+		const dy = targetScreenY - (cityCenterY + buildingY - yOffset);
+
+		setPan({ x: dx, y: dy });
+	}
 
 	// Mouse and touch event handlers for panning
 	function handleMouseDown(e) {
 		dragging.current = true;
 		lastPos.current = { x: e.clientX, y: e.clientY };
 	}
+
 	function handleMouseUp() {
 		dragging.current = false;
 	}
+
 	function clampPan(nextPan) {
-		// Only clamp while dragging
 		if (!dragging.current) return nextPan;
+
 		const BUILDING_SIZE = 200;
 		const CITY_WIDTH = 1600;
 		const CITY_HEIGHT = 1600;
 		const bounds = getBuildingBounds();
-		// Calculate the visible area center (city center)
-		// Scale pan bounds with zoom (smaller bounds when zoomed out)
+
 		const scale = typeof zoom === "number" ? zoom : 1;
 		const panDivisor = 8 / scale;
+
 		const minPanX = -(bounds.maxX + CITY_WIDTH / panDivisor - BUILDING_SIZE / 4);
 		const maxPanX = -(bounds.minX - CITY_WIDTH / panDivisor + BUILDING_SIZE / 4);
 		const minPanY = -(bounds.maxY + CITY_HEIGHT / panDivisor - BUILDING_SIZE);
 		const maxPanY = -(bounds.minY - CITY_HEIGHT / panDivisor + BUILDING_SIZE / 4);
+
 		return {
 			x: Math.max(minPanX, Math.min(maxPanX, nextPan.x)),
-			y: Math.max(minPanY, Math.min(maxPanY, nextPan.y))
+			y: Math.max(minPanY, Math.min(maxPanY, nextPan.y)),
 		};
 	}
 
@@ -238,13 +240,14 @@ export function BuildingManager({ onBuildingClick, onCloseMenu, showBudget = tru
 			lastDistance.current = getTouchDistance(e.touches);
 		}
 	}
+
 	function handleTouchEnd() {
 		dragging.current = false;
 		lastDistance.current = null;
 	}
+
 	function handleTouchMove(e) {
 		if (e.touches.length === 2) {
-			// Pinch to zoom
 			const dist = getTouchDistance(e.touches);
 			if (lastDistance.current) {
 				const delta = dist - lastDistance.current;
@@ -275,7 +278,7 @@ export function BuildingManager({ onBuildingClick, onCloseMenu, showBudget = tru
 
 	// Mouse wheel zoom
 	function handleWheel(e) {
-		if (e.ctrlKey || e.metaKey || e.altKey) return; // let browser zoom if modifier held
+		if (e.ctrlKey || e.metaKey || e.altKey) return;
 		let delta = e.deltaY;
 		setZoom((prev) => {
 			let next = prev - delta * 0.001;
@@ -291,7 +294,7 @@ export function BuildingManager({ onBuildingClick, onCloseMenu, showBudget = tru
 	const CITY_HEIGHT = 1600;
 	const HEADER_HEIGHT = 100;
 
-	// Prevent page scroll (lock body scroll)
+	// Prevent page scroll
 	useEffect(() => {
 		const preventScroll = (e) => {
 			e.preventDefault();
