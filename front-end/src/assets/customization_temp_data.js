@@ -1,5 +1,5 @@
 const customizationData = {
-    hairstyle: [
+    head: [
         {
             id: 1,
             img: "/src/assets/1.png",
@@ -17,33 +17,33 @@ const customizationData = {
         },
         {
             id: 4,
-            img: "/src/assets/8.png",
+            img: "/src/assets/4.png",
             label: "short hair",
         },
     ],
 
-    nose: [
+    shirts: [
         {
             id: 1,
-            img: "/src/assets/4.png",
+            img: "/src/assets/3.png",
             label: "nose 1",
         },
         {
             id: 2,
-            img: "/src/assets/5.png",
+            img: "/src/assets/1.png",
             label: "nose 2",
         },
     ],
 
-    eyes: [
+    pants: [
         {
             id: 1,
-            img: "/src/assets/6.png",
+            img: "/src/assets/2.png",
             label: "eyes 1",
         },
         {
             id: 2,
-            img: "/src/assets/7.png",
+            img: "/src/assets/3.png",
             label: "eyes 2",
         },
     ],
