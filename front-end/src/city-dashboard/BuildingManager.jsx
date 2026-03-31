@@ -275,9 +275,12 @@ export function BuildingManager({ onBuildingClick, onCloseMenu, showBudget = tru
 			) {
 				const clickX = e.clientX - rect.left;
 				const clickY = e.clientY - rect.top;
-				// Correct for CSS transform order: (screen - center) / zoom - pan
-				const centerX = CITY_WIDTH / 2;
-				const centerY = CITY_HEIGHT / 2;
+				// Use scaled city width/height for center calculation
+				const scaledWidth = CITY_WIDTH * zoom;
+				const scaledHeight = CITY_HEIGHT * zoom;
+				const centerX = scaledWidth / 2;
+				const centerY = scaledHeight / 2;
+				// Convert click to city coordinates
 				const cityX = (clickX - centerX) / zoom - pan.x;
 				const cityY = (clickY - centerY) / zoom - pan.y;
 				setTargetPos({ x: cityX, y: cityY });
