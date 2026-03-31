@@ -44,34 +44,6 @@ export function BuildingManager({ onBuildingClick, onCloseMenu, showBudget = tru
 	}));
 	const [targetPos, setTargetPos] = useState(null);
 
-	// Move player towards targetPos (city grid coordinates)
-	useEffect(() => {
-		if (!targetPos) return;
-		if (playerPos.x === targetPos.x && playerPos.y === targetPos.y) return;
-		const speed = 6;
-		const dx = targetPos.x - playerPos.x;
-		const dy = targetPos.y - playerPos.y;
-		const dist = Math.sqrt(dx * dx + dy * dy);
-		if (dist < speed) {
-			setPlayerPos(targetPos);
-			setTargetPos(null);
-		} else {
-			setPlayerPos({
-				x: playerPos.x + (dx / dist) * speed,
-				y: playerPos.y + (dy / dist) * speed
-			});
-		}
-		const id = requestAnimationFrame(() => setTargetPos(targetPos));
-		return () => cancelAnimationFrame(id);
-	}, [targetPos, playerPos]);
-
-	// When menu closes (showBudget becomes true), zoom out and pan down
-	useEffect(() => {
-		if (showBudget) {
-			setZoom(0.5); // zoomed out
-		}
-	}, [showBudget]);
-
 	const [city, setCity] = useState(() => {
     const saved = localStorage.getItem("cityState");
     if (saved) {
@@ -86,6 +58,85 @@ export function BuildingManager({ onBuildingClick, onCloseMenu, showBudget = tru
     localStorage.setItem("cityState", JSON.stringify(city));
     }, [city]);
 
+
+	// Move player towards targetPos (city grid coordinates)
+	// Time-based movement for true constant speed
+	useEffect(() => {
+		if (!targetPos) return;
+		let animationId;
+		let lastTime = performance.now();
+		const speed = 800; // units per second
+
+		// Helper: check if line from (x1, y1) to (x2, y2) intersects a building's bounding box
+		function lineIntersectsBuilding(x1, y1, x2, y2, building) {
+			const boxSize = building.type === 'primary' ? 280 : 200;
+			const half = boxSize / 2;
+			const left = building.location.x - half;
+			const right = building.location.x + half;
+			const top = building.location.y - half;
+			const bottom = building.location.y + half;
+			// Simple AABB check: does the line segment cross the box?
+			// We'll use a simple approach: if either endpoint is inside, or if the line crosses any edge
+			function pointInBox(x, y) {
+				return x >= left && x <= right && y >= top && y <= bottom;
+			}
+			if (pointInBox(x1, y1) || pointInBox(x2, y2)) return true;
+			// Check for intersection with each edge
+			function lineIntersectsEdge(x1, y1, x2, y2, ex1, ey1, ex2, ey2) {
+				// Line AB and edge CD
+				const det = (x2 - x1) * (ey2 - ey1) - (y2 - y1) * (ex2 - ex1);
+				if (det === 0) return false; // parallel
+				const t = ((ex1 - x1) * (ey2 - ey1) - (ey1 - y1) * (ex2 - ex1)) / det;
+				const u = ((ex1 - x1) * (y2 - y1) - (ey1 - y1) * (x2 - x1)) / det;
+				return t >= 0 && t <= 1 && u >= 0 && u <= 1;
+			}
+			// Edges: left, right, top, bottom
+			if (
+				lineIntersectsEdge(x1, y1, x2, y2, left, top, left, bottom) ||
+				lineIntersectsEdge(x1, y1, x2, y2, right, top, right, bottom) ||
+				lineIntersectsEdge(x1, y1, x2, y2, left, top, right, top) ||
+				lineIntersectsEdge(x1, y1, x2, y2, left, bottom, right, bottom)
+			) {
+				return true;
+			}
+			return false;
+		}
+
+		function step(now) {
+			const dt = (now - lastTime) / 1000; // seconds
+			lastTime = now;
+			const dx = targetPos.x - playerPos.x;
+			const dy = targetPos.y - playerPos.y;
+			const dist = Math.sqrt(dx * dx + dy * dy);
+			const moveDist = speed * dt;
+
+			// --- Collision detection: check if path to target crosses any building ---
+			const collision = city.buildings.some(b => lineIntersectsBuilding(playerPos.x, playerPos.y, targetPos.x, targetPos.y, b));
+			if (collision) {
+				// For now, just log collision (next step: path around)
+				console.log('Collision detected with building!');
+			}
+
+			if (dist <= moveDist) {
+				setPlayerPos(targetPos);
+				setTargetPos(null);
+				return;
+			}
+			const moveX = (dx / dist) * moveDist;
+			const moveY = (dy / dist) * moveDist;
+			setPlayerPos(pos => ({ x: pos.x + moveX, y: pos.y + moveY }));
+			animationId = requestAnimationFrame(step);
+		}
+		animationId = requestAnimationFrame(step);
+		return () => cancelAnimationFrame(animationId);
+	}, [targetPos, playerPos, city.buildings]);
+
+	// When menu closes (showBudget becomes true), zoom out and pan down
+	useEffect(() => {
+		if (showBudget) {
+			setZoom(0.5); // zoomed out
+		}
+	}, [showBudget]);
 
 	// Helper to get building bounds
     function getBuildingBounds() {
@@ -273,17 +324,20 @@ export function BuildingManager({ onBuildingClick, onCloseMenu, showBudget = tru
 				e.clientY >= rect.top &&
 				e.clientY <= rect.bottom
 			) {
-				const clickX = e.clientX - rect.left;
-				const clickY = e.clientY - rect.top;
-				// Use scaled city width/height for center calculation
-				const scaledWidth = CITY_WIDTH * zoom;
-				const scaledHeight = CITY_HEIGHT * zoom;
-				const centerX = scaledWidth / 2;
-				const centerY = scaledHeight / 2;
-				// Convert click to city coordinates
-				const cityX = (clickX - centerX) / zoom - pan.x;
-				const cityY = (clickY - centerY) / zoom - pan.y;
-				setTargetPos({ x: cityX, y: cityY });
+				// Only move player if the click target is the city grid (not when closing menu)
+				if (e.target === cityGrid) {
+					const clickX = e.clientX - rect.left;
+					const clickY = e.clientY - rect.top;
+					// Use scaled city width/height for center calculation
+					const scaledWidth = CITY_WIDTH * zoom;
+					const scaledHeight = CITY_HEIGHT * zoom;
+					const centerX = scaledWidth / 2;
+					const centerY = scaledHeight / 2;
+					// Convert click to city coordinates
+					const cityX = (clickX - centerX) / zoom - pan.x;
+					const cityY = (clickY - centerY) / zoom - pan.y;
+					setTargetPos({ x: cityX, y: cityY });
+				}
 			}
 			if (onCloseMenu) onCloseMenu();
 		}
@@ -347,6 +401,12 @@ export function BuildingManager({ onBuildingClick, onCloseMenu, showBudget = tru
 						}}
 					>
 						<BuildingBox building={{ ...b, showBudget }} onClick={() => {
+							// Move player to center of building and a bit below
+							const offsetY = 60; // pixels below center
+							setTargetPos({
+								x: b.location.x,
+								y: b.location.y + offsetY
+							});
 							if (onBuildingClick) onBuildingClick(b);
 							ZoomOnBuilding(b);
 						}} />
