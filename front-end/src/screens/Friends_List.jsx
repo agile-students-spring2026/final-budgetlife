@@ -1,6 +1,6 @@
-import React, { useContext, useMemo, useRef, useState } from "react";
+import React, { useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { PlayerContext } from "../context/Player_Context";
+import { useFriends } from "../context/Friends_Context";
 import "./Friends_List.css";
 
 function FriendRow({ friend, onRemove }) {
@@ -42,7 +42,10 @@ function FriendRow({ friend, onRemove }) {
 
   return (
     <div className="friend-row-shell">
-      <button className="remove-friend-btn" onClick={() => onRemove(friend.id)}>
+      <button
+        className="remove-friend-btn"
+        onClick={() => onRemove(friend.username)}
+      >
         Remove
       </button>
 
@@ -69,7 +72,7 @@ function FriendRow({ friend, onRemove }) {
 
 function Friends_List() {
   const navigate = useNavigate();
-  const { friends, removeFriend } = useContext(PlayerContext);
+  const { friends, loading, error, handleRemoveFriend } = useFriends();
   const [search, setSearch] = useState("");
 
   const filteredFriends = useMemo(() => {
@@ -115,14 +118,18 @@ function Friends_List() {
         </div>
 
         <div className="friends-list">
-          {friends.length === 0 ? (
+          {loading ? (
+            <div className="friends-empty">Loading friends...</div>
+          ) : error ? (
+            <div className="friends-empty">{error}</div>
+          ) : friends.length === 0 ? (
             <div className="friends-empty">No friends added</div>
           ) : filteredFriends.length > 0 ? (
             filteredFriends.map((friend) => (
               <FriendRow
                 key={friend.id}
                 friend={friend}
-                onRemove={removeFriend}
+                onRemove={handleRemoveFriend}
               />
             ))
           ) : (

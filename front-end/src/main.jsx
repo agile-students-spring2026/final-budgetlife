@@ -4,12 +4,15 @@ import './index.css'
 import App from './App.jsx'
 import { PlayerProvider } from "./context/Player_Context.jsx"
 import { BuildingProvider } from "./context/Building_Context";
+import { FriendsProvider } from "./context/Friends_Context.jsx";
 
 createRoot(document.getElementById('root')).render(
- <StrictMode>
+  <StrictMode>
     <PlayerProvider>
       <BuildingProvider>
-        <App />
+        <FriendsProvider>
+          <App />
+        </FriendsProvider>
       </BuildingProvider>
     </PlayerProvider>
   </StrictMode>

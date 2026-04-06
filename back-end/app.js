@@ -1,19 +1,21 @@
 const express = require("express");
 const cors = require("cors");
 const morgan = require("morgan");
+require("dotenv").config();
 
-const friendsRouter = require("./routes/friends");
+const friendsRoutes = require("./routes/friends");
 
 const app = express();
 
 app.use(cors());
-app.use(express.json());
 app.use(morgan("dev"));
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 
-app.get("/api/health", (req, res) => {
-  res.json({ status: "ok", message: "BudgetLife backend is running" });
+app.get("/", (req, res) => {
+  res.json({ message: "BudgetLife API is running" });
 });
 
-app.use("/api/friends", friendsRouter);
+app.use("/api/friends", friendsRoutes);
 
 module.exports = app;

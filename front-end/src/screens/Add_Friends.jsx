@@ -1,43 +1,42 @@
-import React, { useContext, useMemo, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { PlayerContext } from "../context/Player_Context";
+import { useFriends } from "../context/Friends_Context";
 import "./Add_Friends.css";
 
 function Add_Friends() {
   const navigate = useNavigate();
-  const { addFriend, friends } = useContext(PlayerContext);
+  const {
+    searchResults,
+    handleSearch,
+    handleAddFriend,
+    searchLoading,
+    error,
+  } = useFriends();
+
   const [search, setSearch] = useState("");
 
-  const mockUsers = [
-    "Casey",
-    "Taylor",
-    "Morgan",
-    "Riley",
-    "Jamie",
-    "Avery",
-    "Parker",
-    "Skyler",
-  ];
+  useEffect(() => {
+    handleSearch("");
+  }, []);
 
-  const filteredUsers = useMemo(() => {
-    return mockUsers.filter((user) => {
-      const matchesSearch = user.toLowerCase().includes(search.toLowerCase());
-      const alreadyFriend = friends.some(
-        (friend) => friend.username.toLowerCase() === user.toLowerCase()
-      );
-      return matchesSearch && !alreadyFriend;
-    });
-  }, [search, friends]);
+  const onSearchChange = async (e) => {
+    const value = e.target.value;
+    setSearch(value);
+    await handleSearch(value);
+  };
 
-  const handleAddFriend = (username) => {
-    addFriend(username);
-    navigate("/friends");
+  const onAddFriend = async (username) => {
+    try {
+      await handleAddFriend(username);
+      navigate("/friends");
+    } catch (err) {
+      console.error(err);
+    }
   };
 
   return (
     <div className="add-friends-page">
       <div className="add-friends-screen">
-
         <div className="add-friends-top">
           <div className="add-friends-player-icon">Player Icon</div>
 
@@ -60,25 +59,29 @@ function Add_Friends() {
             type="text"
             placeholder="Search Profiles"
             value={search}
-            onChange={(e) => setSearch(e.target.value)}
+            onChange={onSearchChange}
           />
 
           <div className="add-friends-results">
-            {filteredUsers.map((user) => (
-              <div key={user} className="add-friends-result-row">
-                <span className="add-friends-result-name">{user}</span>
-                <button
-                  className="add-friends-send-btn"
-                  onClick={() => handleAddFriend(user)}
-                >
-                  Add
-                </button>
-              </div>
-            ))}
-
-            {search && filteredUsers.length === 0 && (
+            {searchLoading ? (
+              <div className="add-friends-empty">Searching...</div>
+            ) : searchResults.length > 0 ? (
+              searchResults.map((user) => (
+                <div key={user.id} className="add-friends-result-row">
+                  <span className="add-friends-result-name">@{user.username}</span>
+                  <button
+                    className="add-friends-send-btn"
+                    onClick={() => onAddFriend(user.username)}
+                  >
+                    Add
+                  </button>
+                </div>
+              ))
+            ) : search ? (
               <div className="add-friends-empty">No matching users</div>
-            )}
+            ) : null}
+
+            {error && <div className="add-friends-empty">{error}</div>}
           </div>
         </div>
       </div>
