@@ -1,14 +1,18 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/Auth_Context";
 import "./Login.css";
 
 function Login() {
   const navigate = useNavigate();
-  const { login, authLoading, authError } = useAuth();
+  const { login, authLoading, authError, clearAuthError } = useAuth();
 
   const [usernameOrEmail, setUsernameOrEmail] = useState("");
   const [password, setPassword] = useState("");
+
+  useEffect(() => {
+    clearAuthError();
+  }, []);
 
   const handleConfirm = async () => {
     try {

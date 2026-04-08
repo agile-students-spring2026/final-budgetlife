@@ -329,6 +329,69 @@ function resetFriends() {
   friendRequests = JSON.parse(JSON.stringify(initialFriendRequests));
 }
 
+function renameUserInFriendsData(oldUsername, newUsername) {
+  const oldKey = normalizeUsername(oldUsername);
+  const newKey = normalizeUsername(newUsername);
+
+  if (!oldKey || !newKey) return;
+
+  if (!friendsByUser[oldKey]) {
+    friendsByUser[oldKey] = [];
+  }
+
+  if (oldKey !== newKey) {
+    friendsByUser[newKey] = friendsByUser[oldKey] || [];
+    delete friendsByUser[oldKey];
+  }
+
+  Object.keys(friendsByUser).forEach((ownerUsername) => {
+    friendsByUser[ownerUsername] = (friendsByUser[ownerUsername] || []).map(
+      (friend) =>
+        friend.username.toLowerCase() === oldKey
+          ? { ...friend, username: newUsername, name: newUsername }
+          : friend
+    );
+  });
+
+  friendRequests = friendRequests.map((request) => ({
+    ...request,
+    fromUsername:
+      request.fromUsername.toLowerCase() === oldKey
+        ? newUsername
+        : request.fromUsername,
+    toUsername:
+      request.toUsername.toLowerCase() === oldKey
+        ? newUsername
+        : request.toUsername,
+  }));
+
+  users = users.map((user) =>
+    user.username.toLowerCase() === oldKey
+      ? { ...user, username: newUsername, name: newUsername }
+      : user
+  );
+}
+
+function deleteUserFromFriendsData(username) {
+  const cleaned = normalizeUsername(username);
+
+  delete friendsByUser[cleaned];
+
+  Object.keys(friendsByUser).forEach((ownerUsername) => {
+    friendsByUser[ownerUsername] = (friendsByUser[ownerUsername] || []).filter(
+      (friend) => friend.username.toLowerCase() !== cleaned
+    );
+  });
+
+  friendRequests = friendRequests.filter(
+    (request) =>
+      request.fromUsername.toLowerCase() !== cleaned &&
+      request.toUsername.toLowerCase() !== cleaned
+  );
+
+  users = users.filter((user) => user.username.toLowerCase() !== cleaned);
+}
+
 module.exports = {
   getAllFriends,
   getIncomingRequests,
@@ -339,5 +402,7 @@ module.exports = {
   declineFriendRequest,
   removeFriend,
   createInitialFriendStateForUser,
+  renameUserInFriendsData,
+  deleteUserFromFriendsData,
   resetFriends,
 };
