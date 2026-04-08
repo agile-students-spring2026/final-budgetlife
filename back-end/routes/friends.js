@@ -10,27 +10,47 @@ const {
   acceptFriendRequest,
   declineFriendRequest,
   removeFriend,
-  CURRENT_USER,
 } = require("../data/friendsStore");
 
 router.get("/", (req, res) => {
-  res.status(200).json({ friends: getAllFriends(), currentUser: CURRENT_USER });
+  const { currentUsername } = req.query;
+
+  const friends = getAllFriends(currentUsername);
+
+  res.status(200).json({
+    friends,
+    currentUser: currentUsername,
+  });
 });
 
 router.get("/search", (req, res) => {
-  res.status(200).json({ results: searchUsers(req.query.q) });
+  const { currentUsername, q } = req.query;
+
+  const results = searchUsers(currentUsername, q);
+
+  res.status(200).json({ results });
 });
 
 router.get("/requests/incoming", (req, res) => {
-  res.status(200).json({ requests: getIncomingRequests() });
+  const { currentUsername } = req.query;
+
+  const requests = getIncomingRequests(currentUsername);
+
+  res.status(200).json({ requests });
 });
 
 router.get("/requests/outgoing", (req, res) => {
-  res.status(200).json({ requests: getOutgoingRequests() });
+  const { currentUsername } = req.query;
+
+  const requests = getOutgoingRequests(currentUsername);
+
+  res.status(200).json({ requests });
 });
 
 router.post("/request", (req, res) => {
-  const result = sendFriendRequest(req.body.username);
+  const { currentUsername, username } = req.body;
+
+  const result = sendFriendRequest(currentUsername, username);
 
   if (result.error) {
     return res.status(result.status).json({ error: result.error });
@@ -43,7 +63,9 @@ router.post("/request", (req, res) => {
 });
 
 router.post("/requests/:id/accept", (req, res) => {
-  const result = acceptFriendRequest(req.params.id);
+  const { currentUsername } = req.body;
+
+  const result = acceptFriendRequest(currentUsername, req.params.id);
 
   if (result.error) {
     return res.status(result.status).json({ error: result.error });
@@ -56,7 +78,9 @@ router.post("/requests/:id/accept", (req, res) => {
 });
 
 router.post("/requests/:id/decline", (req, res) => {
-  const result = declineFriendRequest(req.params.id);
+  const { currentUsername } = req.body;
+
+  const result = declineFriendRequest(currentUsername, req.params.id);
 
   if (result.error) {
     return res.status(result.status).json({ error: result.error });
@@ -68,7 +92,9 @@ router.post("/requests/:id/decline", (req, res) => {
 });
 
 router.post("/remove", (req, res) => {
-  const result = removeFriend(req.body.username);
+  const { currentUsername, username } = req.body;
+
+  const result = removeFriend(currentUsername, username);
 
   if (result.error) {
     return res.status(result.status).json({ error: result.error });

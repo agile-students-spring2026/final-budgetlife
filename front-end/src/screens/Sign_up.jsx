@@ -1,17 +1,43 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "../context/Auth_Context";
 import "./Login.css";
 
-function Login() {
+function Sign_up() {
   const navigate = useNavigate();
+  const { signup, authLoading, authError } = useAuth();
+
+  const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+
+  const handleConfirm = async () => {
+    try {
+      await signup({
+        username,
+        email,
+        password,
+      });
+
+      navigate("/city-layout");
+    } catch (err) {
+      console.error(err);
+    }
+  };
 
   return (
     <div className="login-page">
       <div className="login-screen">
         <h1 className="login-title">BudgetLife</h1>
         <p className="login-subtitle">Sign Up</p>
+
+        <input
+          className="login-input"
+          type="text"
+          placeholder="Username"
+          value={username}
+          onChange={(e) => setUsername(e.target.value)}
+        />
 
         <input
           className="login-input"
@@ -29,11 +55,14 @@ function Login() {
           onChange={(e) => setPassword(e.target.value)}
         />
 
+        {authError && <div className="login-error">{authError}</div>}
+
         <button
           className="login-button"
-          onClick={() => navigate("/city-layout")}
+          onClick={handleConfirm}
+          disabled={authLoading}
         >
-          Confirm
+          {authLoading ? "Creating Account..." : "Confirm"}
         </button>
 
         <button
@@ -47,4 +76,4 @@ function Login() {
   );
 }
 
-export default Login;
+export default Sign_up;

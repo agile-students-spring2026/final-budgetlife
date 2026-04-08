@@ -18,7 +18,7 @@
 
 .customization-header {
     width: 100%;
-    height: 66px;
+    height: 85px;
     background: #444;
     color: white;
     display: flex;
@@ -37,16 +37,19 @@
 
 .close-button {
     position: absolute;
-    right: 10px;
-    width: 34px;
-    height: 34px;
+    top: 18px;
+    right: 16px;
+    width: 50px;
+    height: 50px;
     border: none;
     border-radius: 50%;
     background: black;
     color: white;
-    font-size: 20px;
+    font-size: 32px;
+    font-weight: bold;
     cursor: pointer;
 }
+
 
 .preview-section {
     position: relative;

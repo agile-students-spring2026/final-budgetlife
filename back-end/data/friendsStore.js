@@ -1,9 +1,24 @@
-const initialFriends = [
-  { id: 1, username: "alexr", name: "Alex", info: "Friends for 3 years" },
-  { id: 2, username: "jordy88", name: "Jordan", info: "Friends for 7 months" },
-];
+const initialFriendsByUser = {
+  alexr: [
+    { id: 2, username: "jordy88", name: "Jordan", info: "Friends for 3 years" },
+    { id: 3, username: "caseybuilds", name: "Casey", info: "Friends for 8 months" },
+  ],
+  jordy88: [
+    { id: 1, username: "alexr", name: "Alex", info: "Friends for 3 years" },
+  ],
+  caseybuilds: [
+    { id: 1, username: "alexr", name: "Alex", info: "Friends for 8 months" },
+  ],
+  taylortracks: [],
+  morgmoney: [],
+  rileybudgets: [],
+  jamiecity: [],
+  averyplays: [],
+  parkerplans: [],
+  skylerstacks: [],
+};
 
-const users = [
+const initialUsers = [
   { id: 1, username: "alexr", name: "Alex" },
   { id: 2, username: "jordy88", name: "Jordan" },
   { id: 3, username: "caseybuilds", name: "Casey" },
@@ -16,15 +31,7 @@ const users = [
   { id: 10, username: "skylerstacks", name: "Skyler" },
 ];
 
-let friends = [...initialFriends];
-
-let friendRequests = [
-  {
-    id: 1,
-    fromUsername: "caseybuilds",
-    toUsername: "alexr",
-    status: "pending",
-  },
+const initialFriendRequests = [
   {
     id: 2,
     fromUsername: "morgmoney",
@@ -32,43 +39,97 @@ let friendRequests = [
     status: "pending",
   },
   {
-    id: 6,
+    id: 3,
     fromUsername: "rileybudgets",
     toUsername: "alexr",
     status: "pending",
   },
 ];
 
-const CURRENT_USER = "alexr";
+let users = JSON.parse(JSON.stringify(initialUsers));
+let friendsByUser = JSON.parse(JSON.stringify(initialFriendsByUser));
+let friendRequests = JSON.parse(JSON.stringify(initialFriendRequests));
 
-function getAllFriends() {
-  return friends;
+function normalizeUsername(username) {
+  return (username || "").trim().toLowerCase();
 }
 
-function getIncomingRequests() {
+function ensureUserFriendList(username) {
+  const cleaned = normalizeUsername(username);
+
+  if (!friendsByUser[cleaned]) {
+    friendsByUser[cleaned] = [];
+  }
+
+  return friendsByUser[cleaned];
+}
+
+function getUserByUsername(username) {
+  const cleaned = normalizeUsername(username);
+  return users.find((user) => user.username.toLowerCase() === cleaned);
+}
+
+function addUserIfMissing(user) {
+  const cleaned = normalizeUsername(user.username);
+
+  const existing = users.find(
+    (existingUser) => existingUser.username.toLowerCase() === cleaned
+  );
+
+  if (!existing) {
+    users.push({
+      id: user.id,
+      username: user.username,
+      name: user.name || user.displayName || user.username,
+    });
+  }
+
+  ensureUserFriendList(cleaned);
+}
+
+function createInitialFriendStateForUser(user) {
+  addUserIfMissing(user);
+  ensureUserFriendList(user.username);
+}
+
+function getAllFriends(currentUsername) {
+  return ensureUserFriendList(currentUsername);
+}
+
+function getIncomingRequests(currentUsername) {
+  const cleanedCurrent = normalizeUsername(currentUsername);
+
   return friendRequests.filter(
     (request) =>
-      request.toUsername.toLowerCase() === CURRENT_USER.toLowerCase() &&
+      request.toUsername.toLowerCase() === cleanedCurrent &&
       request.status === "pending"
   );
 }
 
-function getOutgoingRequests() {
+function getOutgoingRequests(currentUsername) {
+  const cleanedCurrent = normalizeUsername(currentUsername);
+
   return friendRequests.filter(
     (request) =>
-      request.fromUsername.toLowerCase() === CURRENT_USER.toLowerCase() &&
+      request.fromUsername.toLowerCase() === cleanedCurrent &&
       request.status === "pending"
   );
 }
 
-function searchUsers(query) {
+function searchUsers(currentUsername, query) {
+  const cleanedCurrent = normalizeUsername(currentUsername);
   const q = (query || "").trim().toLowerCase();
+  const currentFriends = ensureUserFriendList(cleanedCurrent);
+
+  if (!q) return [];
 
   return users.filter((user) => {
-    if (user.username.toLowerCase() === CURRENT_USER.toLowerCase()) return false;
+    const targetUsername = user.username.toLowerCase();
 
-    const alreadyFriend = friends.some(
-      (friend) => friend.username.toLowerCase() === user.username.toLowerCase()
+    if (targetUsername === cleanedCurrent) return false;
+
+    const alreadyFriend = currentFriends.some(
+      (friend) => friend.username.toLowerCase() === targetUsername
     );
 
     if (alreadyFriend) return false;
@@ -76,41 +137,44 @@ function searchUsers(query) {
     const pendingRequestExists = friendRequests.some(
       (request) =>
         request.status === "pending" &&
-        ((request.fromUsername.toLowerCase() === CURRENT_USER.toLowerCase() &&
-          request.toUsername.toLowerCase() === user.username.toLowerCase()) ||
-          (request.toUsername.toLowerCase() === CURRENT_USER.toLowerCase() &&
-            request.fromUsername.toLowerCase() === user.username.toLowerCase()))
+        ((request.fromUsername.toLowerCase() === cleanedCurrent &&
+          request.toUsername.toLowerCase() === targetUsername) ||
+          (request.toUsername.toLowerCase() === cleanedCurrent &&
+            request.fromUsername.toLowerCase() === targetUsername))
     );
 
     if (pendingRequestExists) return false;
-
-    if (!q) return true;
 
     return user.username.toLowerCase().includes(q);
   });
 }
 
-function sendFriendRequest(toUsername) {
-  const cleaned = (toUsername || "").trim();
+function sendFriendRequest(currentUsername, toUsername) {
+  const cleanedCurrent = normalizeUsername(currentUsername);
+  const cleanedTarget = normalizeUsername(toUsername);
 
-  if (!cleaned) {
+  if (!cleanedCurrent) {
+    return { error: "Current user is required", status: 400 };
+  }
+
+  if (!cleanedTarget) {
     return { error: "Username is required", status: 400 };
   }
 
-  if (cleaned.toLowerCase() === CURRENT_USER.toLowerCase()) {
+  if (cleanedCurrent === cleanedTarget) {
     return { error: "You cannot send a request to yourself", status: 400 };
   }
 
-  const user = users.find(
-    (u) => u.username.toLowerCase() === cleaned.toLowerCase()
-  );
+  const user = getUserByUsername(cleanedTarget);
 
   if (!user) {
     return { error: "User not found", status: 404 };
   }
 
-  const alreadyFriend = friends.some(
-    (friend) => friend.username.toLowerCase() === user.username.toLowerCase()
+  const currentFriends = ensureUserFriendList(cleanedCurrent);
+
+  const alreadyFriend = currentFriends.some(
+    (friend) => friend.username.toLowerCase() === cleanedTarget
   );
 
   if (alreadyFriend) {
@@ -120,10 +184,10 @@ function sendFriendRequest(toUsername) {
   const existingPendingRequest = friendRequests.some(
     (request) =>
       request.status === "pending" &&
-      ((request.fromUsername.toLowerCase() === CURRENT_USER.toLowerCase() &&
-        request.toUsername.toLowerCase() === user.username.toLowerCase()) ||
-        (request.toUsername.toLowerCase() === CURRENT_USER.toLowerCase() &&
-          request.fromUsername.toLowerCase() === user.username.toLowerCase()))
+      ((request.fromUsername.toLowerCase() === cleanedCurrent &&
+        request.toUsername.toLowerCase() === cleanedTarget) ||
+        (request.toUsername.toLowerCase() === cleanedCurrent &&
+          request.fromUsername.toLowerCase() === cleanedTarget))
   );
 
   if (existingPendingRequest) {
@@ -132,7 +196,7 @@ function sendFriendRequest(toUsername) {
 
   const newRequest = {
     id: Date.now(),
-    fromUsername: CURRENT_USER,
+    fromUsername: cleanedCurrent,
     toUsername: user.username,
     status: "pending",
   };
@@ -142,7 +206,9 @@ function sendFriendRequest(toUsername) {
   return { request: newRequest, status: 201 };
 }
 
-function acceptFriendRequest(requestId) {
+function acceptFriendRequest(currentUsername, requestId) {
+  const cleanedCurrent = normalizeUsername(currentUsername);
+
   const request = friendRequests.find(
     (r) => r.id === Number(requestId) && r.status === "pending"
   );
@@ -151,45 +217,61 @@ function acceptFriendRequest(requestId) {
     return { error: "Friend request not found", status: 404 };
   }
 
-  if (request.toUsername.toLowerCase() !== CURRENT_USER.toLowerCase()) {
+  if (request.toUsername.toLowerCase() !== cleanedCurrent) {
     return { error: "You can only accept incoming requests", status: 403 };
   }
 
-  const user = users.find(
-    (u) => u.username.toLowerCase() === request.fromUsername.toLowerCase()
-  );
+  const fromUser = getUserByUsername(request.fromUsername);
+  const toUser = getUserByUsername(request.toUsername);
 
-  if (!user) {
-    return { error: "Request sender not found", status: 404 };
+  if (!fromUser || !toUser) {
+    return { error: "One or more users in this request no longer exist", status: 404 };
   }
 
-  const alreadyFriend = friends.some(
-    (friend) => friend.username.toLowerCase() === user.username.toLowerCase()
+  const currentFriends = ensureUserFriendList(cleanedCurrent);
+  const senderFriends = ensureUserFriendList(fromUser.username);
+
+  const alreadyFriend = currentFriends.some(
+    (friend) => friend.username.toLowerCase() === fromUser.username.toLowerCase()
   );
 
+  const newFriendForCurrent = {
+    id: fromUser.id,
+    username: fromUser.username,
+    name: fromUser.name,
+    info: "Friends for less than a day",
+  };
+
+  const newFriendForSender = {
+    id: toUser.id,
+    username: toUser.username,
+    name: toUser.name,
+    info: "Friends for less than a day",
+  };
+
   if (!alreadyFriend) {
-    friends.push({
-      id: user.id,
-      username: user.username,
-      name: user.name,
-      info: "Friends for less than a day",
-    });
+    currentFriends.push(newFriendForCurrent);
+  }
+
+  const senderAlreadyHasCurrent = senderFriends.some(
+    (friend) => friend.username.toLowerCase() === toUser.username.toLowerCase()
+  );
+
+  if (!senderAlreadyHasCurrent) {
+    senderFriends.push(newFriendForSender);
   }
 
   friendRequests = friendRequests.filter((r) => r.id !== request.id);
 
   return {
-    friend: {
-      id: user.id,
-      username: user.username,
-      name: user.name,
-      info: "Friends for less than a day",
-    },
+    friend: newFriendForCurrent,
     status: 200,
   };
 }
 
-function declineFriendRequest(requestId) {
+function declineFriendRequest(currentUsername, requestId) {
+  const cleanedCurrent = normalizeUsername(currentUsername);
+
   const request = friendRequests.find(
     (r) => r.id === Number(requestId) && r.status === "pending"
   );
@@ -198,7 +280,7 @@ function declineFriendRequest(requestId) {
     return { error: "Friend request not found", status: 404 };
   }
 
-  if (request.toUsername.toLowerCase() !== CURRENT_USER.toLowerCase()) {
+  if (request.toUsername.toLowerCase() !== cleanedCurrent) {
     return { error: "You can only decline incoming requests", status: 403 };
   }
 
@@ -207,48 +289,47 @@ function declineFriendRequest(requestId) {
   return { status: 200 };
 }
 
-function removeFriend(username) {
-  const cleaned = (username || "").trim();
+function removeFriend(currentUsername, usernameToRemove) {
+  const cleanedCurrent = normalizeUsername(currentUsername);
+  const cleanedTarget = normalizeUsername(usernameToRemove);
 
-  if (!cleaned) {
+  if (!cleanedCurrent) {
+    return { error: "Current user is required", status: 400 };
+  }
+
+  if (!cleanedTarget) {
     return { error: "Username is required", status: 400 };
   }
 
-  const existingFriend = friends.find(
-    (friend) => friend.username.toLowerCase() === cleaned.toLowerCase()
+  const currentFriends = ensureUserFriendList(cleanedCurrent);
+  const targetFriends = ensureUserFriendList(cleanedTarget);
+
+  const existingFriend = currentFriends.find(
+    (friend) => friend.username.toLowerCase() === cleanedTarget
   );
 
   if (!existingFriend) {
     return { error: "Friend not found", status: 404 };
   }
 
-  friends = friends.filter(
-    (friend) => friend.username.toLowerCase() !== cleaned.toLowerCase()
+  friendsByUser[cleanedCurrent] = currentFriends.filter(
+    (friend) => friend.username.toLowerCase() !== cleanedTarget
+  );
+
+  friendsByUser[cleanedTarget] = targetFriends.filter(
+    (friend) => friend.username.toLowerCase() !== cleanedCurrent
   );
 
   return { friend: existingFriend, status: 200 };
 }
 
 function resetFriends() {
-  friends = [...initialFriends];
-  friendRequests = [
-    {
-      id: 1,
-      fromUsername: "caseybuilds",
-      toUsername: "alexr",
-      status: "pending",
-    },
-    {
-      id: 2,
-      fromUsername: "morganmoney",
-      toUsername: "alexr",
-      status: "pending",
-    },
-  ];
+  users = JSON.parse(JSON.stringify(initialUsers));
+  friendsByUser = JSON.parse(JSON.stringify(initialFriendsByUser));
+  friendRequests = JSON.parse(JSON.stringify(initialFriendRequests));
 }
 
 module.exports = {
-  CURRENT_USER,
   getAllFriends,
   getIncomingRequests,
   getOutgoingRequests,
@@ -257,5 +338,6 @@ module.exports = {
   acceptFriendRequest,
   declineFriendRequest,
   removeFriend,
+  createInitialFriendStateForUser,
   resetFriends,
 };

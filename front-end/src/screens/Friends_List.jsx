@@ -58,10 +58,10 @@ function FriendRow({ friend, onRemove }) {
         onPointerLeave={handlePointerUp}
       >
         <div className="friend-card">
-          <div className="friend-icon">{friend.username}</div>
+          <div className="friend-icon">{"PFP"}</div>
 
           <div className="friend-text">
-            <div className="friend-name">Name: {friend.name}</div>
+            <div className="friend-name">@{friend.username}</div>
             <div className="friend-info">Info: {friend.info}</div>
           </div>
         </div>

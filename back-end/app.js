@@ -4,6 +4,7 @@ const morgan = require("morgan");
 require("dotenv").config();
 
 const friendsRoutes = require("./routes/friends");
+const authRoutes = require("./routes/auth");
 
 const app = express();
 
@@ -16,6 +17,7 @@ app.get("/", (req, res) => {
   res.json({ message: "BudgetLife API is running" });
 });
 
+app.use("/api/auth", authRoutes);
 app.use("/api/friends", friendsRoutes);
 
 module.exports = app;
