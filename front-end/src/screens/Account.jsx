@@ -112,10 +112,10 @@ function Account() {
 
           <div className="account-info-display">
             <div className="account-info-line">
-              Username: {currentUser?.username || "No username"}
+              {currentUser?.username || "No username"}
             </div>
             <div className="account-info-line">
-              Email: {currentUser?.email || "No email"}
+              {currentUser?.email || "No email"}
             </div>
           </div>
         </div>

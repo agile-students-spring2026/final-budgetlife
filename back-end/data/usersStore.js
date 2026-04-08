@@ -1,3 +1,5 @@
+const bcrypt = require("bcrypt");
+
 const {
   createInitialFriendStateForUser,
   renameUserInFriendsData,
@@ -9,19 +11,19 @@ const initialUsers = [
     id: 1,
     username: "alexr",
     email: "alexr@gmail.com",
-    password: "password123",
+    password: bcrypt.hashSync("password123", 10),
   },
   {
     id: 2,
     username: "jordy88",
     email: "jordy88@gmail.com",
-    password: "password123",
+    password: bcrypt.hashSync("password123", 10),
   },
   {
     id: 3,
     username: "caseybuilds",
     email: "casey@gmail.com",
-    password: "password123",
+    password: bcrypt.hashSync("password123", 10),
   },
 ];
 
@@ -49,8 +51,27 @@ function signupUser({ username, email, password }) {
   const cleanedEmail = (email || "").trim().toLowerCase();
   const cleanedPassword = (password || "").trim();
 
-  if (!cleanedUsername || !cleanedEmail || !cleanedPassword) {
-    return { error: "Username, email, and password are required", status: 400 };
+  const usernameRegex = /^[a-zA-Z0-9_]{3,20}$/;
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+  if (!cleanedUsername) {
+    return { error: "Enter a valid username", status: 400 };
+  }
+
+  if (!usernameRegex.test(cleanedUsername)) {
+    return { error: "Enter a valid username", status: 400 };
+  }
+
+  if (!cleanedEmail) {
+    return { error: "Enter a valid email", status: 400 };
+  }
+
+  if (!emailRegex.test(cleanedEmail)) {
+    return { error: "Enter a valid email", status: 400 };
+  }
+
+  if (!cleanedPassword) {
+    return { error: "Password is required", status: 400 };
   }
 
   if (findUserByUsername(cleanedUsername)) {
@@ -61,11 +82,13 @@ function signupUser({ username, email, password }) {
     return { error: "Email already exists", status: 409 };
   }
 
+  const hashedPassword = bcrypt.hashSync(cleanedPassword, 10);
+  
   const newUser = {
     id: Date.now(),
     username: cleanedUsername,
     email: cleanedEmail,
-    password: cleanedPassword,
+    password: hashedPassword,
   };
 
   users.push(newUser);
@@ -100,7 +123,7 @@ function loginUser({ usernameOrEmail, password }) {
       u.email.toLowerCase() === cleanedLogin
   );
 
-  if (!user || user.password !== cleanedPassword) {
+  if (!user || !bcrypt.compareSync(cleanedPassword, user.password)) {
     return { error: "Invalid login credentials", status: 401 };
   }
 
@@ -208,11 +231,11 @@ function changePassword(currentUsername, oldPassword, newPassword) {
     return { error: "User not found", status: 404 };
   }
 
-  if (user.password !== cleanedOld) {
+  if (!bcrypt.compareSync(cleanedOld, user.password)) {
     return { error: "Old password is incorrect", status: 401 };
   }
 
-  user.password = cleanedNew;
+  user.password = bcrypt.hashSync(cleanedNew, 10);
 
   return { status: 200 };
 }
