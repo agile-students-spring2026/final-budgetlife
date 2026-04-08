@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useFriends } from "../context/Friends_Context";
+import { useAuth } from "../context/Auth_Context";
 import "./Add_Friends.css";
 
 function Add_Friends() {
@@ -18,6 +19,7 @@ function Add_Friends() {
   } = useFriends();
 
   const [search, setSearch] = useState("");
+  const { currentUser } = useAuth();
 
   const onSearchChange = async (e) => {
     const value = e.target.value;
@@ -32,8 +34,7 @@ function Add_Friends() {
           <div className="add-friends-player-icon">Player Icon</div>
 
           <div className="add-friends-user-text">
-            <div className="add-friends-username">Username</div>
-            <div className="add-friends-userid">userID</div>
+            <div className="username">{currentUser?.username || "Username"}</div>
           </div>
 
           <button

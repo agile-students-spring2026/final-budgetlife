@@ -1,7 +1,9 @@
 import React, { useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useFriends } from "../context/Friends_Context";
+import { useAuth } from "../context/Auth_Context";
 import "./Friends_List.css";
+
 
 function FriendRow({ friend, onRemove }) {
   const [dragX, setDragX] = useState(0);
@@ -74,6 +76,7 @@ function Friends_List() {
   const navigate = useNavigate();
   const { friends, loading, error, handleRemoveFriend } = useFriends();
   const [search, setSearch] = useState("");
+  const { currentUser } = useAuth();
 
   const filteredFriends = useMemo(() => {
     return friends.filter((friend) => {
@@ -94,8 +97,7 @@ function Friends_List() {
           </div>
 
           <div className="user-text">
-            <div className="username">Username</div>
-            <div className="userid">userID</div>
+            <div className="username">{currentUser?.username || "Username"}</div>
           </div>
 
           <button
