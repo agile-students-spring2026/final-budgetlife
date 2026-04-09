@@ -1,5 +1,9 @@
+const { addUserCurrency } = require("./shop");
+const { getTransactionHistory } = require("./transaction");
+
+
 const budgetGoals = {
-    alex: {
+    alexr: {
         total: { goal: 10000 , current: 5000 , startDate: '2026-01-01', endDate: '2026-12-31' },
         food: { goal: 2000, current: 1000 },
         housing: { goal: 4000, current: 2000 },
@@ -128,6 +132,77 @@ function updateBudgetGoalDates(username, startDate, endDate) {
     return false;
 }
 
+function calculateCurrentAmount(username) {
+    if (!budgetGoalsCopy[username]) return;
+    const transactions = getTransactionHistory(username);
+
+    // reset per-category currents so deletes/updates are reflected
+    for (const cat of ['food', 'housing', 'health', 'entertainment']) {
+        if (budgetGoalsCopy[username][cat]) {
+            budgetGoalsCopy[username][cat].current = 0;
+        }
+    }
+
+    let totalCurrent = 0;
+    for (const category in transactions) {
+        let categoryCurrent = 0;
+        for (const transactionId in transactions[category]) {
+            const amt = transactions[category][transactionId].amount;
+            categoryCurrent += amt;
+            totalCurrent += amt;
+        }
+        if (budgetGoalsCopy[username][category]) {
+            budgetGoalsCopy[username][category].current = categoryCurrent;
+        }
+    }
+
+    if (budgetGoalsCopy[username].total) {
+        budgetGoalsCopy[username].total.current = totalCurrent;
+    }
+}
+
+const CATEGORY_TO_BUILDING = {
+    total:         'cityhall',
+    housing:       'houses',
+    food:          'restaurant',
+    health:        'hospital',
+    entertainment: 'cinema',
+};
+
+function getBuildingHealth(username) {
+    if (!budgetGoalsCopy[username]) return null;
+    calculateCurrentAmount(username);
+
+    const result = {};
+    for (const [category, building] of Object.entries(CATEGORY_TO_BUILDING)) {
+        const entry = budgetGoalsCopy[username][category];
+        if (!entry || !entry.goal) {
+            result[building] = 100;
+            continue;
+        }
+        const remaining = entry.goal - entry.current;
+        const pct = Math.round((remaining / entry.goal) * 100);
+        result[building] = Math.max(0, Math.min(100, pct));
+    }
+    return result;
+}
+
+function rewardUser(username) {
+    if (budgetGoalsCopy[username] && budgetGoalsCopy[username].total) {
+        calculateCurrentAmount(username);
+        const totalGoal = budgetGoalsCopy[username].total.goal;
+        const totalCurrent = budgetGoalsCopy[username].total.current;
+        if (totalCurrent <= totalGoal && new Date() >= new Date(budgetGoalsCopy[username].total.endDate)) {
+            let added = totalGoal - totalCurrent;
+            addUserCurrency(username, added)
+            return "Congratulations! You've met your budget goal!";
+        } else {
+            return "Keep going! You're doing great!";
+        }
+    }
+    return "User not found.";
+}
+
 module.exports = {
     getBudgetGoals,
     updateBudgetGoals,
@@ -136,4 +211,7 @@ module.exports = {
     addUserBudgetGoals,
     deleteUserBudgetGoals,
     updateBudgetGoalDates,
+    calculateCurrentAmount,
+    rewardUser,
+    getBuildingHealth,
 };
