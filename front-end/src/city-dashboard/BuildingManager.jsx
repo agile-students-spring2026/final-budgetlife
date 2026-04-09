@@ -4,6 +4,7 @@ import CinemaImg from "../../ArtAssets/Buildings/Secondary/Cinema.png";
 import HospitalImg from "../../ArtAssets/Buildings/Secondary/Hospital.png";
 import HousesImg from "../../ArtAssets/Buildings/Secondary/Houses.png";
 import RestaurantImg from "../../ArtAssets/Buildings/Secondary/Restraunt.png";
+import GrassBackground from "../../ArtAssets/GrassBackground.png";
 import { getBudgetGoals, getBuildingHealth, getTransactions } from "../api/budgetApi";
 import { useAuth } from "../context/Auth_Context";
 import { BuildingBox } from "./building";
