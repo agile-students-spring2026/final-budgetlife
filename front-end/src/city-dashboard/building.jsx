@@ -15,12 +15,11 @@ class Building {
 }
 
 export function BuildingBox({ building, onClick }) {
-  const { i, budget, spent, name, type, showBudget, health, healthCategory, sprite } = building;
+  const { i, budget, spent, name, type, showBudget, sprite } = building;
   const isPrimary = type === "primary";
   const boxSize = isPrimary ? 280 : 200;
   const barWidth = boxSize;
   const fontSize = isPrimary ? "1.35rem" : "1.1rem";
-  const hasHealth = healthCategory && typeof health === "number";
 
   return (
     <div
@@ -45,21 +44,6 @@ export function BuildingBox({ building, onClick }) {
           }}
         >
           {displayBudget({ budget, spent, width: barWidth, isPrimary })}
-        </div>
-      )}
-
-      {showBudget && hasHealth && (
-        <div
-          style={{
-            position: "absolute",
-            left: "50%",
-            bottom: isPrimary ? "-28px" : "-20px",
-            transform: "translateX(-50%)",
-            zIndex: 10,
-            pointerEvents: "none",
-          }}
-        >
-          {displayHealth({ health, width: barWidth, isPrimary })}
         </div>
       )}
 
