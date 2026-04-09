@@ -4,25 +4,26 @@ import { BuildingContext } from "../context/Building_Context";
 
 // Building class definition
 class Building {
-  constructor({ type, level, name, category, budget, location }) {
+  constructor({ type, level, name, category, budget, location, sprite }) {
     this.type = type;
     this.level = level;
     this.name = name;
     this.category = category;
     this.budget = budget;
     this.location = location;
+    this.sprite = sprite;
   }
 }
 
 export function BuildingBox({ building, onClick }) {
-  const { i, budget, spent, name, type, showBudget } = building;
+  const { i, budget, spent, name, type, showBudget, sprite } = building;
   const isPrimary = type === "primary";
   const boxSize = isPrimary ? 280 : 200;
   const barWidth = boxSize;
   const fontSize = isPrimary ? "1.35rem" : "1.1rem";
 
   return (
-    <div style={{ position: "relative", display: "inline-block" }}>
+    <div style={{ position: "relative", display: "inline-block", width: boxSize, height: boxSize, overflow: "visible" }}>
       {showBudget && (
         <div
           style={{
@@ -40,11 +41,25 @@ export function BuildingBox({ building, onClick }) {
       )}
 
       <div
-        className="building-box"
-        style={{ width: boxSize, height: boxSize, fontSize }}
+        style={{ width: boxSize, height: boxSize, fontSize, display: "flex", alignItems: "center", justifyContent: "center", background: "none", boxShadow: "none", border: "none", padding: 0, margin: 0, position: "relative", overflow: "visible" }}
         onClick={onClick}
       >
-        <div style={{ fontWeight: "bold" }}>{name || `Building ${i}`}</div>
+        {sprite && (
+          <img
+            src={sprite}
+            alt={name}
+            style={{
+              position: "absolute",
+              left: "50%",
+              top: "50%",
+              width: boxSize * 2,
+              height: boxSize * 2,
+              transform: "translate(-50%, -50%)",
+              objectFit: "contain",
+              pointerEvents: "none"
+            }}
+          />
+        )}
       </div>
     </div>
   );
@@ -236,39 +251,50 @@ export function displayBudget({ budget, spent, width = 200, isPrimary = false })
   const fontSize = isPrimary ? 18 : 14;
 
   return (
-    <div style={{ width, marginBottom: 8 }}>
+    <div style={{ width, marginBottom: 8, fontFamily: 'Poppins, Segoe UI, Arial, sans-serif', letterSpacing: 0.2, userSelect: 'none' }}>
       <div
         className="budget-values"
         style={{
           display: "flex",
           width: "100%",
-          borderRadius: 8,
-          overflow: "hidden",
+          borderRadius: 14,
+          overflow: "visible",
           height: barHeight,
+          boxShadow: "0 2px 12px rgba(80,0,120,0.10)",
+          border: "2px solid #3a185a",
+          background: "#23202e",
+          position: "relative"
         }}
       >
         <div
           className="budget-left"
           style={{
             width: spent > 0 ? `${leftPercent}%` : "100%",
-            background: "#111",
+            background: "linear-gradient(90deg, #b47bff 0%, #7c3aed 100%)",
             color: "#fff",
-            padding: isPrimary ? "10px 16px" : "6px 10px",
-            fontSize,
-            fontWeight: 800,
-            borderTopLeftRadius: 8,
-            borderBottomLeftRadius: 8,
-            borderTopRightRadius: spent > 0 ? 0 : 8,
-            borderBottomRightRadius: spent > 0 ? 0 : 8,
-            transition: "width 0.5s",
+            padding: isPrimary ? "10px 18px" : "7px 12px",
+            fontSize: fontSize + 2,
+            fontWeight: 600,
+            borderTopLeftRadius: 12,
+            borderBottomLeftRadius: 12,
+            borderTopRightRadius: spent > 0 ? 0 : 12,
+            borderBottomRightRadius: spent > 0 ? 0 : 12,
+            transition: "width 0.5s cubic-bezier(.77,0,.18,1)",
             textAlign: "left",
             boxSizing: "border-box",
             display: "flex",
             alignItems: "center",
             height: "100%",
+            boxShadow: "0 0 12px 0 #b47bff55 inset"
           }}
         >
-          ${left} left
+          <span style={{
+            textShadow: "0 2px 8px #3a185a99, 0 0 8px #fff2",
+            fontWeight: 700,
+            fontFamily: 'Poppins, Segoe UI, Arial, sans-serif',
+            fontSize: fontSize + 2,
+            letterSpacing: 0.3
+          }}>{left} <span style={{fontWeight:400, fontSize: fontSize-2, opacity:0.8}}>left</span></span>
         </div>
 
         {spent > 0 && (
@@ -276,25 +302,32 @@ export function displayBudget({ budget, spent, width = 200, isPrimary = false })
             className="budget-right"
             style={{
               width: `${spentPercent}%`,
-              background: "#8d8d8d",
+              background: "linear-gradient(90deg, #ffb347 0%, #ff5252 100%)",
               color: "#fff",
-              padding: isPrimary ? "10px 16px" : "6px 10px",
-              fontSize,
-              fontWeight: 800,
+              padding: isPrimary ? "10px 18px" : "7px 12px",
+              fontSize: fontSize + 2,
+              fontWeight: 600,
               minWidth: 30,
               textAlign: "center",
-              borderTopRightRadius: 8,
-              borderBottomRightRadius: 8,
-              transition: "width 0.5s",
+              borderTopRightRadius: 12,
+              borderBottomRightRadius: 12,
+              transition: "width 0.5s cubic-bezier(.77,0,.18,1)",
               boxSizing: "border-box",
               overflow: "hidden",
               whiteSpace: "nowrap",
               display: "flex",
               alignItems: "center",
               height: "100%",
+              boxShadow: "0 0 12px 0 #ffb34755 inset"
             }}
           >
-            -${spent}
+            <span style={{
+              textShadow: "0 2px 8px #7c3aed99, 0 0 8px #fff2",
+              fontWeight: 700,
+              fontFamily: 'Poppins, Segoe UI, Arial, sans-serif',
+              fontSize: fontSize + 2,
+              letterSpacing: 0.3
+            }}>-${spent}</span>
           </div>
         )}
       </div>
