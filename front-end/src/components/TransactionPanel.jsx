@@ -1,19 +1,24 @@
 import React, { useState, useRef, useEffect } from "react";
 import "./TransactionPanel.css";
+import { useAuth } from "../context/Auth_Context";
+import { addTransaction as apiAddTransaction } from "../api/budgetApi";
 
+// Each option's id is a backend budget category (food/housing/health/entertainment).
 const buildingOptions = [
-  { id: "school", name: "School" },
-  { id: "grocery", name: "Grocery" },
-  { id: "cityhall", name: "City Hall" },
-  { id: "health", name: "Health" },
-  { id: "housing", name: "Housing" },
+  { id: "food",          name: "Restaurant" },
+  { id: "housing",       name: "Houses" },
+  { id: "health",        name: "Hospital" },
+  { id: "entertainment", name: "Cinema" },
 ];
 
 function TransactionPanel({ mode = "popup", onClose = () => {}, onSubmit }) {
+  const { currentUser } = useAuth();
   const [selectedBuilding, setSelectedBuilding] = useState("");
   const [amount, setAmount] = useState("");
   const [type, setType] = useState("+");
   const [closing, setClosing] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState(null);
 
   const panelRef = useRef(null);
   const handleRef = useRef(null);
@@ -109,16 +114,45 @@ function TransactionPanel({ mode = "popup", onClose = () => {}, onSubmit }) {
   }, [mode]);
 
   // ---------------- SUBMIT ----------------
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (!selectedBuilding || !amount) return;
+    if (submitting) return;
 
-    onSubmit({
-      building: selectedBuilding,
-      amount: Number(amount),
-      type,
-    });
+    setError(null);
+    setSubmitting(true);
 
-    if (mode === "slide") closePanel();
+    // "+" = expense (adds to spending), "-" = refund / income (subtracts).
+    const signedAmount = type === "+" ? Number(amount) : -Number(amount);
+
+    try {
+      if (currentUser?.username) {
+        await apiAddTransaction({
+          currentUsername: currentUser.username,
+          category: selectedBuilding,
+          amount: signedAmount,
+        });
+
+        // Tell BuildingManager to re-fetch building health.
+        if (typeof window.refreshBuildingHealth === "function") {
+          window.refreshBuildingHealth();
+        }
+      }
+
+      if (typeof onSubmit === "function") {
+        onSubmit({
+          building: selectedBuilding,
+          amount: Number(amount),
+          type,
+        });
+      }
+
+      if (mode === "slide") closePanel();
+    } catch (err) {
+      console.error("Failed to submit transaction:", err);
+      setError(err.message || "Failed to submit transaction");
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   return (
@@ -191,9 +225,18 @@ function TransactionPanel({ mode = "popup", onClose = () => {}, onSubmit }) {
         </div>
 
         {/* SUBMIT */}
-        <button className="transaction-submit" onClick={handleSubmit}>
-          Submit
+        <button
+          className="transaction-submit"
+          onClick={handleSubmit}
+          disabled={submitting}
+        >
+          {submitting ? "Submitting..." : "Submit"}
         </button>
+        {error && (
+          <div style={{ color: "#ff6b6b", marginTop: 8, fontSize: 13 }}>
+            {error}
+          </div>
+        )}
 
         {/* BOTTOM HANDLE */}
         {mode === "slide" && (

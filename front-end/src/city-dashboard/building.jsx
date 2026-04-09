@@ -4,26 +4,34 @@ import { BuildingContext } from "../context/Building_Context";
 
 // Building class definition
 class Building {
-  constructor({ type, level, name, category, budget, location, sprite }) {
+  constructor({ type, level, name, category, budget, location }) {
     this.type = type;
     this.level = level;
     this.name = name;
     this.category = category;
     this.budget = budget;
     this.location = location;
-    this.sprite = sprite;
   }
 }
 
 export function BuildingBox({ building, onClick }) {
-  const { i, budget, spent, name, type, showBudget, sprite } = building;
+  const { i, budget, spent, name, type, showBudget, health, healthCategory, sprite } = building;
   const isPrimary = type === "primary";
   const boxSize = isPrimary ? 280 : 200;
   const barWidth = boxSize;
   const fontSize = isPrimary ? "1.35rem" : "1.1rem";
+  const hasHealth = healthCategory && typeof health === "number";
 
   return (
-    <div style={{ position: "relative", display: "inline-block", width: boxSize, height: boxSize, overflow: "visible" }}>
+    <div
+      style={{
+        position: "relative",
+        display: "inline-block",
+        width: boxSize,
+        height: boxSize,
+        overflow: "visible",
+      }}
+    >
       {showBudget && (
         <div
           style={{
@@ -40,11 +48,42 @@ export function BuildingBox({ building, onClick }) {
         </div>
       )}
 
+      {showBudget && hasHealth && (
+        <div
+          style={{
+            position: "absolute",
+            left: "50%",
+            bottom: isPrimary ? "-28px" : "-20px",
+            transform: "translateX(-50%)",
+            zIndex: 10,
+            pointerEvents: "none",
+          }}
+        >
+          {displayHealth({ health, width: barWidth, isPrimary })}
+        </div>
+      )}
+
       <div
-        style={{ width: boxSize, height: boxSize, fontSize, display: "flex", alignItems: "center", justifyContent: "center", background: "none", boxShadow: "none", border: "none", padding: 0, margin: 0, position: "relative", overflow: "visible" }}
+        className={sprite ? undefined : "building-box"}
+        style={{
+          width: boxSize,
+          height: boxSize,
+          fontSize,
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          background: sprite ? "none" : undefined,
+          boxShadow: sprite ? "none" : undefined,
+          border: "none",
+          padding: 0,
+          margin: 0,
+          position: "relative",
+          overflow: "visible",
+          cursor: "pointer",
+        }}
         onClick={onClick}
       >
-        {sprite && (
+        {sprite ? (
           <img
             src={sprite}
             alt={name}
@@ -56,9 +95,11 @@ export function BuildingBox({ building, onClick }) {
               height: boxSize * 2,
               transform: "translate(-50%, -50%)",
               objectFit: "contain",
-              pointerEvents: "none"
+              pointerEvents: "none",
             }}
           />
+        ) : (
+          <div style={{ fontWeight: "bold" }}>{name || `Building ${i}`}</div>
         )}
       </div>
     </div>
@@ -330,6 +371,66 @@ export function displayBudget({ budget, spent, width = 200, isPrimary = false })
             }}>-${spent}</span>
           </div>
         )}
+      </div>
+    </div>
+  );
+}
+
+export function displayHealth({ health = 100, width = 200, isPrimary = false }) {
+  const clamped = Math.max(0, Math.min(100, health));
+  const barHeight = isPrimary ? 16 : 12;
+  const fontSize = isPrimary ? 12 : 10;
+
+  // Color goes from green (full) → yellow (mid) → red (empty)
+  const color =
+    clamped >= 66 ? "#3cb371" : clamped >= 33 ? "#e6b800" : "#cc3b2a";
+
+  return (
+    <div
+      style={{
+        width,
+        marginTop: 8,
+        marginLeft: "auto",
+        marginRight: "auto",
+      }}
+    >
+      <div
+        style={{
+          position: "relative",
+          width: "100%",
+          height: barHeight,
+          background: "#222",
+          borderRadius: 6,
+          overflow: "hidden",
+          border: "1px solid #444",
+        }}
+      >
+        <div
+          style={{
+            width: `${clamped}%`,
+            height: "100%",
+            background: color,
+            transition: "width 0.4s, background 0.4s",
+          }}
+        />
+        <div
+          style={{
+            position: "absolute",
+            top: 0,
+            left: 0,
+            width: "100%",
+            height: "100%",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            fontSize,
+            fontWeight: 800,
+            color: "#fff",
+            textShadow: "0 1px 2px rgba(0,0,0,0.6)",
+          }}
+        >
+          {clamped}% HP
+        </div>
       </div>
     </div>
   );
