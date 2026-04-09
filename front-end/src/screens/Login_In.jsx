@@ -1,11 +1,27 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "../context/Auth_Context";
 import "./Login.css";
 
 function Login() {
   const navigate = useNavigate();
-  const [email, setEmail] = useState("");
+  const { login, authLoading, authError, clearAuthError } = useAuth();
+
+  const [usernameOrEmail, setUsernameOrEmail] = useState("");
   const [password, setPassword] = useState("");
+
+  useEffect(() => {
+    clearAuthError();
+  }, []);
+
+  const handleConfirm = async () => {
+    try {
+      await login(usernameOrEmail, password);
+      navigate("/city-layout");
+    } catch (err) {
+      console.error("Login failed:", err);
+    }
+  };
 
   return (
     <div className="login-page">
@@ -16,9 +32,9 @@ function Login() {
         <input
           className="login-input"
           type="text"
-          placeholder="Email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
+          placeholder="Username or Email"
+          value={usernameOrEmail}
+          onChange={(e) => setUsernameOrEmail(e.target.value)}
         />
 
         <input
@@ -29,16 +45,20 @@ function Login() {
           onChange={(e) => setPassword(e.target.value)}
         />
 
+        {authError && <div className="login-error">{authError}</div>}
+
         <button
           className="login-button"
-          onClick={() => navigate("/city-layout")}
+          onClick={handleConfirm}
+          disabled={authLoading}
         >
-          Confirm
+          {authLoading ? "Logging In..." : "Confirm"}
         </button>
 
         <button
           className="login-button"
           onClick={() => navigate("/")}
+          disabled={authLoading}
         >
           Back
         </button>

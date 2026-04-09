@@ -1,7 +1,9 @@
-import React, { useContext, useMemo, useRef, useState } from "react";
+import React, { useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { PlayerContext } from "../context/Player_Context";
+import { useFriends } from "../context/Friends_Context";
+import { useAuth } from "../context/Auth_Context";
 import "./Friends_List.css";
+
 
 function FriendRow({ friend, onRemove }) {
   const [dragX, setDragX] = useState(0);
@@ -42,7 +44,10 @@ function FriendRow({ friend, onRemove }) {
 
   return (
     <div className="friend-row-shell">
-      <button className="remove-friend-btn" onClick={() => onRemove(friend.id)}>
+      <button
+        className="remove-friend-btn"
+        onClick={() => onRemove(friend.username)}
+      >
         Remove
       </button>
 
@@ -55,10 +60,10 @@ function FriendRow({ friend, onRemove }) {
         onPointerLeave={handlePointerUp}
       >
         <div className="friend-card">
-          <div className="friend-icon">{friend.username}</div>
+          <div className="friend-icon">{"PFP"}</div>
 
           <div className="friend-text">
-            <div className="friend-name">Name: {friend.name}</div>
+            <div className="friend-name">@{friend.username}</div>
             <div className="friend-info">Info: {friend.info}</div>
           </div>
         </div>
@@ -69,8 +74,9 @@ function FriendRow({ friend, onRemove }) {
 
 function Friends_List() {
   const navigate = useNavigate();
-  const { friends, removeFriend } = useContext(PlayerContext);
+  const { friends, loading, error, handleRemoveFriend } = useFriends();
   const [search, setSearch] = useState("");
+  const { currentUser } = useAuth();
 
   const filteredFriends = useMemo(() => {
     return friends.filter((friend) => {
@@ -91,8 +97,7 @@ function Friends_List() {
           </div>
 
           <div className="user-text">
-            <div className="username">Username</div>
-            <div className="userid">userID</div>
+            <div className="username">{currentUser?.username || "Username"}</div>
           </div>
 
           <button
@@ -115,14 +120,18 @@ function Friends_List() {
         </div>
 
         <div className="friends-list">
-          {friends.length === 0 ? (
+          {loading ? (
+            <div className="friends-empty">Loading friends...</div>
+          ) : error ? (
+            <div className="friends-empty">{error}</div>
+          ) : friends.length === 0 ? (
             <div className="friends-empty">No friends added</div>
           ) : filteredFriends.length > 0 ? (
             filteredFriends.map((friend) => (
               <FriendRow
                 key={friend.id}
                 friend={friend}
-                onRemove={removeFriend}
+                onRemove={handleRemoveFriend}
               />
             ))
           ) : (

@@ -62,3 +62,13 @@ margin-top: 20px;
   box-sizing: border-box;
   margin-bottom: 20px;
 }
+
+.login-error {
+  color: #ffdddd;
+  background: #7a1f1f;
+  padding: 10px 12px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: bold;
+  margin-bottom: 10px;
+}

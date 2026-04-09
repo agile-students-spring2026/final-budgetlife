@@ -3,10 +3,12 @@ import { useNavigate } from "react-router-dom";
 import "./Shop.css";
 import { PlayerContext } from "../context/Player_Context";
 import Item_Card from "../components/Item_Card";
+import { useAuth } from "../context/Auth_Context";
 
 function Shop() {
   const { money, inventory, buyItem } = useContext(PlayerContext);
   const navigate = useNavigate();
+  const { currentUser } = useAuth();
 
   const items = [
     { id: 1, name: "House Upgrade", info: "Improves housing", price: 200 },
@@ -22,7 +24,7 @@ function Shop() {
           <div className="shop-player-icon">Player Icon</div>
 
           <div className="shop-user-text">
-            <div className="shop-username">Username</div>
+            <div className="username">{currentUser?.username || "Username"}</div>
             <div className="shop-userid">${money}</div>
           </div>
 
