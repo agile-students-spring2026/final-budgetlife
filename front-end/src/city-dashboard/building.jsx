@@ -1,6 +1,19 @@
-import React, { useContext, useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import "./Building.css";
-import { BuildingContext } from "../context/Building_Context";
+import { useAuth } from "../context/Auth_Context";
+import { getBudgetGoals, updateBudgetGoal } from "../api/budgetApi";
+
+// Maps building.healthCategory ("houses", "restaurant", ...) to the backend
+// budget category key ("housing", "food", ...). Duplicated from
+// BuildingManager.jsx to avoid a circular import (BuildingManager imports
+// BuildingBox from this file).
+const HEALTH_TO_BUDGET_CATEGORY = {
+  cityhall: "total",
+  houses: "housing",
+  restaurant: "food",
+  hospital: "health",
+  cinema: "entertainment",
+};
 
 // Building class definition
 class Building {
@@ -91,18 +104,103 @@ export function BuildingBox({ building, onClick }) {
 }
 
 export function DisplayMenu({ building, onClose }) {
-  const { updateBuilding } = useContext(BuildingContext);
-  const [savingGoal, setSavingGoal] = useState("");
+  const { currentUser } = useAuth();
   const [showExpBar, setShowExpBar] = useState(false);
+  const [editingGoal, setEditingGoal] = useState(false);
+  const [draftGoal, setDraftGoal] = useState("");
+  const [goalError, setGoalError] = useState("");
+  const [goalsSnapshot, setGoalsSnapshot] = useState(null);
+  const [localBudget, setLocalBudget] = useState(building?.budget ?? 0);
+  const [saving, setSaving] = useState(false);
 
   useEffect(() => {
     if (building) {
-      setSavingGoal(building.savingGoal || "");
       setShowExpBar(false);
+      setEditingGoal(false);
+      setGoalError("");
+      setLocalBudget(building.budget ?? 0);
     }
   }, [building]);
 
+  // Pull a fresh snapshot of all goals when entering edit mode so the cap
+  // (total - sum of other categories) reflects the latest backend state.
+  useEffect(() => {
+    if (!editingGoal || !currentUser?.username) return;
+    let cancelled = false;
+    (async () => {
+      try {
+        const goals = await getBudgetGoals(currentUser.username);
+        if (!cancelled) setGoalsSnapshot(goals);
+      } catch (err) {
+        if (!cancelled) setGoalError("Failed to load budget data");
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [editingGoal, currentUser?.username]);
+
   if (!building) return null;
+
+  const budgetCategory = HEALTH_TO_BUDGET_CATEGORY[building.healthCategory];
+  // City Hall (total) is intentionally not editable; School has no
+  // healthCategory mapping so it's also non-editable.
+  const isEditable = !!budgetCategory && budgetCategory !== "total";
+
+  const minAllowed = Math.max(0, building.spent || 0);
+  let maxAllowed = null;
+  if (goalsSnapshot && budgetCategory) {
+    const totalGoal = goalsSnapshot.total?.goal || 0;
+    let othersSum = 0;
+    for (const [cat, entry] of Object.entries(goalsSnapshot)) {
+      if (cat === "total" || cat === budgetCategory) continue;
+      othersSum += entry?.goal || 0;
+    }
+    maxAllowed = Math.max(0, totalGoal - othersSum);
+  }
+
+  const handleStartEdit = () => {
+    if (!isEditable) return;
+    setDraftGoal(String(localBudget));
+    setGoalError("");
+    setEditingGoal(true);
+  };
+
+  const handleCancelEdit = () => {
+    setEditingGoal(false);
+    setGoalError("");
+  };
+
+  const handleSaveGoal = async () => {
+    const value = Number(draftGoal);
+    if (!Number.isFinite(value)) {
+      setGoalError("Enter a valid number");
+      return;
+    }
+    if (value < minAllowed) {
+      setGoalError(`Cannot be less than current spent ($${minAllowed})`);
+      return;
+    }
+    if (maxAllowed !== null && value > maxAllowed) {
+      setGoalError(`Cannot exceed $${maxAllowed} (total budget cap)`);
+      return;
+    }
+    try {
+      setSaving(true);
+      await updateBudgetGoal(currentUser.username, budgetCategory, value);
+      setLocalBudget(value);
+      setEditingGoal(false);
+      setGoalError("");
+      // Tell BuildingManager + BudgetHeader to re-fetch.
+      if (typeof window.refreshBuildingHealth === "function") {
+        window.refreshBuildingHealth();
+      }
+    } catch (err) {
+      setGoalError(err.message || "Update failed");
+    } finally {
+      setSaving(false);
+    }
+  };
 
   const header = document.querySelector(".budget-header");
   if (header) header.style.display = "none";
@@ -207,7 +305,7 @@ export function DisplayMenu({ building, onClose }) {
                 isPrimary: building.type === "primary",
               })
             : displayBudget({
-                budget: building.budget,
+                budget: localBudget,
                 spent: building.spent,
                 width: 400,
                 isPrimary: building.type === "primary",
@@ -216,30 +314,119 @@ export function DisplayMenu({ building, onClose }) {
 
         <div style={{ marginBottom: 18, width: "100%", maxWidth: 400 }}>
           <div style={{ fontWeight: 700, fontSize: 18, marginBottom: 6 }}>
-            Savings goal
+            Budget goal
           </div>
-          <input
-            type="text"
-            value={savingGoal}
-            onChange={(e) => {
-              const value = e.target.value;
-              setSavingGoal(value);
-              updateBuilding(building.i, { savingGoal: value });
-            }}
-            placeholder="No goal set"
-            style={{
-              width: "100%",
-              height: 42,
-              background: "#333",
-              border: "none",
-              outline: "none",
-              borderRadius: 8,
-              padding: "0 16px",
-              fontSize: 16,
-              color: "#fff",
-              boxSizing: "border-box",
-            }}
-          />
+
+          {!isEditable ? (
+            <div
+              style={{
+                background: "#333",
+                borderRadius: 8,
+                padding: "10px 16px",
+                fontSize: 16,
+                color: "#aaa",
+                boxSizing: "border-box",
+              }}
+            >
+              ${localBudget}{" "}
+              <span style={{ opacity: 0.7, fontSize: 13 }}>
+                (not editable)
+              </span>
+            </div>
+          ) : !editingGoal ? (
+            <button
+              type="button"
+              onClick={handleStartEdit}
+              style={{
+                width: "100%",
+                background: "#333",
+                border: "none",
+                outline: "none",
+                borderRadius: 8,
+                padding: "10px 16px",
+                fontSize: 16,
+                color: "#fff",
+                textAlign: "left",
+                cursor: "pointer",
+                boxSizing: "border-box",
+              }}
+            >
+              ${localBudget}{" "}
+              <span style={{ opacity: 0.6, fontSize: 13 }}>
+                — tap to edit
+              </span>
+            </button>
+          ) : (
+            <div>
+              <div style={{ display: "flex", gap: 8 }}>
+                <input
+                  type="number"
+                  value={draftGoal}
+                  onChange={(e) => setDraftGoal(e.target.value)}
+                  autoFocus
+                  style={{
+                    flex: 1,
+                    minWidth: 0,
+                    height: 42,
+                    background: "#333",
+                    border: "none",
+                    outline: "none",
+                    borderRadius: 8,
+                    padding: "0 16px",
+                    fontSize: 16,
+                    color: "#fff",
+                    boxSizing: "border-box",
+                  }}
+                />
+                <button
+                  type="button"
+                  onClick={handleSaveGoal}
+                  disabled={saving}
+                  style={{
+                    background: "#7c3aed",
+                    color: "#fff",
+                    border: "none",
+                    borderRadius: 8,
+                    padding: "0 16px",
+                    fontWeight: 700,
+                    cursor: saving ? "default" : "pointer",
+                    opacity: saving ? 0.6 : 1,
+                  }}
+                >
+                  Save
+                </button>
+                <button
+                  type="button"
+                  onClick={handleCancelEdit}
+                  disabled={saving}
+                  style={{
+                    background: "#444",
+                    color: "#fff",
+                    border: "none",
+                    borderRadius: 8,
+                    padding: "0 16px",
+                    fontWeight: 700,
+                    cursor: saving ? "default" : "pointer",
+                    opacity: saving ? 0.6 : 1,
+                  }}
+                >
+                  Cancel
+                </button>
+              </div>
+              <div style={{ marginTop: 6, fontSize: 13, color: "#aaa" }}>
+                {maxAllowed === null
+                  ? "Loading limits…"
+                  : `Allowed range: $${minAllowed} – $${maxAllowed}`}
+              </div>
+              {goalError && (
+                <div
+                  style={{ marginTop: 6, fontSize: 13, color: "#ff6b6b" }}
+                >
+                  {goalError}
+                </div>
+              )}
+            </div>
+          )}
         </div>
 
         <div style={{ marginBottom: 18, width: "100%", maxWidth: 400 }}>
