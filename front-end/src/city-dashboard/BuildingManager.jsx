@@ -1,4 +1,10 @@
 import React, { useRef, useState, useEffect, useContext } from "react";
+import GrassBackground from "../../ArtAssets/GrassBackground.png";
+import CityHallImg from "../../ArtAssets/Buildings/CityHall.png";
+import CinemaImg from "../../ArtAssets/Buildings/Secondary/Cinema.png";
+import HospitalImg from "../../ArtAssets/Buildings/Secondary/Hospital.png";
+import HousesImg from "../../ArtAssets/Buildings/Secondary/Houses.png";
+import RestaurantImg from "../../ArtAssets/Buildings/Secondary/Restraunt.png";
 import { BuildingContext } from "../context/Building_Context";
 import { BuildingBox } from "./building";
 import { PlayerBox } from "./Player";
@@ -6,30 +12,50 @@ import { PlayerBox } from "./Player";
 
 // Helper to create default city state
 function createDefaultCity() {
-  const buildings = [
-    { type: "primary", i: 1, location: { x: 0, y: 0 }, level: 1, name: "City Hall", category: "government", budget: 1000, spent: 300 }
-  ];
-  const angleStep = (2 * Math.PI) / 5;
-  const radius = 500, jitter = 40;
-  for (let idx = 0; idx < 5; idx++) {
-    const angle = idx * angleStep;
-    const r = radius + (Math.random() - 0.55) * jitter;
-    buildings.push({
-      type: "secondary",
-      i: idx + 2,
-      location: { x: Math.round(r * Math.cos(angle)), y: Math.round(r * Math.sin(angle)) },
-      level: 1,
-      name: `Building ${idx + 2}`,
-      category: "residential",
-      budget: 500,
-      spent: 100
-    });
-  }
-  return {
-    buildings,
-    decorations: [],
-    // add more city state as needed
-  };
+	const buildings = [
+		{
+			type: "primary",
+			i: 1,
+			location: { x: 0, y: 0 },
+			level: 1,
+			name: "City Hall",
+			category: "management",
+			budget: 1000,
+			spent: 300,
+			sprite: CityHallImg
+		}
+	];
+	const angleStep = (2 * Math.PI) / 4;
+	const radius = 500, jitter = 40;
+	const secondarySprites = [CinemaImg, HospitalImg, HousesImg, RestaurantImg];
+	const secondaryNames = ["Cinema", "Hospital", "Houses", "Restaurant"];
+	const secondaryCategories = ["entertainment", "wellness", "residential", "food"];
+	for (let idx = 0; idx < 4; idx++) {
+		let angle = idx * angleStep;
+		let r = radius + (Math.random() - 0.55) * jitter;
+		// If this is the building to the right (idx === 0), push it further right
+		let x = Math.round(r * Math.cos(angle));
+		let y = Math.round(r * Math.sin(angle));
+		if (idx === 0) {
+			x += 200; // Move further right (increase as needed)
+		}
+		buildings.push({
+			type: "secondary",
+			i: idx + 2,
+			location: { x, y },
+			level: 1,
+			name: secondaryNames[idx],
+			category: secondaryCategories[idx],
+			budget: 500,
+			spent: 100,
+			sprite: secondarySprites[idx]
+		});
+	}
+	return {
+		buildings,
+		decorations: [],
+		// add more city state as needed
+	};
 }
 
 
@@ -371,20 +397,23 @@ export function BuildingManager({ onBuildingClick, onCloseMenu, showBudget = tru
 				onWheel={handleWheel}
 				onClick={handleCityClick}
 			>
-			<div
-				data-city-grid
-				style={{
-					position: "relative",
-					width: `${CITY_WIDTH}px`,
-					height: `${CITY_HEIGHT}px`,
-					background: "#e0e0e0",
-					borderRadius: "20px",
-					margin: 0,
-					transform: `translateY(-45vh) scale(${zoom})`,
-					transformOrigin: "center center",
-					transition: dragging.current ? "none" : "transform 0.2s"
-				}}
-			>
+			   <div
+			   data-city-grid
+			   style={{
+				   position: "relative",
+				   width: `${CITY_WIDTH}px`,
+				   height: `${CITY_HEIGHT}px`,
+				   backgroundImage: `url(${GrassBackground})`,
+				   backgroundSize: `${CITY_WIDTH * 1.1}px ${CITY_HEIGHT * 1.1}px`,
+				   backgroundRepeat: "repeat",
+				   backgroundPosition: `${pan.x}px ${pan.y}px`,
+				   borderRadius: "20px",
+				   margin: 0,
+				   transform: `translateY(-50vh) scale(${zoom})`,
+				   transformOrigin: "center center",
+				   transition: dragging.current ? "none" : "transform 0.2s"
+			   }}
+		   >
 	        {/* Render PlayerBox at playerPos, affected by pan */}
 				{/* Center PlayerBox visually at playerPos (city coordinates) */}
 				<PlayerBox

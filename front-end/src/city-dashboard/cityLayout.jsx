@@ -1,3 +1,5 @@
+
+import GrassBackground from "../../ArtAssets/GrassBackground.png";
 import "./cityLayout.css";
 
 import BudgetHeader from "./BudgetHeader";
@@ -14,7 +16,17 @@ function CityLayout() {
   const [showSlide, setShowSlide] = useState(false);
 
   return (
-    <div className="city-layout">
+    <div
+      className="city-layout"
+      style={{
+        backgroundImage: `url(${GrassBackground})`,
+        backgroundSize: "cover",
+        backgroundRepeat: "no-repeat",
+        backgroundPosition: "center center",
+        minHeight: "100vh",
+        width: "100vw"
+      }}
+    >
 
       {selectedBuilding ? (
         <DisplayMenu
