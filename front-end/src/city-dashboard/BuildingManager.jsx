@@ -9,7 +9,6 @@ import { BuildingContext } from "../context/Building_Context";
 import { BuildingBox } from "./building";
 import { PlayerBox } from "./Player";
 
-
 // Helper to create default city state
 function createDefaultCity() {
 	const buildings = [
@@ -58,32 +57,52 @@ function createDefaultCity() {
 	};
 }
 
+export function BuildingManager({
+  onBuildingClick,
+  onCloseMenu,
+  showBudget = true,
+}) {
+  const [pan, setPan] = useState({ x: 0, y: 0 });
+  const dragging = useRef(false);
+  const lastPos = useRef({ x: 0, y: 0 });
+  const movedDuringDrag = useRef(false);
 
+  const [playerPos, setPlayerPos] = useState({
+    x: 0,
+    y: -240,
+  });
+  const playerPosRef = useRef({ x: 0, y: -240 });
 
-export function BuildingManager({ onBuildingClick, onCloseMenu, showBudget = true }) {
-	// Pan state
-	const [pan, setPan] = useState({ x: 0, y: 0 });
-	const dragging = useRef(false);
-	const lastPos = useRef({ x: 0, y: 0 });
+  const [pathPoints, setPathPoints] = useState([]);
+  const [activeBuilding, setActiveBuilding] = useState(null);
+  const [ignoredBuildingId, setIgnoredBuildingId] = useState(null);
 
-	// Player position in city grid coordinates (not screen coordinates)
-	const [playerPos, setPlayerPos] = useState(() => ({
-		x: 0,
-		y: -240 // above City Hall by default
-	}));
-	const [targetPos, setTargetPos] = useState(null);
+  const [moveTarget, setMoveTarget] = useState(null);
 
-	const [city, setCity] = useState(() => {
+  const [city, setCity] = useState(() => {
     const saved = localStorage.getItem("cityState");
     if (saved) {
-        try { return JSON.parse(saved); } catch {}
+      try {
+        return JSON.parse(saved);
+      } catch {}
     }
     const defaults = createDefaultCity();
     localStorage.setItem("cityState", JSON.stringify(defaults));
     return defaults;
-    });
+  });
 
-    useEffect(() => {
+  const [zoom, setZoom] = useState(0.5);
+  const lastDistance = useRef(null);
+
+  const BUILDING_SIZE = 200;
+  const CITY_WIDTH = 1600;
+  const CITY_HEIGHT = 1600;
+
+  useEffect(() => {
+    playerPosRef.current = playerPos;
+  }, [playerPos]);
+
+  useEffect(() => {
     localStorage.setItem("cityState", JSON.stringify(city));
     }, [city]);
 
@@ -449,6 +468,84 @@ export function BuildingManager({ onBuildingClick, onCloseMenu, showBudget = tru
 	);
 }
 
-// stores a list of all the buildings in the city, and allows the user to add/remove buildings
-// saves the state of the buildings even when the app is closed and reopened
-// spawns the building components on the cityLayout screen (always at set locations)
+  return (
+    <div
+      className="building-manager"
+      style={{
+        position: "relative",
+        overflow: "auto",
+        minHeight: "600px",
+        width: "100vw",
+        maxWidth: "100vw",
+        cursor: dragging.current ? "grabbing" : "grab",
+        touchAction: "none",
+        display: "flex",
+        justifyContent: "center",
+        marginTop: 0,
+      }}
+      onMouseDown={handleMouseDown}
+      onMouseUp={handleMouseUp}
+      onMouseLeave={handleMouseUp}
+      onMouseMove={handleMouseMove}
+      onTouchStart={handleTouchStart}
+      onTouchEnd={handleTouchEnd}
+      onTouchCancel={handleTouchEnd}
+      onTouchMove={handleTouchMove}
+      onWheel={handleWheel}
+      onClick={handleCityClick}
+    >
+      <div
+        data-city-grid
+        style={{
+          position: "relative",
+          width: `${CITY_WIDTH}px`,
+          height: `${CITY_HEIGHT}px`,
+          background: "#e0e0e0",
+          borderRadius: "20px",
+          margin: 0,
+          transform: `translate(${pan.x}px, calc(-45vh + ${pan.y}px)) scale(${zoom})`,
+          transformOrigin: "center center",
+          transition: dragging.current ? "none" : "transform 0.2s",
+        }}
+      >
+        <PlayerBox
+          x={CITY_WIDTH / 2 + playerPos.x}
+          y={CITY_HEIGHT / 2 + playerPos.y}
+          size={60}
+        />
+
+        {city.buildings.map((b) => (
+          <div
+            key={b.i}
+            style={{
+              position: "absolute",
+              left: `${CITY_WIDTH / 2 + b.location.x - BUILDING_SIZE / 2}px`,
+              top: `${CITY_HEIGHT / 2 + b.location.y - BUILDING_SIZE / 2}px`,
+              zIndex: b.type === "primary" ? 2 : 1,
+              transition: dragging.current ? "none" : "left 0.2s, top 0.2s",
+            }}
+          >
+            <BuildingBox
+              building={{ ...b, showBudget }}
+              onClick={() => {
+                const offsetX = b.type === "primary" ? 45 : 10;
+                const offsetY = b.type === "primary" ? 220 : 140;
+
+                const destination = {
+                  x: b.location.x + offsetX,
+                  y: b.location.y + offsetY,
+                };
+
+                setActiveBuilding(b);
+                if (onBuildingClick) onBuildingClick(b);
+                ZoomOnBuilding(b);
+
+                setNewMoveTarget(destination, b.i);
+              }}
+            />
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
