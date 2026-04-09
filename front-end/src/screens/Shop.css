@@ -15,7 +15,6 @@
   flex-direction: column;
 }
 
-/* TOP */
 
 .shop-top {
   background: linear-gradient(180deg, #e2d6c6, #e0c7a6);
@@ -74,8 +73,6 @@
   cursor: pointer;
 }
 
-/* HEADER ROW */
-
 .shop-header-row {
   background: #cfbda5;
   display: flex;
@@ -90,14 +87,14 @@
   color: #2f241b;
 }
 
-/* LIST */
+
 
 .shop-list {
   flex: 1;
   overflow-y: auto;
 }
 
-/* CARD */
+
 
 .shop-card {
   display: flex;
@@ -111,7 +108,7 @@
   min-height: 140px;
 }
 
-/* LEFT SIDE */
+
 
 .shop-card-left {
   display: flex;
@@ -120,7 +117,7 @@
   flex: 1;
 }
 
-/* ICON */
+
 
 .shop-icon {
   width: 100px;
@@ -141,7 +138,7 @@
   color: #2f241b;
 }
 
-/* TEXT */
+
 
 .shop-text {
   line-height: 1.2;
@@ -159,7 +156,6 @@
   color: #2f241b;
 }
 
-/* BUTTON */
 
 .buy-btn {
   width: 92px;
@@ -180,7 +176,6 @@
   color: #2f241b;
 }
 
-/* BOTTOM */
 
 .shop-bottom {
   display: flex;
