@@ -233,8 +233,8 @@ export function DisplayMenu({ building, onClose }) {
     >
       <div
         style={{
-          background: "#222",
-          color: "#fff",
+          background: "linear-gradient(180deg, #e2d6c6, #e0c7a6)",
+          color: "#2f241b",
           borderBottomLeftRadius: 24,
           borderBottomRightRadius: 24,
           padding: "32px 24px 24px 24px",
@@ -247,6 +247,7 @@ export function DisplayMenu({ building, onClose }) {
           maxWidth: 600,
           width: "90vw",
           margin: "0 auto",
+          border: "1px solid #b39f86",
         }}
       >
         <h2
@@ -264,10 +265,12 @@ export function DisplayMenu({ building, onClose }) {
         <div style={{ display: "flex", gap: 12, marginBottom: 16, flexWrap: "wrap" }}>
           <span
             style={{
-              background: "#333",
+              background: "#cfbda5",
               borderRadius: 8,
               padding: "4px 12px",
               fontWeight: 700,
+              color: "#2f241b",
+              border: "1px solid #b39f86",
             }}
           >
             Level {building.level}
@@ -275,10 +278,12 @@ export function DisplayMenu({ building, onClose }) {
 
           <span
             style={{
-              background: "#333",
+              background: "#cfbda5",
               borderRadius: 8,
               padding: "4px 12px",
               fontWeight: 700,
+              color: "#2f241b",
+              border: "1px solid #b39f86",
             }}
           >
             {building.category}
@@ -301,13 +306,13 @@ export function DisplayMenu({ building, onClose }) {
             ? displayExp({
                 currentExp: building.currentExp,
                 expToNextLevel: building.expToNextLevel,
-                width: 400,
+                width: "100%",
                 isPrimary: building.type === "primary",
               })
             : displayBudget({
                 budget: localBudget,
                 spent: building.spent,
-                width: 400,
+                width: "100%",
                 isPrimary: building.type === "primary",
               })}
         </div>
@@ -320,12 +325,13 @@ export function DisplayMenu({ building, onClose }) {
           {!isEditable ? (
             <div
               style={{
-                background: "#333",
+                background: "#cfbda5",
                 borderRadius: 8,
                 padding: "10px 16px",
                 fontSize: 16,
-                color: "#aaa",
+                color: "#6b5d4d",
                 boxSizing: "border-box",
+                border: "1px solid #b39f86",
               }}
             >
               ${localBudget}{" "}
@@ -339,13 +345,13 @@ export function DisplayMenu({ building, onClose }) {
               onClick={handleStartEdit}
               style={{
                 width: "100%",
-                background: "#333",
-                border: "none",
+                background: "#cfbda5",
+                border: "1px solid #b39f86",
                 outline: "none",
                 borderRadius: 8,
                 padding: "10px 16px",
                 fontSize: 16,
-                color: "#fff",
+                color: "#2f241b",
                 textAlign: "left",
                 cursor: "pointer",
                 boxSizing: "border-box",
@@ -368,13 +374,13 @@ export function DisplayMenu({ building, onClose }) {
                     flex: 1,
                     minWidth: 0,
                     height: 42,
-                    background: "#333",
-                    border: "none",
+                    background: "#cfbda5",
+                    border: "1px solid #b39f86",
                     outline: "none",
                     borderRadius: 8,
                     padding: "0 16px",
                     fontSize: 16,
-                    color: "#fff",
+                    color: "#2f241b",
                     boxSizing: "border-box",
                   }}
                 />
@@ -400,9 +406,9 @@ export function DisplayMenu({ building, onClose }) {
                   onClick={handleCancelEdit}
                   disabled={saving}
                   style={{
-                    background: "#444",
-                    color: "#fff",
-                    border: "none",
+                    background: "#bfa88c",
+                    color: "#2f241b",
+                    border: "1px solid #b39f86",
                     borderRadius: 8,
                     padding: "0 16px",
                     fontWeight: 700,
@@ -413,7 +419,7 @@ export function DisplayMenu({ building, onClose }) {
                   Cancel
                 </button>
               </div>
-              <div style={{ marginTop: 6, fontSize: 13, color: "#aaa" }}>
+              <div style={{ marginTop: 6, fontSize: 13, color: "#6b5d4d" }}>
                 {maxAllowed === null
                   ? "Loading limits…"
                   : `Allowed range: $${minAllowed} – $${maxAllowed}`}
@@ -435,11 +441,12 @@ export function DisplayMenu({ building, onClose }) {
           </div>
           <div
             style={{
-              background: "#222",
+              background: "#cfbda5",
               borderRadius: 8,
               padding: "8px 16px",
-              color: "#fff",
+              color: "#2f241b",
               fontSize: 15,
+              border: "1px solid #b39f86",
             }}
           >
             {building.history && building.history.length > 0 ? (
