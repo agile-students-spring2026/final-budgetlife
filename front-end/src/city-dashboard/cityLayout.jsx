@@ -19,8 +19,8 @@ function CityLayout() {
     <div
       className="city-layout"
       style={{
-      backgroundImage: `url(${GrassBackground})`,
-      backgroundSize: "cover",
+        backgroundImage: `url(${GrassBackground})`,
+        backgroundSize: "cover",
         backgroundRepeat: "no-repeat",
         backgroundPosition: "center center",
         minHeight: "100vh",

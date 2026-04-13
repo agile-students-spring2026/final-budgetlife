@@ -10,29 +10,29 @@
   width: min(90vw, 900px);
   min-height: 100vh;
   min-width: 100vw;
-  background: #bdbdbd;
+  background: #e0c7a6;
   display: flex;
   flex-direction: column;
 }
 
-/* TOP */
 
 .shop-top {
-  background: #444;
+  background: linear-gradient(180deg, #e2d6c6, #e0c7a6);
   min-height: 180px;
   display: flex;
   align-items: center;
   padding: 10px 10px;
   position: relative;
   box-sizing: border-box;
+  border-bottom: 1px solid #b39f86;
 }
 
 .shop-player-icon {
   width: 85px;
   height: 85px;
   border-radius: 50%;
-  background: #000;
-  color: #fff;
+  background: linear-gradient(145deg, #e6d6bf, #bfa88c);
+  color: #2f241b;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -42,11 +42,12 @@
   font-weight: 700;
   line-height: 1.1;
   flex-shrink: 0;
+  border: 1px solid #9f8b73;
 }
 
 .shop-user-text {
   margin-left: 28px;
-  color: white;
+  color: #2f241b;
   font-weight: bold;
   line-height: 1.1;
 }
@@ -54,6 +55,7 @@
 .shop-username,
 .shop-userid {
   font-size: 32px;
+  color: #2f241b;
 }
 
 .shop-close-btn {
@@ -64,48 +66,49 @@
   height: 50px;
   border: none;
   border-radius: 50%;
-  background: black;
+  background: #2a2017;
   color: white;
   font-size: 32px;
   font-weight: bold;
   cursor: pointer;
 }
 
-/* HEADER ROW */
-
 .shop-header-row {
-  background: #bdbdbd;
+  background: #cfbda5;
   display: flex;
   align-items: center;
   padding: 12px;
+  border-bottom: 1px solid #b39f86;
 }
 
 .shop-title {
   font-size: 22px;
   font-weight: bold;
-  color: #444;
+  color: #2f241b;
 }
 
-/* LIST */
+
 
 .shop-list {
   flex: 1;
   overflow-y: auto;
 }
 
-/* CARD */
+
 
 .shop-card {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 18px;
-  background: #d7d7d7;
+  background: #cfbda5;
   padding: 18px;
-  border-bottom: 12px solid #bdbdbd;
+  border-bottom: 12px solid #e0c7a6;
   box-sizing: border-box;
   min-height: 140px;
 }
+
+
 
 .shop-card-left {
   display: flex;
@@ -114,13 +117,13 @@
   flex: 1;
 }
 
-/* ICON */
+
 
 .shop-icon {
   width: 100px;
   height: 100px;
   border-radius: 20px;
-  background: #aaaaaa;
+  background: linear-gradient(145deg, #e6d6bf, #bfa88c);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -131,9 +134,11 @@
   padding: 0 8px;
   box-sizing: border-box;
   flex-shrink: 0;
+  border: 1px solid #9f8b73;
+  color: #2f241b;
 }
 
-/* TEXT */
+
 
 .shop-text {
   line-height: 1.2;
@@ -142,23 +147,22 @@
 .shop-name {
   font-size: 22px;
   font-weight: bold;
-  color: black;
+  color: #2f241b;
 }
 
 .shop-info {
   font-size: 18px;
   font-weight: bold;
-  color: black;
+  color: #2f241b;
 }
 
-/* BUTTON */
 
 .buy-btn {
   width: 92px;
   height: 92px;
   border: none;
   border-radius: 20px;
-  background: black;
+  background: #2a2017;
   color: white;
   font-size: 18px;
   font-weight: bold;
@@ -167,11 +171,11 @@
 }
 
 .buy-btn:disabled {
-  background: #777;
+  background: #bfa88c;
   cursor: not-allowed;
+  color: #2f241b;
 }
 
-/* BOTTOM */
 
 .shop-bottom {
   display: flex;

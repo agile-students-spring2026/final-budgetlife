@@ -9,8 +9,6 @@
   justify-content: center;
 }
 
-
-
 .transaction-overlay.popup {
   align-items: center;
   background: rgba(0, 0, 0, 0.25);
@@ -27,14 +25,14 @@
 .transaction-panel {
   position: relative; 
   width: min(90vw, 900px);
-  background: #bdbdbd;
+  background: linear-gradient(180deg, #e2d6c6, #e0c7a6); /* UPDATED */
   padding: 14px;
   display: flex;
   flex-direction: column;
   gap: 10px;
   transition: transform 0.25s ease;
+  border: 1px solid #b39f86; /* UPDATED */
 }
-
 
 .transaction-panel.slide.open {
   transform: translateY(0);
@@ -47,18 +45,17 @@
   transform: translateY(-110%);
 }
 
-
 .transaction-overlay.slide .transaction-panel {
   width: 100%;
   border-radius: 0;
-  border-bottom: 8px solid #efefef;
+  border-bottom: 1px solid #b39f86; 
 }
-
 
 .transaction-slide-header {
   display: flex;
   justify-content: space-between;
   font-weight: bold;
+  color: #2f241b; /* UPDATED */
 }
 
 .transaction-header-row {
@@ -67,10 +64,12 @@
   align-items: center;
   padding-right: 50px; 
   padding-bottom: 20px;
+  color: #2f241b; /* UPDATED */
 }
 
 .transaction-title {
   font-weight: bold;
+  color: #2f241b; /* UPDATED */
 }
 
 /* INPUT */
@@ -84,9 +83,9 @@
   flex: 1;
   height: 36px;
   border-radius: 8px;
-  border: none;
-  background: black;
-  color: white;
+  border: 1px solid #b39f86; /* UPDATED */
+  background: #f3eadf; /* UPDATED */
+  color: #2f241b; /* UPDATED */
   padding: 0 10px;
 }
 
@@ -101,30 +100,29 @@
   flex: 1;
   height: 36px;
   border-radius: 8px;
-  border: none;
+  border: 1px solid #b39f86; /* UPDATED */
   font-size: 18px;
+  background: #e8dccb; /* UPDATED */
+  color: #2f241b; /* UPDATED */
 }
 
-
 .transaction-type-row button.active {
-  background: #888;
-  color: black;
+  background: linear-gradient(145deg, #6366f1, #8b5cf6); /* UPDATED */
+  color: #cfbda5;
 }
 
 .transaction-type-row button.inactive {
-  background: black;
-  color: white;
+  background: #e8dccb; /* UPDATED */
+  color: #2f241b; /* UPDATED */
 }
-
 
 .transaction-submit {
   height: 40px;
-  background: black;
+  background: linear-gradient(145deg, #6366f1, #8b5cf6); /* UPDATED */
   color: white;
   border-radius: 8px;
   border: none;
 }
-
 
 .transaction-close {
   position: absolute;
@@ -133,17 +131,16 @@
   width: 36px;
   height: 36px;
   border-radius: 100%;
-  background: black;
-  color: white;
-  border: none;
+  background: #cfbda5; /* UPDATED */
+  color: #2f241b; /* UPDATED */
+  border: 1px solid #b39f86; /* UPDATED */
   font-size: 20px;
 }
-
 
 .drag-handle.bottom {
   width: 40px;
   height: 4px;
-  background: #888;
+  background: #b39f86; /* UPDATED */
   border-radius: 2px;
   margin: 6px auto 0;
   cursor: grab;
