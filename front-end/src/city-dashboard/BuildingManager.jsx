@@ -49,12 +49,10 @@ function buildHistoryForBuilding(b, txMap) {
   return lines;
 }
 
-// Bump this whenever the shape of a saved building changes (e.g. new fields).
-// Old saved states with a different version are discarded and regenerated.
-const CITY_STATE_VERSION = 2;
+// Bump this whenever the shape of a saved building changes
+const CITY_STATE_VERSION = 4;
 
-// Each secondary building corresponds to a backend budget category.
-// healthCategory matches the keys returned by GET /api/budget/buildings.
+// Each secondary building corresponds to a backend budget category
 const SECONDARY_BUILDINGS = [
   { name: "Houses",     category: "residential",   healthCategory: "houses",     sprite: HousesImg },
   { name: "Restaurant", category: "food",          healthCategory: "restaurant", sprite: RestaurantImg },
@@ -115,9 +113,6 @@ function createDefaultCity() {
   };
 }
 
-// Saved state is only kept if its version matches the current code version.
-// Old saves are discarded and regenerated from createDefaultCity. Teammate's
-// save logic stays untouched — same localStorage key, same shape + version field.
 function isSavedCityCompatible(parsed) {
   return parsed && parsed.version === CITY_STATE_VERSION;
 }
@@ -174,9 +169,8 @@ export function BuildingManager({
     localStorage.setItem("cityState", JSON.stringify(city));
   }, [city]);
 
-  // Fetch building health from backend and merge into the building list.
+  // Fetch building health from backend and merge into the building list
   // Re-runs when the user changes or when something bumps refreshHealthTrigger
-  // (e.g. TransactionPanel after submitting a new transaction).
   const [refreshHealthTrigger, setRefreshHealthTrigger] = useState(0);
 
   useEffect(() => {
@@ -716,7 +710,7 @@ export function BuildingManager({
       className="building-manager"
       style={{
         position: "relative",
-        overflow: "auto",
+        overflow: "hidden",
         minHeight: "600px",
         width: "100vw",
         maxWidth: "100vw",
@@ -751,6 +745,23 @@ export function BuildingManager({
           transition: dragging.current ? "none" : "transform 0.2s",
         }}
       >
+        <div
+          aria-hidden
+          style={{
+            position: "absolute",
+            left: `${-(CITY_WIDTH * 4 - CITY_WIDTH) / 2}px`,
+            top: `${-(CITY_HEIGHT * 4 - CITY_HEIGHT) / 2}px`,
+            width: `${CITY_WIDTH * 4}px`,
+            height: `${CITY_HEIGHT * 4}px`,
+            backgroundImage: `url(${GrassBackground})`,
+            backgroundRepeat: "repeat",
+            backgroundSize: "400px 400px",
+            backgroundPosition: "center center",
+            pointerEvents: "none",
+            zIndex: 0,
+          }}
+        />
+
         <PlayerBox
           x={CITY_WIDTH / 2 + playerPos.x}
           y={CITY_HEIGHT / 2 + playerPos.y}

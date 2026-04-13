@@ -2,11 +2,11 @@
 import GrassBackground from "../../ArtAssets/GrassBackground.png";
 import "./cityLayout.css";
 
-import BudgetHeader from "./BudgetHeader";
-import { BuildingManager } from "./BuildingManager";
 import { useState } from "react";
-import { DisplayMenu } from "./building";
 import TransactionPanel from "../components/TransactionPanel";
+import BudgetHeader from "./BudgetHeader";
+import { DisplayMenu } from "./building";
+import { BuildingManager } from "./BuildingManager";
 
 function CityLayout() {
   const [selectedBuilding, setSelectedBuilding] = useState(null);
