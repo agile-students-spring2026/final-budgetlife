@@ -1,4 +1,4 @@
-import { useContext, useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import CityHallImg from "../../ArtAssets/Buildings/CityHall.png";
 import CinemaImg from "../../ArtAssets/Buildings/Secondary/Cinema.png";
 import HospitalImg from "../../ArtAssets/Buildings/Secondary/Hospital.png";
@@ -9,7 +9,7 @@ import { getBudgetGoals, getBuildingHealth, getTransactions } from "../api/budge
 import { useAuth } from "../context/Auth_Context";
 import { BuildingBox } from "./building";
 import { PlayerBox } from "./Player";
-import { BuildingContext } from "../context/Building_Context";
+
 
 // `null` means aggregate across all categories (used by City Hall).
 const HEALTH_TO_TX_CATEGORY = {
@@ -60,30 +60,6 @@ const SECONDARY_BUILDINGS = [
   { name: "Cinema",     category: "entertainment", healthCategory: "cinema",     sprite: CinemaImg },
   { name: "School",     category: "education",     healthCategory: null,         sprite: null },
 ];
-
-function getBuildingSprite(building) {
-  if (building.type === "primary") return CityHallImg;
-
-  const key = (building.name || building.category || "").toLowerCase();
-
-  if (key.includes("house") || key.includes("housing") || key.includes("residential")) {
-    return HousesImg;
-  }
-
-  if (key.includes("restaurant") || key.includes("food")) {
-    return RestaurantImg;
-  }
-
-  if (key.includes("hospital") || key.includes("health")) {
-    return HospitalImg;
-  }
-
-  if (key.includes("cinema") || key.includes("movie") || key.includes("entertainment")) {
-    return CinemaImg;
-  }
-
-  return null;
-}
 
 // Helper to create default city state
 function createDefaultCity() {
@@ -165,19 +141,18 @@ export function BuildingManager({
 
   const { currentUser } = useAuth();
 
-  const { city, setCity } = useContext(BuildingContext);
-
-  const cityWithSprites = useMemo(() => {
-    if (!city) return null;
-
-    return {
-      ...city,
-      buildings: city.buildings.map((b) => ({
-        ...b,
-        sprite: getBuildingSprite(b),
-      })),
-    };
-  }, [city]);
+  const [city, setCity] = useState(() => {
+    const saved = localStorage.getItem("cityState");
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved);
+        if (isSavedCityCompatible(parsed)) return parsed;
+      } catch {}
+    }
+    const defaults = createDefaultCity();
+    localStorage.setItem("cityState", JSON.stringify(defaults));
+    return defaults;
+  });
 
   const [zoom, setZoom] = useState(0.5);
   const lastDistance = useRef(null);
@@ -189,6 +164,10 @@ export function BuildingManager({
   useEffect(() => {
     playerPosRef.current = playerPos;
   }, [playerPos]);
+
+  useEffect(() => {
+    localStorage.setItem("cityState", JSON.stringify(city));
+  }, [city]);
 
   // Fetch building health from backend and merge into the building list
   // Re-runs when the user changes or when something bumps refreshHealthTrigger
@@ -263,8 +242,8 @@ export function BuildingManager({
   }, []);
 
   function getBuildingBounds() {
-    const xs = cityWithSprites.buildings.map((b) => b.location.x);
-    const ys = cityWithSprites.buildings.map((b) => b.location.y);
+    const xs = city.buildings.map((b) => b.location.x);
+    const ys = city.buildings.map((b) => b.location.y);
 
     return {
       minX: Math.min(...xs),
@@ -318,7 +297,7 @@ export function BuildingManager({
   }
 
   function isBlocked(start, end, ignoreId = null) {
-    for (const building of cityWithSprites.buildings) {
+    for (const building of city.buildings) {
       if (ignoreId !== null && building.i === ignoreId) continue;
 
       const rect = getBuildingRect(building);
@@ -789,7 +768,7 @@ export function BuildingManager({
           size={60}
         />
 
-        {cityWithSprites.buildings.map((b) => (
+        {city.buildings.map((b) => (
           <div
             key={b.i}
             style={{

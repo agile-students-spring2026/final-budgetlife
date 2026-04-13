@@ -6,7 +6,6 @@ require("dotenv").config();
 const friendsRoutes = require("./routes/friends");
 const authRoutes = require("./routes/auth");
 const budgetRoutes = require("./routes/budget");
-const cityStateRoutes = require("./routes/cityStateRoutes");
 
 const app = express();
 
@@ -22,6 +21,5 @@ app.get("/", (req, res) => {
 app.use("/api/auth", authRoutes);
 app.use("/api/friends", friendsRoutes);
 app.use("/api/budget", budgetRoutes);
-app.use("/api/city-state", cityStateRoutes);
 
 module.exports = app;
