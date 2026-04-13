@@ -2,11 +2,11 @@
 import GrassBackground from "../../ArtAssets/GrassBackground.png";
 import "./cityLayout.css";
 
-import BudgetHeader from "./BudgetHeader";
-import { BuildingManager } from "./BuildingManager";
 import { useState } from "react";
-import { DisplayMenu } from "./building";
 import TransactionPanel from "../components/TransactionPanel";
+import BudgetHeader from "./BudgetHeader";
+import { DisplayMenu } from "./building";
+import { BuildingManager } from "./BuildingManager";
 
 function CityLayout() {
   const [selectedBuilding, setSelectedBuilding] = useState(null);
@@ -20,11 +20,11 @@ function CityLayout() {
       className="city-layout"
       style={{
       backgroundImage: `url(${GrassBackground})`,
-      backgroundSize: "400px 400px",
-      backgroundRepeat: "repeat",
-      backgroundPosition: "center",
-      minHeight: "100vh",
-      width: "100vw"
+      backgroundSize: "cover",
+        backgroundRepeat: "no-repeat",
+        backgroundPosition: "center center",
+        minHeight: "100vh",
+        width: "100vw"
       }}
     >
 
