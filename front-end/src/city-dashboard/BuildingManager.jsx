@@ -710,7 +710,7 @@ export function BuildingManager({
       className="building-manager"
       style={{
         position: "relative",
-        overflow: "auto",
+        overflow: "hidden",
         minHeight: "600px",
         width: "100vw",
         maxWidth: "100vw",
