@@ -19,12 +19,12 @@ function CityLayout() {
     <div
       className="city-layout"
       style={{
-      backgroundImage: `url(${GrassBackground})`,
-      backgroundSize: "400px 400px",
-      backgroundRepeat: "repeat",
-      backgroundPosition: "center",
-      minHeight: "100vh",
-      width: "100vw"
+        backgroundImage: `url(${GrassBackground})`,
+        backgroundSize: "cover",
+        backgroundRepeat: "no-repeat",
+        backgroundPosition: "center center",
+        minHeight: "100vh",
+        width: "100vw"
       }}
     >
 
