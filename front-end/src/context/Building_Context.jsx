@@ -1,9 +1,12 @@
 import React, { createContext, useEffect, useState } from "react";
+import { getCityState, saveCityState } from "../api/cityStateApi";
+import { useAuth } from "./Auth_Context";
 
 export const BuildingContext = createContext();
 
 function createDefaultCity() {
   return {
+    version: 1,
     buildings: [
       {
         type: "primary",
@@ -17,8 +20,7 @@ function createDefaultCity() {
         currentExp: 1500,
         expToNextLevel: 2000,
         savingGoal: "",
-        history: [
-        ]
+        history: [],
       },
       {
         type: "secondary",
@@ -32,10 +34,7 @@ function createDefaultCity() {
         currentExp: 100,
         expToNextLevel: 250,
         savingGoal: "$100",
-        history: [
-          "- $20 on dry-wall repair",
-          "- $100 on air fryer"
-        ]
+        history: ["- $20 on dry-wall repair", "- $100 on air fryer"],
       },
       {
         type: "secondary",
@@ -53,8 +52,8 @@ function createDefaultCity() {
           "- $45 on groceries",
           "- $15 on Taco Bell",
           "- $10 on coffee",
-          "- $50 on hot pot"
-        ]
+          "- $50 on hot pot",
+        ],
       },
       {
         type: "secondary",
@@ -68,9 +67,7 @@ function createDefaultCity() {
         currentExp: 300,
         expToNextLevel: 750,
         savingGoal: "$50",
-        history: [
-          "- $50 on vitamins"
-        ]
+        history: ["- $50 on vitamins"],
       },
       {
         type: "secondary",
@@ -84,10 +81,7 @@ function createDefaultCity() {
         currentExp: 100,
         expToNextLevel: 250,
         savingGoal: "$30",
-        history: [
-          "- $120 on books",
-          "- $18 on supplies"
-        ]
+        history: ["- $120 on books", "- $18 on supplies"],
       },
       {
         type: "secondary",
@@ -101,42 +95,83 @@ function createDefaultCity() {
         currentExp: 175,
         expToNextLevel: 400,
         savingGoal: "$50",
-        history: [
-          "- $4 on subway",
-          "- $20 on Uber",
-          "- $60 on Uber"
-        ]
-      }
+        history: ["- $4 on subway", "- $20 on Uber", "- $60 on Uber"],
+      },
     ],
-    decorations: []
+    decorations: [],
   };
 }
 
 export function BuildingProvider({ children }) {
-  const [city, setCity] = useState(() => {
-    const saved = localStorage.getItem("cityState");
-    if (saved) {
-      try {
-        return JSON.parse(saved);
-      } catch {}
-    }
-    const defaults = createDefaultCity();
-    localStorage.setItem("cityState", JSON.stringify(defaults));
-    return defaults;
-  });
+  const { currentUser } = useAuth();
+  const [city, setCity] = useState(null);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    localStorage.setItem("cityState", JSON.stringify(city));
-  }, [city]);
+    let cancelled = false;
+
+    async function loadCity() {
+      if (!currentUser?.username) {
+        setCity(createDefaultCity());
+        setIsLoading(false);
+        return;
+      }
+
+      try {
+        setIsLoading(true);
+        const savedCity = await getCityState(currentUser.username);
+
+        if (!cancelled) {
+          setCity(savedCity);
+        }
+      } catch (err) {
+        console.error("Failed to load city state:", err);
+
+        if (!cancelled) {
+          setCity(createDefaultCity());
+        }
+      } finally {
+        if (!cancelled) {
+          setIsLoading(false);
+        }
+      }
+    }
+
+    loadCity();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [currentUser?.username]);
+
+  useEffect(() => {
+    if (!currentUser?.username || !city) return;
+
+    const timeout = setTimeout(() => {
+      saveCityState(currentUser.username, city).catch((err) => {
+        console.error("Failed to save city state:", err);
+      });
+    }, 300);
+
+    return () => clearTimeout(timeout);
+  }, [city, currentUser?.username]);
 
   const updateBuilding = (buildingId, updates) => {
-    setCity((prevCity) => ({
-      ...prevCity,
-      buildings: prevCity.buildings.map((b) =>
-        b.i === buildingId ? { ...b, ...updates } : b
-      ),
-    }));
+    setCity((prevCity) => {
+      if (!prevCity) return prevCity;
+
+      return {
+        ...prevCity,
+        buildings: prevCity.buildings.map((b) =>
+          b.i === buildingId ? { ...b, ...updates } : b
+        ),
+      };
+    });
   };
+
+  if (isLoading || !city) {
+    return null;
+  }
 
   return (
     <BuildingContext.Provider value={{ city, setCity, updateBuilding }}>
