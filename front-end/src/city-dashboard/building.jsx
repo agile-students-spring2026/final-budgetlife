@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import "./Building.css";
 import { useAuth } from "../context/Auth_Context";
-import { getBudgetGoals, updateBudgetGoal } from "../api/budgetApi";
+import { getBudgetGoals, updateBudgetGoal, updateBudgetDates } from "../api/budgetApi";
 
 // Maps building.healthCategory ("houses", "restaurant", ...) to the backend
 // budget category key ("housing", "food", ...). Duplicated from
@@ -25,6 +25,159 @@ class Building {
     this.budget = budget;
     this.location = location;
   }
+}
+
+// Shared editor for the user's total budget goal and budget period dates.
+// Used by City Hall (DisplayMenu) and by the BudgetHeader progress bar.
+export function TotalBudgetEditor({
+  username,
+  initialGoal,
+  initialStartDate,
+  initialEndDate,
+  minGoal = 0,
+  onSaved,
+  onCancel,
+}) {
+  const [goal, setGoal] = useState(String(initialGoal ?? ""));
+  const [startDate, setStartDate] = useState(initialStartDate || "");
+  const [endDate, setEndDate] = useState(initialEndDate || "");
+  const [error, setError] = useState("");
+  const [saving, setSaving] = useState(false);
+
+  const inputStyle = {
+    width: "100%",
+    height: 42,
+    background: "#cfbda5",
+    border: "1px solid #b39f86",
+    outline: "none",
+    borderRadius: 8,
+    padding: "0 12px",
+    fontSize: 16,
+    color: "#2f241b",
+    boxSizing: "border-box",
+  };
+
+  const handleSave = async () => {
+    const numericGoal = Number(goal);
+    if (!Number.isFinite(numericGoal)) {
+      setError("Enter a valid number");
+      return;
+    }
+    if (numericGoal < minGoal) {
+      setError(`Total must be at least $${minGoal}`);
+      return;
+    }
+    if (!startDate || !endDate) {
+      setError("Please select both dates");
+      return;
+    }
+    if (startDate > endDate) {
+      setError("Start date must be before end date");
+      return;
+    }
+    try {
+      setSaving(true);
+      await updateBudgetGoal(username, "total", numericGoal);
+      await updateBudgetDates(username, startDate, endDate);
+      setError("");
+      if (typeof window.refreshBuildingHealth === "function") {
+        window.refreshBuildingHealth();
+      }
+      window.dispatchEvent(new Event("budget:refresh"));
+      onSaved?.({ goal: numericGoal, startDate, endDate });
+    } catch (err) {
+      setError(err.message || "Update failed");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  return (
+    <div>
+      <div style={{ marginBottom: 10 }}>
+        <div style={{ fontSize: 13, color: "#6b5d4d", marginBottom: 4 }}>
+          Total budget goal
+        </div>
+        <input
+          type="number"
+          value={goal}
+          onChange={(e) => setGoal(e.target.value)}
+          style={inputStyle}
+          autoFocus
+        />
+      </div>
+      <div style={{ display: "flex", gap: 8, marginBottom: 10 }}>
+        <div style={{ flex: 1 }}>
+          <div style={{ fontSize: 13, color: "#6b5d4d", marginBottom: 4 }}>
+            Start
+          </div>
+          <input
+            type="date"
+            value={startDate}
+            onChange={(e) => setStartDate(e.target.value)}
+            style={inputStyle}
+          />
+        </div>
+        <div style={{ flex: 1 }}>
+          <div style={{ fontSize: 13, color: "#6b5d4d", marginBottom: 4 }}>
+            End
+          </div>
+          <input
+            type="date"
+            value={endDate}
+            onChange={(e) => setEndDate(e.target.value)}
+            style={inputStyle}
+          />
+        </div>
+      </div>
+      <div style={{ display: "flex", gap: 8 }}>
+        <button
+          type="button"
+          onClick={handleSave}
+          disabled={saving}
+          style={{
+            flex: 1,
+            background: "#7c3aed",
+            color: "#fff",
+            border: "none",
+            borderRadius: 8,
+            padding: "10px 16px",
+            fontWeight: 700,
+            cursor: saving ? "default" : "pointer",
+            opacity: saving ? 0.6 : 1,
+          }}
+        >
+          Save
+        </button>
+        <button
+          type="button"
+          onClick={onCancel}
+          disabled={saving}
+          style={{
+            flex: 1,
+            background: "#bfa88c",
+            color: "#2f241b",
+            border: "1px solid #b39f86",
+            borderRadius: 8,
+            padding: "10px 16px",
+            fontWeight: 700,
+            cursor: saving ? "default" : "pointer",
+            opacity: saving ? 0.6 : 1,
+          }}
+        >
+          Cancel
+        </button>
+      </div>
+      <div style={{ marginTop: 6, fontSize: 13, color: "#6b5d4d" }}>
+        Minimum total: ${minGoal}
+      </div>
+      {error && (
+        <div style={{ marginTop: 6, fontSize: 13, color: "#ff6b6b" }}>
+          {error}
+        </div>
+      )}
+    </div>
+  );
 }
 
 export function BuildingBox({ building, onClick }) {
@@ -143,12 +296,14 @@ export function DisplayMenu({ building, onClose }) {
   if (!building) return null;
 
   const budgetCategory = HEALTH_TO_BUDGET_CATEGORY[building.healthCategory];
-  // City Hall (total) is intentionally not editable; School has no
-  // healthCategory mapping so it's also non-editable.
-  const isEditable = !!budgetCategory && budgetCategory !== "total";
+  // School has no healthCategory mapping so it's non-editable; everything
+  // else (including City Hall / total) is editable.
+  const isEditable = !!budgetCategory;
+  const isTotal = budgetCategory === "total";
 
   const minAllowed = Math.max(0, building.spent || 0);
   let maxAllowed = null;
+  let totalMinAllowed = minAllowed;
   if (goalsSnapshot && budgetCategory) {
     const totalGoal = goalsSnapshot.total?.goal || 0;
     let othersSum = 0;
@@ -157,6 +312,15 @@ export function DisplayMenu({ building, onClose }) {
       othersSum += entry?.goal || 0;
     }
     maxAllowed = Math.max(0, totalGoal - othersSum);
+
+    // Total must be at least (sum of all category goals) and at least
+    // what has already been spent overall.
+    let allCategoriesSum = 0;
+    for (const [cat, entry] of Object.entries(goalsSnapshot)) {
+      if (cat === "total") continue;
+      allCategoriesSum += entry?.goal || 0;
+    }
+    totalMinAllowed = Math.max(minAllowed, allCategoriesSum);
   }
 
   const handleStartEdit = () => {
@@ -339,6 +503,19 @@ export function DisplayMenu({ building, onClose }) {
                 (not editable)
               </span>
             </div>
+          ) : isTotal && editingGoal ? (
+            <TotalBudgetEditor
+              username={currentUser?.username}
+              initialGoal={localBudget}
+              initialStartDate={goalsSnapshot?.total?.startDate || ""}
+              initialEndDate={goalsSnapshot?.total?.endDate || ""}
+              minGoal={totalMinAllowed}
+              onSaved={({ goal }) => {
+                setLocalBudget(goal);
+                setEditingGoal(false);
+              }}
+              onCancel={handleCancelEdit}
+            />
           ) : !editingGoal ? (
             <button
               type="button"
