@@ -65,20 +65,20 @@
   position: relative;
   width: 85px;
   flex-shrink: 0;
-  z-index: 2;
-  
+  z-index: 20;
 }
 
 .player-icon-button {
+  position: relative;
   background: transparent;
   border: none;
   cursor: pointer;
   padding: 0;
-  z-index: 3;
+  z-index: 21;
 }
 
-
 .player-icon {
+  position: relative;
   width: 85px;
   height: 85px;
   border-radius: 50%;
@@ -94,7 +94,7 @@
   border: 1px solid #9f8b73;
   box-shadow: 0 8px 18px rgba(0, 0, 0, 0.14);
   transition: transform 0.15s ease, box-shadow 0.15s ease;
-  z-index: 3;
+  z-index: 21;
 }
 
 .player-icon:hover {
