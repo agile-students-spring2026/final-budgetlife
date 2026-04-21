@@ -5,7 +5,7 @@ import HospitalImg from "../../ArtAssets/Buildings/Secondary/Hospital.png";
 import HousesImg from "../../ArtAssets/Buildings/Secondary/Houses.png";
 import RestaurantImg from "../../ArtAssets/Buildings/Secondary/Restraunt.png";
 import GrassBackground from "../../ArtAssets/GrassBackground.png";
-import { getBudgetGoals, getBuildingHealth, getTransactions } from "../api/budgetApi";
+import { claimReward, getBudgetGoals, getBuildingHealth, getTransactions } from "../api/budgetApi";
 import { useAuth } from "../context/Auth_Context";
 import { BuildingBox } from "./building";
 import { PlayerBox } from "./Player";
@@ -162,6 +162,8 @@ export function BuildingManager({
   const [ignoredBuildingId, setIgnoredBuildingId] = useState(null);
 
   const [moveTarget, setMoveTarget] = useState(null);
+  const handledRewardIntervals = useRef(new Set());
+  const [rewardPopup, setRewardPopup] = useState(null);
 
   const { currentUser } = useAuth();
 
@@ -195,6 +197,11 @@ export function BuildingManager({
   const [refreshHealthTrigger, setRefreshHealthTrigger] = useState(0);
 
   useEffect(() => {
+    handledRewardIntervals.current = new Set();
+    setRewardPopup(null);
+  }, [currentUser?.username]);
+
+  useEffect(() => {
     if (!currentUser?.username) return;
     let cancelled = false;
 
@@ -205,7 +212,25 @@ export function BuildingManager({
           getTransactions(currentUser.username),
           getBudgetGoals(currentUser.username),
         ]);
+
+        let rewardResult = null;
+        const intervalKey = goals?.total?.endDate
+          ? `${goals?.total?.startDate || ""}:${goals.total.endDate}`
+          : null;
+        const intervalEnded = goals?.total?.endDate
+          ? new Date(`${goals.total.endDate}T00:00:00Z`) <= new Date()
+          : false;
+
+        if (intervalKey && intervalEnded && !handledRewardIntervals.current.has(intervalKey)) {
+          rewardResult = await claimReward(currentUser.username);
+          handledRewardIntervals.current.add(intervalKey);
+        }
+
         if (cancelled) return;
+
+        const rewardByBuildingId = new Map(
+          (rewardResult?.details || []).map((detail) => [detail.buildingId, detail])
+        );
 
         setCity((prev) => ({
           ...prev,
@@ -222,9 +247,20 @@ export function BuildingManager({
               next.budget = goals[budgetCat].goal;
               next.spent = goals[budgetCat].current;
             }
+            const rewardDetails = rewardByBuildingId.get(b.i);
+            if (rewardDetails) {
+              next.level = rewardDetails.levelAfter;
+              next.currentExp = rewardDetails.currentExp;
+              next.expToNextLevel = rewardDetails.expToNextLevel;
+            }
             return next;
           }),
         }));
+
+        if (rewardResult?.rewarded) {
+          setRewardPopup(rewardResult);
+          window.dispatchEvent(new Event("budget:refresh"));
+        }
       } catch (err) {
         console.error("Failed to fetch building data:", err);
       }
@@ -726,6 +762,12 @@ export function BuildingManager({
     if (onCloseMenu) onCloseMenu();
   }
 
+  function closeRewardPopup() {
+    setRewardPopup(null);
+  }
+
+  const rewardHasPenalty = rewardPopup?.details?.some((detail) => detail.xpAwarded < 0);
+
   return (
     <div
       className="building-manager"
@@ -752,6 +794,134 @@ export function BuildingManager({
       onWheel={handleWheel}
       onClick={handleCityClick}
     >
+      {rewardPopup?.rewarded && (
+        <div
+          onClick={closeRewardPopup}
+          style={{
+            position: "absolute",
+            inset: 0,
+            background: "rgba(17, 12, 8, 0.64)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            padding: 20,
+            zIndex: 25,
+          }}
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            style={{
+              width: "min(560px, 100%)",
+              maxHeight: "80vh",
+              overflowY: "auto",
+              background: "linear-gradient(180deg, #f4e4c8 0%, #dcc29c 100%)",
+              border: "2px solid #7f5c37",
+              borderRadius: 20,
+              boxShadow: "0 18px 50px rgba(0, 0, 0, 0.32)",
+              padding: 24,
+              color: "#2f241b",
+            }}
+          >
+            <div style={{ display: "flex", justifyContent: "space-between", gap: 16, marginBottom: 18 }}>
+              <div>
+                <div style={{ fontSize: 13, fontWeight: 700, letterSpacing: 1.2, textTransform: "uppercase", color: "#7b5a34", marginBottom: 6 }}>
+                  Budget Reward
+                </div>
+                <h2 style={{ margin: 0, fontSize: 30, lineHeight: 1.1 }}>
+                  {rewardHasPenalty ? "Budget interval settled" : "Buildings leveled up"}
+                </h2>
+              </div>
+              <button
+                type="button"
+                onClick={closeRewardPopup}
+                style={{
+                  alignSelf: "flex-start",
+                  width: 38,
+                  height: 38,
+                  borderRadius: 999,
+                  border: "1px solid #a17d52",
+                  background: "rgba(255,255,255,0.45)",
+                  color: "#5c4327",
+                  fontSize: 20,
+                  cursor: "pointer",
+                }}
+              >
+                ×
+              </button>
+            </div>
+
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(120px, 1fr))", gap: 10, marginBottom: 18 }}>
+              <div style={{ background: "rgba(255,255,255,0.38)", borderRadius: 14, padding: 12, border: "1px solid #c5ab85" }}>
+                <div style={{ fontSize: 12, textTransform: "uppercase", color: "#7b5a34", marginBottom: 4 }}>Total XP</div>
+                <div style={{ fontSize: 28, fontWeight: 800 }}>{rewardPopup.xpAwarded}</div>
+              </div>
+              <div style={{ background: "rgba(255,255,255,0.38)", borderRadius: 14, padding: 12, border: "1px solid #c5ab85" }}>
+                <div style={{ fontSize: 12, textTransform: "uppercase", color: "#7b5a34", marginBottom: 4 }}>Interval</div>
+                <div style={{ fontSize: 28, fontWeight: 800 }}>{rewardPopup.intervalDays}d</div>
+              </div>
+              <div style={{ background: "rgba(255,255,255,0.38)", borderRadius: 14, padding: 12, border: "1px solid #c5ab85" }}>
+                <div style={{ fontSize: 12, textTransform: "uppercase", color: "#7b5a34", marginBottom: 4 }}>Streak</div>
+                <div style={{ fontSize: 28, fontWeight: 800 }}>{rewardPopup.streakCount || 1}</div>
+              </div>
+              <div style={{ background: "rgba(255,255,255,0.38)", borderRadius: 14, padding: 12, border: "1px solid #c5ab85" }}>
+                <div style={{ fontSize: 12, textTransform: "uppercase", color: "#7b5a34", marginBottom: 4 }}>Streak Bonus</div>
+                <div style={{ fontSize: 28, fontWeight: 800 }}>+{rewardPopup.streakBonusXpPerBuilding || 0}</div>
+              </div>
+            </div>
+
+            <div style={{ marginBottom: 16, fontSize: 15, lineHeight: 1.5, color: "#5c4327" }}>
+              {rewardPopup.message}
+            </div>
+
+            <div style={{ display: "flex", flexDirection: "column", gap: 10, marginBottom: 20 }}>
+              {rewardPopup.details?.map((detail) => (
+                <div
+                  key={detail.buildingId}
+                  style={{
+                    background: "rgba(255,255,255,0.42)",
+                    border: "1px solid #c5ab85",
+                    borderRadius: 14,
+                    padding: 14,
+                  }}
+                >
+                  <div style={{ display: "flex", justifyContent: "space-between", gap: 12, alignItems: "center", marginBottom: 6 }}>
+                    <div style={{ fontSize: 18, fontWeight: 800 }}>{detail.buildingName}</div>
+                    <div style={{ fontSize: 18, fontWeight: 800, color: detail.xpAwarded < 0 ? "#9e392c" : "#8b5e10" }}>
+                      {detail.xpAwarded > 0 ? "+" : ""}{detail.xpAwarded} XP
+                    </div>
+                  </div>
+                  <div style={{ fontSize: 14, color: "#6a5032", display: "flex", flexWrap: "wrap", gap: 12 }}>
+                    <span>Base: {detail.baseXpAwarded > 0 ? "+" : ""}{detail.baseXpAwarded ?? detail.xpAwarded}</span>
+                    {!!detail.streakBonusXpAwarded && <span>Streak: +{detail.streakBonusXpAwarded}</span>}
+                    {!!detail.overspendAmount && <span>Overspent: ${detail.overspendAmount}</span>}
+                    <span>Level {detail.levelBefore} to {detail.levelAfter}</span>
+                    <span>{detail.currentExp}/{detail.expToNextLevel} EXP</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            <button
+              type="button"
+              onClick={closeRewardPopup}
+              style={{
+                width: "100%",
+                border: "none",
+                borderRadius: 12,
+                background: "#7c5a2d",
+                color: "#fff9ef",
+                padding: "12px 16px",
+                fontSize: 16,
+                fontWeight: 800,
+                cursor: "pointer",
+              }}
+            >
+              Continue
+            </button>
+          </div>
+        </div>
+      )}
+
       <div
         data-city-grid
         style={{
