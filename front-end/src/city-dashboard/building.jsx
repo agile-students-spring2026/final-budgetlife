@@ -181,11 +181,33 @@ export function TotalBudgetEditor({
 }
 
 export function BuildingBox({ building, onClick }) {
-  const { i, budget, spent, name, type, showBudget, sprite } = building;
+  const { i, budget, spent, name, type, showBudget, sprite, level = 1 } = building;
   const isPrimary = type === "primary";
   const boxSize = isPrimary ? 280 : 200;
   const barWidth = boxSize;
   const fontSize = isPrimary ? "1.35rem" : "1.1rem";
+  const upgradeTier = level >= 10 ? 2 : level >= 5 ? 1 : 0;
+  const tierLabel = upgradeTier === 2 ? "Tier III" : upgradeTier === 1 ? "Tier II" : null;
+  const placeholderTheme =
+    upgradeTier === 2
+      ? {
+          background: "linear-gradient(160deg, #f6e7b6 0%, #d6a84f 42%, #6e4a1f 100%)",
+          border: "3px solid #f5d36a",
+          boxShadow: "0 18px 30px rgba(91, 58, 14, 0.42)",
+          accent: "#fff4be",
+          labelBg: "rgba(87, 48, 6, 0.82)",
+          subtitle: "Skyline upgrade ready",
+        }
+      : upgradeTier === 1
+        ? {
+            background: "linear-gradient(160deg, #d9ecff 0%, #78aef5 45%, #294f80 100%)",
+            border: "3px solid #d6ecff",
+            boxShadow: "0 14px 24px rgba(24, 54, 96, 0.36)",
+            accent: "#edf7ff",
+            labelBg: "rgba(17, 52, 96, 0.8)",
+            subtitle: "Neighborhood upgrade ready",
+          }
+        : null;
 
   return (
     <div
@@ -214,7 +236,7 @@ export function BuildingBox({ building, onClick }) {
       )}
 
       <div
-        className={sprite ? undefined : "building-box"}
+        className={sprite && upgradeTier === 0 ? undefined : "building-box"}
         style={{
           width: boxSize,
           height: boxSize,
@@ -222,9 +244,10 @@ export function BuildingBox({ building, onClick }) {
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
-          background: sprite ? "none" : undefined,
-          boxShadow: sprite ? "none" : undefined,
-          border: "none",
+          background: sprite && upgradeTier === 0 ? "none" : upgradeTier > 0 ? placeholderTheme.background : undefined,
+          boxShadow: sprite && upgradeTier === 0 ? "none" : upgradeTier > 0 ? placeholderTheme.boxShadow : undefined,
+          border: upgradeTier > 0 ? placeholderTheme.border : "none",
+          borderRadius: upgradeTier > 0 ? 20 : undefined,
           padding: 0,
           margin: 0,
           position: "relative",
@@ -233,7 +256,7 @@ export function BuildingBox({ building, onClick }) {
         }}
         onClick={onClick}
       >
-        {sprite ? (
+        {sprite && upgradeTier === 0 ? (
           <img
             src={sprite}
             alt={name}
@@ -248,6 +271,94 @@ export function BuildingBox({ building, onClick }) {
               pointerEvents: "none",
             }}
           />
+        ) : upgradeTier > 0 ? (
+          <div
+            style={{
+              width: "100%",
+              height: "100%",
+              borderRadius: 18,
+              position: "relative",
+              overflow: "hidden",
+              color: placeholderTheme.accent,
+              padding: isPrimary ? 18 : 14,
+              display: "flex",
+              flexDirection: "column",
+              justifyContent: "space-between",
+              textAlign: "left",
+            }}
+          >
+            <div
+              style={{
+                position: "absolute",
+                inset: 10,
+                borderRadius: 14,
+                border: `1px solid ${placeholderTheme.accent}55`,
+                pointerEvents: "none",
+              }}
+            />
+            <div style={{ position: "relative", zIndex: 1 }}>
+              <div
+                style={{
+                  display: "inline-flex",
+                  alignItems: "center",
+                  padding: isPrimary ? "6px 12px" : "5px 10px",
+                  borderRadius: 999,
+                  background: placeholderTheme.labelBg,
+                  fontSize: isPrimary ? 14 : 12,
+                  fontWeight: 800,
+                  letterSpacing: 0.8,
+                  textTransform: "uppercase",
+                }}
+              >
+                {tierLabel}
+              </div>
+            </div>
+
+            <div style={{ position: "relative", zIndex: 1 }}>
+              <div
+                style={{
+                  fontSize: isPrimary ? 34 : 26,
+                  fontWeight: 900,
+                  lineHeight: 1,
+                  marginBottom: 8,
+                  textShadow: "0 4px 12px rgba(0,0,0,0.24)",
+                }}
+              >
+                {name || `Building ${i}`}
+              </div>
+              <div
+                style={{
+                  fontSize: isPrimary ? 16 : 13,
+                  fontWeight: 700,
+                  opacity: 0.92,
+                  marginBottom: 12,
+                }}
+              >
+                {placeholderTheme.subtitle}
+              </div>
+              <div
+                style={{
+                  display: "flex",
+                  gap: 8,
+                  alignItems: "flex-end",
+                  height: isPrimary ? 82 : 64,
+                }}
+              >
+                {[0.45, 0.65, 0.9, 0.72].map((height, index) => (
+                  <div
+                    key={index}
+                    style={{
+                      flex: 1,
+                      height: `${height * 100}%`,
+                      borderRadius: "10px 10px 4px 4px",
+                      background: "rgba(255,255,255,0.22)",
+                      border: `1px solid ${placeholderTheme.accent}33`,
+                    }}
+                  />
+                ))}
+              </div>
+            </div>
+          </div>
         ) : (
           <div style={{ fontWeight: "bold" }}>{name || `Building ${i}`}</div>
         )}
