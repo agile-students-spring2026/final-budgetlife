@@ -7,6 +7,7 @@ const {
   updateBudgetGoalDates,
 } = require("../data/budgetGoalsStore");
 const cityStates = require("../data/cityStates");
+const { addTransaction } = require("../data/transaction");
 
 describe("Budget API routes", () => {
   beforeEach(() => {
@@ -457,6 +458,119 @@ describe("Budget API routes", () => {
       expect(secondRes.body.details[0].xpAwarded).to.equal(180);
       expect(cityStates._budget_reward_test_user_.budgetRewardStatus.currentStreak).to.equal(2);
       expect(cityStates._budget_reward_test_user_.budgetRewardStatus.lastRewardedIntervalEndDate).to.equal("2026-02-28");
+    });
+
+    it("removes building XP when a building overspends its budget", async () => {
+      addUserBudgetGoals("_budget_reward_test_user_");
+
+      cityStates._budget_reward_test_user_ = {
+        version: 1,
+        budgetRewardStatus: { claimedIntervals: {}, currentStreak: 0, lastRewardedIntervalEndDate: null },
+        buildings: [
+          {
+            type: "primary",
+            i: 1,
+            location: { x: 0, y: 0 },
+            level: 2,
+            name: "City Hall",
+            category: "government",
+            budget: 1000,
+            spent: 0,
+            currentExp: 20,
+            expToNextLevel: 150,
+            savingGoal: "",
+            history: [],
+          },
+          {
+            type: "secondary",
+            i: 2,
+            location: { x: 0, y: 0 },
+            level: 2,
+            name: "Housing",
+            category: "residential",
+            budget: 1000,
+            spent: 0,
+            currentExp: 20,
+            expToNextLevel: 150,
+            savingGoal: "",
+            history: [],
+          },
+          {
+            type: "secondary",
+            i: 3,
+            location: { x: 0, y: 0 },
+            level: 2,
+            name: "Food Market",
+            category: "food",
+            budget: 1000,
+            spent: 0,
+            currentExp: 20,
+            expToNextLevel: 150,
+            savingGoal: "",
+            history: [],
+          },
+          {
+            type: "secondary",
+            i: 4,
+            location: { x: 0, y: 0 },
+            level: 2,
+            name: "Hospital",
+            category: "health",
+            budget: 1000,
+            spent: 0,
+            currentExp: 20,
+            expToNextLevel: 150,
+            savingGoal: "",
+            history: [],
+          },
+          {
+            type: "secondary",
+            i: 5,
+            location: { x: 0, y: 0 },
+            level: 2,
+            name: "Cinema",
+            category: "entertainment",
+            budget: 1000,
+            spent: 0,
+            currentExp: 20,
+            expToNextLevel: 150,
+            savingGoal: "",
+            history: [],
+          },
+        ],
+        decorations: [],
+      };
+
+      await request(app)
+        .put("/api/budget/goals")
+        .send({ currentUsername: "_budget_reward_test_user_", category: "food", goal: 500 });
+      await request(app)
+        .put("/api/budget/goals")
+        .send({ currentUsername: "_budget_reward_test_user_", category: "housing", goal: 700 });
+      await request(app)
+        .put("/api/budget/goals")
+        .send({ currentUsername: "_budget_reward_test_user_", category: "health", goal: 600 });
+      await request(app)
+        .put("/api/budget/goals")
+        .send({ currentUsername: "_budget_reward_test_user_", category: "entertainment", goal: 400 });
+      await request(app)
+        .put("/api/budget/goals")
+        .send({ currentUsername: "_budget_reward_test_user_", category: "total", goal: 2200 });
+
+      addTransaction("_budget_reward_test_user_", "food", "2026-01-10", "Overspend test", 650);
+      updateBudgetGoalDates("_budget_reward_test_user_", "2026-01-01", "2026-01-31");
+
+      const res = await request(app)
+        .post("/api/budget/reward")
+        .send({ currentUsername: "_budget_reward_test_user_" });
+
+      expect(res.status).to.equal(200);
+      const foodDetail = res.body.details.find((detail) => detail.category === "food");
+      expect(foodDetail.overspendAmount).to.equal(150);
+      expect(foodDetail.xpAwarded).to.equal(-50);
+      expect(foodDetail.levelAfter).to.equal(1);
+      expect(foodDetail.levelsLost).to.equal(1);
+      expect(cityStates._budget_reward_test_user_.buildings[2].currentExp).to.equal(70);
     });
   });
 });

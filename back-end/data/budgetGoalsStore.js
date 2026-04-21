@@ -226,6 +226,25 @@ function getStreakBonusXp(streakCount, intervalDays) {
     return extraStreaks * streakStepXp;
 }
 
+function getOverspendPenaltyXp(goalAmount, currentAmount, intervalDays, baseXpAward) {
+    const safeGoal = Math.max(1, Number(goalAmount || 0));
+    const overspendAmount = Math.max(0, Number(currentAmount || 0) - safeGoal);
+    if (overspendAmount <= 0) {
+        return 0;
+    }
+
+    const intervalWeight = Math.max(1, Math.ceil(Math.max(1, intervalDays) / 7));
+    const ratioPenalty = Math.ceil((overspendAmount / safeGoal) * Math.max(25, baseXpAward));
+    const minimumPenalty = 10 * intervalWeight;
+    const maximumPenalty = Math.max(60, baseXpAward * 3);
+
+    return Math.min(maximumPenalty, Math.max(minimumPenalty, ratioPenalty));
+}
+
+function getPreviousExpToNextLevel(expToNextLevel) {
+    return Math.max(100, Math.round(Math.max(100, Number(expToNextLevel || 100)) / 1.5));
+}
+
 function findBuildingByHealthCategory(city, healthCategory) {
     if (!city || !Array.isArray(city.buildings)) return null;
 
@@ -242,37 +261,69 @@ function findBuildingByHealthCategory(city, healthCategory) {
     }) || null;
 }
 
-function applyXpReward(building, xpAwarded) {
-    if (!building || xpAwarded <= 0) {
-        return { levelsGained: 0, currentExp: building?.currentExp || 0, expToNextLevel: building?.expToNextLevel || 0 };
+function applyXpDelta(building, xpDelta) {
+    if (!building || xpDelta === 0) {
+        return {
+            levelsGained: 0,
+            levelsLost: 0,
+            currentExp: building?.currentExp || 0,
+            expToNextLevel: building?.expToNextLevel || 0,
+        };
     }
 
-    let remainingXp = xpAwarded;
     let currentExp = Number(building.currentExp || 0);
     let expToNextLevel = Math.max(100, Number(building.expToNextLevel || 100));
     let level = Math.max(1, Number(building.level || 1));
     let levelsGained = 0;
+    let levelsLost = 0;
 
-    while (remainingXp > 0) {
-        const neededXp = Math.max(1, expToNextLevel - currentExp);
-        if (remainingXp < neededXp) {
-            currentExp += remainingXp;
-            remainingXp = 0;
-            break;
+    if (xpDelta > 0) {
+        let remainingXp = xpDelta;
+
+        while (remainingXp > 0) {
+            const neededXp = Math.max(1, expToNextLevel - currentExp);
+            if (remainingXp < neededXp) {
+                currentExp += remainingXp;
+                remainingXp = 0;
+                break;
+            }
+
+            remainingXp -= neededXp;
+            level += 1;
+            levelsGained += 1;
+            currentExp = 0;
+            expToNextLevel = Math.max(100, Math.round(expToNextLevel * 1.5));
         }
+    } else {
+        let remainingPenalty = Math.abs(xpDelta);
 
-        remainingXp -= neededXp;
-        level += 1;
-        levelsGained += 1;
-        currentExp = 0;
-        expToNextLevel = Math.max(100, Math.round(expToNextLevel * 1.5));
+        while (remainingPenalty > 0) {
+            if (currentExp > 0) {
+                const deducted = Math.min(currentExp, remainingPenalty);
+                currentExp -= deducted;
+                remainingPenalty -= deducted;
+                if (remainingPenalty === 0) {
+                    break;
+                }
+            }
+
+            if (level <= 1) {
+                currentExp = 0;
+                break;
+            }
+
+            level -= 1;
+            levelsLost += 1;
+            expToNextLevel = getPreviousExpToNextLevel(expToNextLevel);
+            currentExp = expToNextLevel;
+        }
     }
 
     building.level = level;
     building.currentExp = currentExp;
     building.expToNextLevel = expToNextLevel;
 
-    return { levelsGained, currentExp, expToNextLevel };
+    return { levelsGained, levelsLost, currentExp, expToNextLevel };
 }
 
 function rewardEligibleBuildings(username) {
@@ -332,12 +383,14 @@ function rewardEligibleBuildings(username) {
     }
 
     const intervalDays = getIntervalLengthInDays(startDate, endDate);
-    const streakCount = isConsecutiveRewardInterval(
+    const streakCount = goals.total.current <= goals.total.goal && isConsecutiveRewardInterval(
         city.budgetRewardStatus.lastRewardedIntervalEndDate,
         startDate
     )
         ? city.budgetRewardStatus.currentStreak + 1
-        : 1;
+        : goals.total.current <= goals.total.goal
+            ? 1
+            : 0;
     const baseXpAward = getIntervalXpReward(startDate, endDate);
     const streakBonusXp = getStreakBonusXp(streakCount, intervalDays);
     const xpAward = baseXpAward + streakBonusXp;
@@ -349,7 +402,7 @@ function rewardEligibleBuildings(username) {
         if (!entry || typeof entry.goal !== 'number' || entry.goal <= 0) {
             continue;
         }
-        if (typeof entry.current !== 'number' || entry.current > entry.goal) {
+        if (typeof entry.current !== 'number') {
             continue;
         }
 
@@ -359,18 +412,24 @@ function rewardEligibleBuildings(username) {
         }
 
         const beforeLevel = Number(building.level || 1);
-        const xpResult = applyXpReward(building, xpAward);
-        totalXpAwarded += xpAward;
+        const overspendAmount = Math.max(0, entry.current - entry.goal);
+        const xpDelta = overspendAmount > 0
+            ? -getOverspendPenaltyXp(entry.goal, entry.current, intervalDays, baseXpAward)
+            : xpAward;
+        const xpResult = applyXpDelta(building, xpDelta);
+        totalXpAwarded += xpDelta;
         details.push({
             buildingId: building.i,
             buildingName: building.name,
             category,
-            baseXpAwarded: baseXpAward,
-            streakBonusXpAwarded: streakBonusXp,
-            xpAwarded: xpAward,
+            baseXpAwarded: overspendAmount > 0 ? 0 : baseXpAward,
+            streakBonusXpAwarded: overspendAmount > 0 ? 0 : streakBonusXp,
+            overspendAmount,
+            xpAwarded: xpDelta,
             levelBefore: beforeLevel,
             levelAfter: building.level,
             levelsGained: xpResult.levelsGained,
+            levelsLost: xpResult.levelsLost,
             currentExp: xpResult.currentExp,
             expToNextLevel: xpResult.expToNextLevel,
         });
@@ -438,8 +497,10 @@ function rewardUser(username) {
                 addUserCurrency(username, added);
             }
 
+            const gainedCount = rewardResult.details.filter((detail) => detail.xpAwarded > 0).length;
+            const lostCount = rewardResult.details.filter((detail) => detail.xpAwarded < 0).length;
             const detailsSuffix = rewardResult.rewarded
-                ? ` ${rewardResult.details.length} building${rewardResult.details.length === 1 ? '' : 's'} earned ${rewardResult.details[0].xpAwarded} XP each.`
+                ? `${gainedCount > 0 ? ` ${gainedCount} building${gainedCount === 1 ? '' : 's'} gained XP.` : ''}${lostCount > 0 ? ` ${lostCount} building${lostCount === 1 ? '' : 's'} lost XP from overspending.` : ''}`
                 : "";
 
             return {
@@ -453,6 +514,20 @@ function rewardUser(username) {
                 message: rewardResult.reason === 'already-claimed'
                     ? "Budget reward already claimed for this interval."
                     : `Congratulations! You've met your budget goal!${detailsSuffix}${rewardResult.streakCount > 1 ? ` Streak ${rewardResult.streakCount} adds ${rewardResult.streakBonusXpPerBuilding} bonus XP per building.` : ''}`,
+            };
+        } else if (new Date() >= new Date(budgetGoalsCopy[username].total.endDate) && rewardResult.details.length > 0) {
+            const lostCount = rewardResult.details.filter((detail) => detail.xpAwarded < 0).length;
+            return {
+                rewarded: true,
+                currencyAwarded: 0,
+                xpAwarded: rewardResult.xpAwarded,
+                intervalDays: rewardResult.intervalDays,
+                streakCount: rewardResult.streakCount || 0,
+                streakBonusXpPerBuilding: rewardResult.streakBonusXpPerBuilding || 0,
+                details: rewardResult.details,
+                message: lostCount > 0
+                    ? `${lostCount} building${lostCount === 1 ? '' : 's'} lost XP for overspending this interval.`
+                    : "Budget interval processed.",
             };
         } else {
             return {

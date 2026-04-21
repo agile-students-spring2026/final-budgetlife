@@ -766,6 +766,8 @@ export function BuildingManager({
     setRewardPopup(null);
   }
 
+  const rewardHasPenalty = rewardPopup?.details?.some((detail) => detail.xpAwarded < 0);
+
   return (
     <div
       className="building-manager"
@@ -826,7 +828,7 @@ export function BuildingManager({
                   Budget Reward
                 </div>
                 <h2 style={{ margin: 0, fontSize: 30, lineHeight: 1.1 }}>
-                  Buildings leveled up
+                  {rewardHasPenalty ? "Budget interval settled" : "Buildings leveled up"}
                 </h2>
               </div>
               <button
@@ -884,11 +886,14 @@ export function BuildingManager({
                 >
                   <div style={{ display: "flex", justifyContent: "space-between", gap: 12, alignItems: "center", marginBottom: 6 }}>
                     <div style={{ fontSize: 18, fontWeight: 800 }}>{detail.buildingName}</div>
-                    <div style={{ fontSize: 18, fontWeight: 800, color: "#8b5e10" }}>+{detail.xpAwarded} XP</div>
+                    <div style={{ fontSize: 18, fontWeight: 800, color: detail.xpAwarded < 0 ? "#9e392c" : "#8b5e10" }}>
+                      {detail.xpAwarded > 0 ? "+" : ""}{detail.xpAwarded} XP
+                    </div>
                   </div>
                   <div style={{ fontSize: 14, color: "#6a5032", display: "flex", flexWrap: "wrap", gap: 12 }}>
-                    <span>Base: +{detail.baseXpAwarded ?? detail.xpAwarded}</span>
+                    <span>Base: {detail.baseXpAwarded > 0 ? "+" : ""}{detail.baseXpAwarded ?? detail.xpAwarded}</span>
                     {!!detail.streakBonusXpAwarded && <span>Streak: +{detail.streakBonusXpAwarded}</span>}
+                    {!!detail.overspendAmount && <span>Overspent: ${detail.overspendAmount}</span>}
                     <span>Level {detail.levelBefore} to {detail.levelAfter}</span>
                     <span>{detail.currentExp}/{detail.expToNextLevel} EXP</span>
                   </div>
