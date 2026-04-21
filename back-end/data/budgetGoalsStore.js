@@ -1,5 +1,6 @@
 const { addUserCurrency } = require("./shop");
 const { getTransactionHistory } = require("./transaction");
+const cityStates = require("./cityStates");
 
 
 const budgetGoals = {
@@ -169,6 +170,244 @@ const CATEGORY_TO_BUILDING = {
     entertainment: 'cinema',
 };
 
+const BUILDING_KEYWORDS = {
+    cityhall: ["city hall", "cityhall"],
+    houses: ["housing", "houses", "house"],
+    restaurant: ["restaurant", "food market", "food"],
+    hospital: ["hospital", "health"],
+    cinema: ["cinema", "movie", "entertainment"],
+};
+
+const DAY_IN_MS = 24 * 60 * 60 * 1000;
+
+function parseDateValue(dateString) {
+    if (!dateString) return null;
+    const parsed = new Date(`${dateString}T00:00:00Z`);
+    return Number.isNaN(parsed.getTime()) ? null : parsed;
+}
+
+function getIntervalLengthInDays(startDate, endDate) {
+    const start = parseDateValue(startDate);
+    const end = parseDateValue(endDate);
+
+    if (!start || !end || end < start) {
+        return 0;
+    }
+
+    return Math.floor((end - start) / DAY_IN_MS) + 1;
+}
+
+function getIntervalXpReward(startDate, endDate) {
+    const intervalDays = Math.max(1, getIntervalLengthInDays(startDate, endDate));
+    const rewardSteps = Math.max(1, Math.ceil(intervalDays / 7));
+    return Math.min(500, rewardSteps * 25);
+}
+
+function isConsecutiveRewardInterval(previousEndDate, nextStartDate) {
+    const previousEnd = parseDateValue(previousEndDate);
+    const nextStart = parseDateValue(nextStartDate);
+
+    if (!previousEnd || !nextStart) {
+        return false;
+    }
+
+    return nextStart.getTime() - previousEnd.getTime() === DAY_IN_MS;
+}
+
+function getStreakBonusXp(streakCount, intervalDays) {
+    const extraStreaks = Math.max(0, streakCount - 1);
+    if (extraStreaks === 0) {
+        return 0;
+    }
+
+    const normalizedDays = Math.max(1, intervalDays);
+    const intervalWeight = Math.max(1, Math.ceil(normalizedDays / 7));
+    const streakStepXp = 5 * intervalWeight * intervalWeight;
+    return extraStreaks * streakStepXp;
+}
+
+function findBuildingByHealthCategory(city, healthCategory) {
+    if (!city || !Array.isArray(city.buildings)) return null;
+
+    const keywords = BUILDING_KEYWORDS[healthCategory] || [];
+
+    return city.buildings.find((building) => {
+        if (healthCategory === 'cityhall') {
+            return building.type === 'primary';
+        }
+
+        const category = (building.category || '').toLowerCase();
+        const name = (building.name || '').toLowerCase();
+        return keywords.some((keyword) => name.includes(keyword) || category.includes(keyword));
+    }) || null;
+}
+
+function applyXpReward(building, xpAwarded) {
+    if (!building || xpAwarded <= 0) {
+        return { levelsGained: 0, currentExp: building?.currentExp || 0, expToNextLevel: building?.expToNextLevel || 0 };
+    }
+
+    let remainingXp = xpAwarded;
+    let currentExp = Number(building.currentExp || 0);
+    let expToNextLevel = Math.max(100, Number(building.expToNextLevel || 100));
+    let level = Math.max(1, Number(building.level || 1));
+    let levelsGained = 0;
+
+    while (remainingXp > 0) {
+        const neededXp = Math.max(1, expToNextLevel - currentExp);
+        if (remainingXp < neededXp) {
+            currentExp += remainingXp;
+            remainingXp = 0;
+            break;
+        }
+
+        remainingXp -= neededXp;
+        level += 1;
+        levelsGained += 1;
+        currentExp = 0;
+        expToNextLevel = Math.max(100, Math.round(expToNextLevel * 1.5));
+    }
+
+    building.level = level;
+    building.currentExp = currentExp;
+    building.expToNextLevel = expToNextLevel;
+
+    return { levelsGained, currentExp, expToNextLevel };
+}
+
+function rewardEligibleBuildings(username) {
+    const goals = budgetGoalsCopy[username];
+    const city = cityStates[username];
+
+    if (!goals || !goals.total || !city) {
+        return {
+            rewarded: false,
+            xpAwarded: 0,
+            intervalDays: 0,
+            details: [],
+            reason: 'missing-data',
+        };
+    }
+
+    const startDate = goals.total.startDate;
+    const endDate = goals.total.endDate;
+    const intervalEnd = parseDateValue(endDate);
+    if (!intervalEnd) {
+        return {
+            rewarded: false,
+            xpAwarded: 0,
+            intervalDays: 0,
+            details: [],
+            reason: 'missing-interval',
+        };
+    }
+
+    const now = new Date();
+    if (now < intervalEnd) {
+        return {
+            rewarded: false,
+            xpAwarded: 0,
+            intervalDays: getIntervalLengthInDays(startDate, endDate),
+            details: [],
+            reason: 'interval-not-ended',
+        };
+    }
+
+    const intervalKey = `${startDate || ''}:${endDate}`;
+    city.budgetRewardStatus = city.budgetRewardStatus || { claimedIntervals: {}, currentStreak: 0, lastRewardedIntervalEndDate: null };
+    city.budgetRewardStatus.claimedIntervals = city.budgetRewardStatus.claimedIntervals || {};
+    city.budgetRewardStatus.currentStreak = Number(city.budgetRewardStatus.currentStreak || 0);
+    city.budgetRewardStatus.lastRewardedIntervalEndDate = city.budgetRewardStatus.lastRewardedIntervalEndDate || null;
+
+    if (city.budgetRewardStatus.claimedIntervals[intervalKey]) {
+        return {
+            rewarded: false,
+            xpAwarded: 0,
+            intervalDays: getIntervalLengthInDays(startDate, endDate),
+            streakCount: city.budgetRewardStatus.currentStreak,
+            streakBonusXpPerBuilding: 0,
+            details: [],
+            reason: 'already-claimed',
+        };
+    }
+
+    const intervalDays = getIntervalLengthInDays(startDate, endDate);
+    const streakCount = isConsecutiveRewardInterval(
+        city.budgetRewardStatus.lastRewardedIntervalEndDate,
+        startDate
+    )
+        ? city.budgetRewardStatus.currentStreak + 1
+        : 1;
+    const baseXpAward = getIntervalXpReward(startDate, endDate);
+    const streakBonusXp = getStreakBonusXp(streakCount, intervalDays);
+    const xpAward = baseXpAward + streakBonusXp;
+    const details = [];
+    let totalXpAwarded = 0;
+
+    for (const [category, healthCategory] of Object.entries(CATEGORY_TO_BUILDING)) {
+        const entry = goals[category];
+        if (!entry || typeof entry.goal !== 'number' || entry.goal <= 0) {
+            continue;
+        }
+        if (typeof entry.current !== 'number' || entry.current > entry.goal) {
+            continue;
+        }
+
+        const building = findBuildingByHealthCategory(city, healthCategory);
+        if (!building) {
+            continue;
+        }
+
+        const beforeLevel = Number(building.level || 1);
+        const xpResult = applyXpReward(building, xpAward);
+        totalXpAwarded += xpAward;
+        details.push({
+            buildingId: building.i,
+            buildingName: building.name,
+            category,
+            baseXpAwarded: baseXpAward,
+            streakBonusXpAwarded: streakBonusXp,
+            xpAwarded: xpAward,
+            levelBefore: beforeLevel,
+            levelAfter: building.level,
+            levelsGained: xpResult.levelsGained,
+            currentExp: xpResult.currentExp,
+            expToNextLevel: xpResult.expToNextLevel,
+        });
+    }
+
+    if (details.length === 0) {
+        return {
+            rewarded: false,
+            xpAwarded: 0,
+            intervalDays,
+            streakCount,
+            streakBonusXpPerBuilding: streakBonusXp,
+            details: [],
+            reason: 'no-buildings-qualified',
+        };
+    }
+
+    city.budgetRewardStatus.claimedIntervals[intervalKey] = {
+        claimedAt: new Date().toISOString(),
+        streakCount,
+        xpAwarded: totalXpAwarded,
+        rewardedBuildings: details.map((detail) => detail.buildingId),
+    };
+    city.budgetRewardStatus.currentStreak = streakCount;
+    city.budgetRewardStatus.lastRewardedIntervalEndDate = endDate;
+
+    return {
+        rewarded: true,
+        xpAwarded: totalXpAwarded,
+        intervalDays,
+        streakCount,
+        streakBonusXpPerBuilding: streakBonusXp,
+        details,
+        reason: null,
+    };
+}
+
 function getBuildingHealth(username) {
     if (!budgetGoalsCopy[username]) return null;
     calculateCurrentAmount(username);
@@ -192,15 +431,52 @@ function rewardUser(username) {
         calculateCurrentAmount(username);
         const totalGoal = budgetGoalsCopy[username].total.goal;
         const totalCurrent = budgetGoalsCopy[username].total.current;
+        const rewardResult = rewardEligibleBuildings(username);
         if (totalCurrent <= totalGoal && new Date() >= new Date(budgetGoalsCopy[username].total.endDate)) {
             let added = totalGoal - totalCurrent;
-            addUserCurrency(username, added)
-            return "Congratulations! You've met your budget goal!";
+            if (rewardResult.reason !== 'already-claimed') {
+                addUserCurrency(username, added);
+            }
+
+            const detailsSuffix = rewardResult.rewarded
+                ? ` ${rewardResult.details.length} building${rewardResult.details.length === 1 ? '' : 's'} earned ${rewardResult.details[0].xpAwarded} XP each.`
+                : "";
+
+            return {
+                rewarded: rewardResult.rewarded,
+                currencyAwarded: rewardResult.reason === 'already-claimed' ? 0 : added,
+                xpAwarded: rewardResult.xpAwarded,
+                intervalDays: rewardResult.intervalDays,
+                streakCount: rewardResult.streakCount || 0,
+                streakBonusXpPerBuilding: rewardResult.streakBonusXpPerBuilding || 0,
+                details: rewardResult.details,
+                message: rewardResult.reason === 'already-claimed'
+                    ? "Budget reward already claimed for this interval."
+                    : `Congratulations! You've met your budget goal!${detailsSuffix}${rewardResult.streakCount > 1 ? ` Streak ${rewardResult.streakCount} adds ${rewardResult.streakBonusXpPerBuilding} bonus XP per building.` : ''}`,
+            };
         } else {
-            return "Keep going! You're doing great!";
+            return {
+                rewarded: false,
+                currencyAwarded: 0,
+                xpAwarded: 0,
+                intervalDays: rewardResult.intervalDays,
+                streakCount: rewardResult.streakCount || 0,
+                streakBonusXpPerBuilding: rewardResult.streakBonusXpPerBuilding || 0,
+                details: [],
+                message: "Keep going! You're doing great!",
+            };
         }
     }
-    return "User not found.";
+    return {
+        rewarded: false,
+        currencyAwarded: 0,
+        xpAwarded: 0,
+        intervalDays: 0,
+        streakCount: 0,
+        streakBonusXpPerBuilding: 0,
+        details: [],
+        message: "User not found.",
+    };
 }
 
 module.exports = {
