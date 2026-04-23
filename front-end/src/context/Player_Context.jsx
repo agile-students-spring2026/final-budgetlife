@@ -26,7 +26,7 @@ function normalizePlayerState(rawState) {
 }
 
 export const PlayerProvider = ({ children }) => {
-  const { currentUser } = useAuth();
+  const { currentUser, syncPlayerState } = useAuth();
   const [money, setMoney] = useState(DEFAULT_PLAYER_STATE.money);
   const [inventory, setInventory] = useState(DEFAULT_PLAYER_STATE.inventory);
   const [equippedItems, setEquippedItems] = useState(DEFAULT_PLAYER_STATE.equippedItems);
@@ -47,6 +47,7 @@ export const PlayerProvider = ({ children }) => {
     setMoney(bootstrapState.money);
     setInventory(bootstrapState.inventory);
     setEquippedItems(bootstrapState.equippedItems);
+    syncPlayerState(bootstrapState);
     setIsHydrated(false);
 
     (async () => {
@@ -58,6 +59,7 @@ export const PlayerProvider = ({ children }) => {
         setMoney(normalizedState.money);
         setInventory(normalizedState.inventory);
         setEquippedItems(normalizedState.equippedItems);
+        syncPlayerState(normalizedState);
       } catch {
         if (cancelled) return;
       } finally {
@@ -71,6 +73,18 @@ export const PlayerProvider = ({ children }) => {
       cancelled = true;
     };
   }, [currentUser?.id, currentUser?.username]);
+
+  useEffect(() => {
+    if (!currentUser) {
+      return;
+    }
+
+    syncPlayerState({
+      money,
+      inventory,
+      equippedItems,
+    });
+  }, [currentUser?.id, money, inventory, equippedItems, syncPlayerState]);
 
   useEffect(() => {
     if (!currentUser?.username || !isHydrated) {

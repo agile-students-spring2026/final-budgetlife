@@ -15,6 +15,16 @@ export const AuthProvider = ({ children }) => {
   const [authLoading, setAuthLoading] = useState(false);
   const [authError, setAuthError] = useState("");
 
+  const persistUser = (user) => {
+    setCurrentUser(user);
+
+    if (user) {
+      localStorage.setItem("budgetlifeUser", JSON.stringify(user));
+    } else {
+      localStorage.removeItem("budgetlifeUser");
+    }
+  };
+
   useEffect(() => {
     const savedUser = localStorage.getItem("budgetlifeUser");
     if (savedUser) {
@@ -36,8 +46,7 @@ export const AuthProvider = ({ children }) => {
       setAuthError("");
 
       const data = await loginApi({ usernameOrEmail, password });
-      setCurrentUser(data.user);
-      localStorage.setItem("budgetlifeUser", JSON.stringify(data.user));
+      persistUser(data.user);
 
       return data.user;
     } catch (err) {
@@ -54,8 +63,7 @@ export const AuthProvider = ({ children }) => {
       setAuthError("");
 
       const data = await signupApi({ username, email, password });
-      setCurrentUser(data.user);
-      localStorage.setItem("budgetlifeUser", JSON.stringify(data.user));
+      persistUser(data.user);
 
       return data.user;
     } catch (err) {
@@ -72,8 +80,7 @@ export const AuthProvider = ({ children }) => {
       setAuthError("");
 
       const data = await updateUsernameApi(currentUser.username, newUsername);
-      setCurrentUser(data.user);
-      localStorage.setItem("budgetlifeUser", JSON.stringify(data.user));
+      persistUser(data.user);
 
       return data.user;
     } catch (err) {
@@ -90,8 +97,7 @@ export const AuthProvider = ({ children }) => {
       setAuthError("");
 
       const data = await updateEmailApi(currentUser.username, newEmail);
-      setCurrentUser(data.user);
-      localStorage.setItem("budgetlifeUser", JSON.stringify(data.user));
+      persistUser(data.user);
 
       return data.user;
     } catch (err) {
@@ -128,8 +134,7 @@ export const AuthProvider = ({ children }) => {
       setAuthError("");
 
       await deleteAccountApi(currentUser.username);
-      setCurrentUser(null);
-      localStorage.removeItem("budgetlifeUser");
+      persistUser(null);
     } catch (err) {
       setAuthError(err.message || "Failed to delete account");
       throw err;
@@ -139,9 +144,24 @@ export const AuthProvider = ({ children }) => {
   };
 
   const logout = () => {
-    setCurrentUser(null);
+    persistUser(null);
     setAuthError("");
-    localStorage.removeItem("budgetlifeUser");
+  };
+
+  const syncPlayerState = (playerState) => {
+    setCurrentUser((prevUser) => {
+      if (!prevUser) {
+        return prevUser;
+      }
+
+      const nextUser = {
+        ...prevUser,
+        playerState,
+      };
+
+      localStorage.setItem("budgetlifeUser", JSON.stringify(nextUser));
+      return nextUser;
+    });
   };
 
   return (
@@ -157,6 +177,7 @@ export const AuthProvider = ({ children }) => {
         changePassword,
         deleteAccount,
         logout,
+        syncPlayerState,
         clearAuthError,
       }}
     >
