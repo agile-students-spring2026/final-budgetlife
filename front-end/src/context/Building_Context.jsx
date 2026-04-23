@@ -88,14 +88,14 @@ function createDefaultCity() {
         i: 6,
         location: { x: 150, y: -475 },
         level: 3,
-        name: "Transit Hub",
-        category: "transportation",
+        name: "Cinema",
+        category: "entertainment",
         budget: 200,
         spent: 104,
         currentExp: 175,
         expToNextLevel: 400,
         savingGoal: "$50",
-        history: ["- $4 on subway", "- $20 on Uber", "- $60 on Uber"],
+        history: ["- $12 on movie tickets", "- $18 on snacks"],
       },
     ],
     decorations: [],
@@ -119,7 +119,7 @@ export function BuildingProvider({ children }) {
 
       try {
         setIsLoading(true);
-        const savedCity = await getCityState(currentUser.username);
+        const savedCity = await getCityState();
 
         if (!cancelled) {
           setCity(savedCity);
@@ -148,7 +148,7 @@ export function BuildingProvider({ children }) {
     if (!currentUser?.username || !city) return;
 
     const timeout = setTimeout(() => {
-      saveCityState(currentUser.username, city).catch((err) => {
+      saveCityState(city).catch((err) => {
         console.error("Failed to save city state:", err);
       });
     }, 300);

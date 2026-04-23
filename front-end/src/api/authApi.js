@@ -1,5 +1,14 @@
 const BASE_URL = "http://localhost:3000/api/auth";
 
+function getAuthHeaders() {
+  const token = localStorage.getItem("token");
+
+  return {
+    "Content-Type": "application/json",
+    Authorization: `Bearer ${token}`,
+  };
+}
+
 export async function signup({ username, email, password }) {
   const response = await fetch(`${BASE_URL}/signup`, {
     method: "POST",
@@ -13,6 +22,10 @@ export async function signup({ username, email, password }) {
 
   if (!response.ok) {
     throw new Error(data.error || "Signup failed");
+  }
+
+  if (data.token) {
+    localStorage.setItem("token", data.token);
   }
 
   return data;
@@ -33,15 +46,17 @@ export async function login({ usernameOrEmail, password }) {
     throw new Error(data.error || "Login failed");
   }
 
+  if (data.token) {
+    localStorage.setItem("token", data.token);
+  }
+
   return data;
 }
 
 export async function updateUsername(currentUsername, newUsername) {
   const response = await fetch(`${BASE_URL}/username`, {
     method: "PATCH",
-    headers: {
-      "Content-Type": "application/json",
-    },
+    headers: getAuthHeaders(),
     body: JSON.stringify({ currentUsername, newUsername }),
   });
 
@@ -57,9 +72,7 @@ export async function updateUsername(currentUsername, newUsername) {
 export async function updateEmail(currentUsername, newEmail) {
   const response = await fetch(`${BASE_URL}/email`, {
     method: "PATCH",
-    headers: {
-      "Content-Type": "application/json",
-    },
+    headers: getAuthHeaders(),
     body: JSON.stringify({ currentUsername, newEmail }),
   });
 
@@ -75,9 +88,7 @@ export async function updateEmail(currentUsername, newEmail) {
 export async function changePassword(currentUsername, oldPassword, newPassword) {
   const response = await fetch(`${BASE_URL}/password`, {
     method: "PATCH",
-    headers: {
-      "Content-Type": "application/json",
-    },
+    headers: getAuthHeaders(),
     body: JSON.stringify({ currentUsername, oldPassword, newPassword }),
   });
 
@@ -93,9 +104,7 @@ export async function changePassword(currentUsername, oldPassword, newPassword) 
 export async function deleteAccount(currentUsername) {
   const response = await fetch(`${BASE_URL}/account`, {
     method: "DELETE",
-    headers: {
-      "Content-Type": "application/json",
-    },
+    headers: getAuthHeaders(),
     body: JSON.stringify({ currentUsername }),
   });
 
@@ -105,5 +114,11 @@ export async function deleteAccount(currentUsername) {
     throw new Error(data.error || "Failed to delete account");
   }
 
+  localStorage.removeItem("token");
+
   return data;
+}
+
+export function logout() {
+  localStorage.removeItem("token");
 }
