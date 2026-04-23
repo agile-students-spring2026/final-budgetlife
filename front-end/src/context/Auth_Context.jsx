@@ -6,6 +6,7 @@ import {
   updateEmail as updateEmailApi,
   changePassword as changePasswordApi,
   deleteAccount as deleteAccountApi,
+  logout as logoutApi,
 } from "../api/authApi";
 
 const AuthContext = createContext();
@@ -142,6 +143,7 @@ export const AuthProvider = ({ children }) => {
     setCurrentUser(null);
     setAuthError("");
     localStorage.removeItem("budgetlifeUser");
+    logoutApi();
   };
 
   return (

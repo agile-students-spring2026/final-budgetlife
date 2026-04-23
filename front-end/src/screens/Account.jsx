@@ -27,6 +27,8 @@ function Account() {
   const [oldPassword, setOldPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
 
+  const [successMessage, setSuccessMessage] = useState("");
+
   useEffect(() => {
     if (currentUser) {
       setNewUsername(currentUser.username);
@@ -51,7 +53,9 @@ function Account() {
 
   const handleChangeUsername = async () => {
     try {
+      setSuccessMessage("");
       await updateUsername(newUsername);
+      setSuccessMessage("Username updated");
       closeUsernameOverlay();
     } catch (err) {
       console.error(err);
@@ -60,7 +64,9 @@ function Account() {
 
   const handleChangeEmail = async () => {
     try {
+      setSuccessMessage("");
       await updateEmail(newEmail);
+      setSuccessMessage("Email updated");
       closeEmailOverlay();
     } catch (err) {
       console.error(err);
@@ -69,9 +75,11 @@ function Account() {
 
   const handleChangePassword = async () => {
     try {
+      setSuccessMessage("");
       await changePassword(oldPassword, newPassword);
       setOldPassword("");
       setNewPassword("");
+      setSuccessMessage("Password updated");
       closePasswordOverlay();
     } catch (err) {
       console.error(err);
@@ -80,6 +88,7 @@ function Account() {
 
   const handleDeleteAccount = async () => {
     try {
+      setSuccessMessage("");
       await deleteAccount();
       navigate("/");
     } catch (err) {
@@ -120,10 +129,16 @@ function Account() {
           </div>
         </div>
 
+        {successMessage && (
+          <div className="account-success">{successMessage}</div>
+        )}
+
         <button
           className="big"
+          disabled={authLoading}
           onClick={() => {
             clearAuthError();
+            setSuccessMessage("");
             setNewUsername(currentUser?.username || "");
             setShowUsernameOverlay(true);
           }}
@@ -133,8 +148,10 @@ function Account() {
 
         <button
           className="big"
+          disabled={authLoading}
           onClick={() => {
             clearAuthError();
+            setSuccessMessage("");
             setNewEmail(currentUser?.email || "");
             setShowEmailOverlay(true);
           }}
@@ -144,8 +161,10 @@ function Account() {
 
         <button
           className="big"
+          disabled={authLoading}
           onClick={() => {
             clearAuthError();
+            setSuccessMessage("");
             setOldPassword("");
             setNewPassword("");
             setShowPasswordOverlay(true);
@@ -154,18 +173,20 @@ function Account() {
           Change Password
         </button>
 
-        <button className="big" onClick={handleLogout}>
+        <button className="big" disabled={authLoading} onClick={handleLogout}>
           Log Out
         </button>
 
         <button
-            className="small"
-            onClick={() => {
-                clearAuthError();
-                setShowDeleteOverlay(true);
-            }}
+          className="small"
+          disabled={authLoading}
+          onClick={() => {
+            clearAuthError();
+            setSuccessMessage("");
+            setShowDeleteOverlay(true);
+          }}
         >
-            Delete Account
+          Delete Account
         </button>
 
         {showUsernameOverlay && (
@@ -179,15 +200,24 @@ function Account() {
                 placeholder="New username"
                 value={newUsername}
                 onChange={(e) => setNewUsername(e.target.value)}
+                disabled={authLoading}
               />
 
               {authError && <div className="account-error">{authError}</div>}
 
               <div className="modal-buttons">
-                <button className="big modal-btn" onClick={handleChangeUsername}>
-                  Save
+                <button
+                  className="big modal-btn"
+                  onClick={handleChangeUsername}
+                  disabled={authLoading}
+                >
+                  {authLoading ? "Saving..." : "Save"}
                 </button>
-                <button className="big modal-btn" onClick={closeUsernameOverlay}>
+                <button
+                  className="big modal-btn"
+                  onClick={closeUsernameOverlay}
+                  disabled={authLoading}
+                >
                   Cancel
                 </button>
               </div>
@@ -206,15 +236,24 @@ function Account() {
                 placeholder="New email"
                 value={newEmail}
                 onChange={(e) => setNewEmail(e.target.value)}
+                disabled={authLoading}
               />
 
               {authError && <div className="account-error">{authError}</div>}
 
               <div className="modal-buttons">
-                <button className="big modal-btn" onClick={handleChangeEmail}>
-                  Save
+                <button
+                  className="big modal-btn"
+                  onClick={handleChangeEmail}
+                  disabled={authLoading}
+                >
+                  {authLoading ? "Saving..." : "Save"}
                 </button>
-                <button className="big modal-btn" onClick={closeEmailOverlay}>
+                <button
+                  className="big modal-btn"
+                  onClick={closeEmailOverlay}
+                  disabled={authLoading}
+                >
                   Cancel
                 </button>
               </div>
@@ -233,6 +272,7 @@ function Account() {
                 placeholder="Old password"
                 value={oldPassword}
                 onChange={(e) => setOldPassword(e.target.value)}
+                disabled={authLoading}
               />
 
               <input
@@ -241,15 +281,24 @@ function Account() {
                 placeholder="New password"
                 value={newPassword}
                 onChange={(e) => setNewPassword(e.target.value)}
+                disabled={authLoading}
               />
 
               {authError && <div className="account-error">{authError}</div>}
 
               <div className="modal-buttons">
-                <button className="big modal-btn" onClick={handleChangePassword}>
-                  Save
+                <button
+                  className="big modal-btn"
+                  onClick={handleChangePassword}
+                  disabled={authLoading}
+                >
+                  {authLoading ? "Saving..." : "Save"}
                 </button>
-                <button className="big modal-btn" onClick={closePasswordOverlay}>
+                <button
+                  className="big modal-btn"
+                  onClick={closePasswordOverlay}
+                  disabled={authLoading}
+                >
                   Cancel
                 </button>
               </div>
@@ -258,43 +307,45 @@ function Account() {
         )}
 
         {showDeleteOverlay && (
-            <div className="account-overlay">
-                <div className="account-modal">
-                <h2>Delete Account?</h2>
+          <div className="account-overlay">
+            <div className="account-modal">
+              <h2>Delete Account?</h2>
 
-                <div className="account-warning-text">
-                    Are you sure you want to permanently delete your account?
-                </div>
+              <div className="account-warning-text">
+                Are you sure you want to permanently delete your account?
+              </div>
 
-                {authError && <div className="account-error">{authError}</div>}
+              {authError && <div className="account-error">{authError}</div>}
 
-                <div className="modal-buttons">
-                    <button
-                    className="big modal-btn delete-confirm-btn"
-                    onClick={async () => {
-                        try {
-                        await handleDeleteAccount();
-                        setShowDeleteOverlay(false);
-                        } catch (err) {
-                        console.error(err);
-                        }
-                    }}
-                    >
-                    Yes, Delete Account
-                    </button>
+              <div className="modal-buttons">
+                <button
+                  className="big modal-btn delete-confirm-btn"
+                  onClick={async () => {
+                    try {
+                      await handleDeleteAccount();
+                      setShowDeleteOverlay(false);
+                    } catch (err) {
+                      console.error(err);
+                    }
+                  }}
+                  disabled={authLoading}
+                >
+                  {authLoading ? "Deleting..." : "Yes, Delete Account"}
+                </button>
 
-                    <button
-                    className="big modal-btn"
-                    onClick={() => {
-                        clearAuthError();
-                        setShowDeleteOverlay(false);
-                    }}
-                    >
-                    Cancel
-                    </button>
-                </div>
-                </div>
+                <button
+                  className="big modal-btn"
+                  onClick={() => {
+                    clearAuthError();
+                    setShowDeleteOverlay(false);
+                  }}
+                  disabled={authLoading}
+                >
+                  Cancel
+                </button>
+              </div>
             </div>
+          </div>
         )}
       </div>
     </div>

@@ -125,14 +125,14 @@ function createDefaultCity() {
         i: 6,
         location: { x: 150, y: -475 },
         level: 3,
-        name: "Transit Hub",
-        category: "transportation",
+        name: "Cinema",
+        category: "entertainment",
         budget: 200,
         spent: 104,
         currentExp: 175,
         expToNextLevel: 400,
         savingGoal: "$50",
-        history: ["- $4 on subway", "- $20 on Uber", "- $60 on Uber"],
+        history: ["- $12 on movie tickets", "- $18 on snacks"],
       },
     ],
     decorations: [],
@@ -148,7 +148,7 @@ export function BuildingProvider({ children }) {
     let cancelled = false;
 
     async function loadCity() {
-      if (!currentUser?.username) {
+      if (!currentUser?.id) {
         setCity(addHealthCategories(createDefaultCity()));
         setIsLoading(false);
         return;
@@ -156,7 +156,7 @@ export function BuildingProvider({ children }) {
 
       try {
         setIsLoading(true);
-        const savedCity = await getCityState(currentUser.username);
+        const savedCity = await getCityState();
 
         if (!cancelled) {
           setCity(addHealthCategories(savedCity));
@@ -179,19 +179,19 @@ export function BuildingProvider({ children }) {
     return () => {
       cancelled = true;
     };
-  }, [currentUser?.username]);
+  }, [currentUser?.id]);
 
   useEffect(() => {
-    if (!currentUser?.username || !city) return;
+    if (!currentUser?.id || !city) return;
 
     const timeout = setTimeout(() => {
-      saveCityState(currentUser.username, city).catch((err) => {
+      saveCityState(city).catch((err) => {
         console.error("Failed to save city state:", err);
       });
     }, 300);
 
     return () => clearTimeout(timeout);
-  }, [city, currentUser?.username]);
+  }, [city, currentUser?.id]);
 
   const updateBuilding = (buildingId, updates) => {
     setCity((prevCity) => {
