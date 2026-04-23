@@ -4,6 +4,28 @@ const jwt = require("jsonwebtoken");
 const router = express.Router();
 const User = require("../models/User");
 
+function normalizePlayerState(playerState) {
+  return {
+    money: typeof playerState?.money === "number" ? playerState.money : 1000,
+    inventory: Array.isArray(playerState?.inventory) ? playerState.inventory : [],
+    equippedItems: {
+      collar: playerState?.equippedItems?.collar || null,
+      eyewear: playerState?.equippedItems?.eyewear || null,
+      hat: playerState?.equippedItems?.hat || null,
+      earring: playerState?.equippedItems?.earring || null,
+    },
+  };
+}
+
+function buildUserResponse(user) {
+  return {
+    id: user._id,
+    username: user.username,
+    email: user.email,
+    playerState: normalizePlayerState(user.playerState),
+  };
+}
+
 router.post("/signup", async (req, res) => {
   try {
     const { username, email, password } = req.body;
@@ -55,11 +77,7 @@ router.post("/signup", async (req, res) => {
     res.status(201).json({
       message: "Signup successful",
       token,
-      user: {
-        id: newUser._id,
-        username: newUser.username,
-        email: newUser.email,
-      },
+      user: buildUserResponse(newUser),
     });
   } catch (err) {
     console.error("Signup failed:", err);
@@ -106,11 +124,7 @@ router.post("/login", async (req, res) => {
     res.status(200).json({
       message: "Login successful",
       token,
-      user: {
-        id: user._id,
-        username: user.username,
-        email: user.email,
-      },
+      user: buildUserResponse(user),
     });
   } catch (err) {
     console.error("Login failed:", err);
@@ -145,11 +159,7 @@ router.patch("/username", async (req, res) => {
 
     res.status(200).json({
       message: "Username updated",
-      user: {
-        id: user._id,
-        username: user.username,
-        email: user.email,
-      },
+      user: buildUserResponse(user),
     });
   } catch (err) {
     console.error("Username update failed:", err);
@@ -184,11 +194,7 @@ router.patch("/email", async (req, res) => {
 
     res.status(200).json({
       message: "Email updated",
-      user: {
-        id: user._id,
-        username: user.username,
-        email: user.email,
-      },
+      user: buildUserResponse(user),
     });
   } catch (err) {
     console.error("Email update failed:", err);
@@ -252,6 +258,52 @@ router.delete("/account", async (req, res) => {
   } catch (err) {
     console.error("Delete account failed:", err);
     res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+router.get("/player-state", async (req, res) => {
+  try {
+    const cleanedCurrent = (req.query.currentUsername || "").trim().toLowerCase();
+
+    if (!cleanedCurrent) {
+      return res.status(400).json({ error: "currentUsername is required" });
+    }
+
+    const user = await User.findOne({ username: cleanedCurrent });
+    if (!user) {
+      return res.status(404).json({ error: "User not found" });
+    }
+
+    return res.status(200).json({ playerState: normalizePlayerState(user.playerState) });
+  } catch (err) {
+    console.error("Get player state failed:", err);
+    return res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+router.put("/player-state", async (req, res) => {
+  try {
+    const cleanedCurrent = (req.body.currentUsername || "").trim().toLowerCase();
+
+    if (!cleanedCurrent) {
+      return res.status(400).json({ error: "currentUsername is required" });
+    }
+
+    const user = await User.findOne({ username: cleanedCurrent });
+    if (!user) {
+      return res.status(404).json({ error: "User not found" });
+    }
+
+    user.playerState = normalizePlayerState(req.body.playerState);
+    await user.save();
+
+    return res.status(200).json({
+      message: "Player state updated",
+      playerState: normalizePlayerState(user.playerState),
+    });
+  } catch (err) {
+    console.error("Update player state failed:", err);
+    return res.status(500).json({ error: "Internal server error" });
   }
 });
 

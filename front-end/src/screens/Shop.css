@@ -43,6 +43,7 @@
   line-height: 1.1;
   flex-shrink: 0;
   border: 1px solid #9f8b73;
+  overflow: hidden;
 }
 
 .shop-user-text {
@@ -92,6 +93,33 @@
 .shop-list {
   flex: 1;
   overflow-y: auto;
+  padding-bottom: 24px;
+}
+
+.shop-section {
+  padding-top: 10px;
+}
+
+.shop-section-header {
+  padding: 0 18px 12px;
+}
+
+.shop-section-title {
+  margin: 0;
+  font-size: 22px;
+  font-weight: 800;
+  color: #2f241b;
+}
+
+.shop-section-description {
+  margin: 6px 0 0;
+  color: #6d563a;
+  font-weight: 600;
+}
+
+.shop-section-items {
+  display: flex;
+  flex-direction: column;
 }
 
 
@@ -136,6 +164,12 @@
   flex-shrink: 0;
   border: 1px solid #9f8b73;
   color: #2f241b;
+}
+
+.shop-icon-image {
+  width: 76px;
+  height: 76px;
+  object-fit: contain;
 }
 
 
