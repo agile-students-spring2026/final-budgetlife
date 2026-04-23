@@ -1,6 +1,8 @@
 const express = require("express");
 const router = express.Router();
-const cityStates = require("../data/cityStates");
+const requireAuth = require("../middleware/requireAuth");
+const User = require("../models/User");
+const City = require("../models/City");
 
 function createDefaultCity() {
   return {
@@ -107,10 +109,10 @@ function createDefaultCity() {
         expToNextLevel: 400,
         savingGoal: "$50",
         history: [
-            "- $12 on movie tickets", 
-            "- $18 on snacks"
+          "- $12 on movie tickets",
+          "- $18 on snacks",
         ],
-      }
+      },
     ],
     decorations: [],
   };
@@ -150,39 +152,80 @@ function sanitizeCityState(payload) {
   };
 }
 
-router.get("/:username", (req, res) => {
-  const { username } = req.params;
+router.get("/me", requireAuth, async (req, res) => {
+  try {
+    const username = req.user.username;
 
-  if (!username) {
-    return res.status(400).json({ error: "Username is required" });
+    const user = await User.findOne({ username });
+    if (!user) {
+      return res.status(404).json({ error: "User not found" });
+    }
+
+    let city = await City.findOne({ user: user._id });
+
+    if (!city) {
+      const defaults = createDefaultCity();
+      city = await City.create({
+        user: user._id,
+        version: defaults.version,
+        buildings: defaults.buildings,
+        decorations: defaults.decorations,
+      });
+    }
+
+    return res.json({
+      version: city.version,
+      buildings: city.buildings,
+      decorations: city.decorations,
+    });
+  } catch (err) {
+    console.error("Failed to fetch city state:", err);
+    res.status(500).json({ error: "Internal server error" });
   }
-
-  if (!cityStates[username]) {
-    cityStates[username] = createDefaultCity();
-  }
-
-  return res.json(cityStates[username]);
 });
 
-router.put("/:username", (req, res) => {
-  const { username } = req.params;
-  const incomingCity = req.body;
+router.put("/me", requireAuth, async (req, res) => {
+  try {
+    const username = req.user.username;
+    const incomingCity = req.body;
 
-  if (!username) {
-    return res.status(400).json({ error: "Username is required" });
+    if (!incomingCity || typeof incomingCity !== "object") {
+      return res.status(400).json({ error: "Invalid city state" });
+    }
+
+    const user = await User.findOne({ username });
+    if (!user) {
+      return res.status(404).json({ error: "User not found" });
+    }
+
+    const sanitizedCity = sanitizeCityState(incomingCity);
+
+    const city = await City.findOneAndUpdate(
+      { user: user._id },
+      {
+        user: user._id,
+        version: sanitizedCity.version,
+        buildings: sanitizedCity.buildings,
+        decorations: sanitizedCity.decorations,
+      },
+      {
+        new: true,
+        upsert: true,
+      }
+    );
+
+    return res.json({
+      message: "City state saved successfully",
+      city: {
+        version: city.version,
+        buildings: city.buildings,
+        decorations: city.decorations,
+      },
+    });
+  } catch (err) {
+    console.error("Failed to save city state:", err);
+    res.status(500).json({ error: "Internal server error" });
   }
-
-  if (!incomingCity || typeof incomingCity !== "object") {
-    return res.status(400).json({ error: "Invalid city state" });
-  }
-
-  const sanitizedCity = sanitizeCityState(incomingCity);
-  cityStates[username] = sanitizedCity;
-
-  return res.json({
-    message: "City state saved successfully",
-    city: sanitizedCity,
-  });
 });
 
 module.exports = router;

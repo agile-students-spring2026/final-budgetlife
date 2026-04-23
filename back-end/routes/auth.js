@@ -157,9 +157,21 @@ router.patch("/username", async (req, res) => {
     user.username = cleanedNew;
     await user.save();
 
+    const token = jwt.sign(
+      { userId: user._id, username: user.username },
+      process.env.JWT_SECRET,
+      { expiresIn: process.env.JWT_EXPIRES_IN || "7d" }
+    );
+
     res.status(200).json({
       message: "Username updated",
       user: buildUserResponse(user),
+      token,
+      user: {
+        id: user._id,
+        username: user.username,
+        email: user.email,
+      },
     });
   } catch (err) {
     console.error("Username update failed:", err);

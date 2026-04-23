@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useEffect, useState } from "react";
+import React, { createContext, useContext, useEffect, useRef, useState } from "react";
 import { useAuth } from "../context/Auth_Context";
 import {
   getFriends,
@@ -22,8 +22,12 @@ export const FriendsProvider = ({ children }) => {
   const [outgoingRequests, setOutgoingRequests] = useState([]);
   const [loading, setLoading] = useState(false);
   const [searchLoading, setSearchLoading] = useState(false);
+  const [actionLoading, setActionLoading] = useState(false);
+  const [removingUsernames, setRemovingUsernames] = useState(new Set());
   const [error, setError] = useState("");
+  const searchTimeoutRef = useRef(null);
 
+  const currentUserId = currentUser?.id || "";
   const currentUsername = currentUser?.username || "";
 
   const loadFriends = async () => {
@@ -32,8 +36,8 @@ export const FriendsProvider = ({ children }) => {
       return;
     }
 
-    const data = await getFriends(currentUsername);
-    setFriends(data.friends);
+    const data = await getFriends();
+    setFriends(data.friends || []);
   };
 
   const loadIncomingRequests = async () => {
@@ -42,8 +46,8 @@ export const FriendsProvider = ({ children }) => {
       return;
     }
 
-    const data = await getIncomingRequestsApi(currentUsername);
-    setIncomingRequests(data.requests);
+    const data = await getIncomingRequestsApi();
+    setIncomingRequests(data.requests || []);
   };
 
   const loadOutgoingRequests = async () => {
@@ -52,8 +56,8 @@ export const FriendsProvider = ({ children }) => {
       return;
     }
 
-    const data = await getOutgoingRequestsApi(currentUsername);
-    setOutgoingRequests(data.requests);
+    const data = await getOutgoingRequestsApi();
+    setOutgoingRequests(data.requests || []);
   };
 
   const loadAllFriendData = async () => {
@@ -81,101 +85,254 @@ export const FriendsProvider = ({ children }) => {
   };
 
   const handleSearch = async (query) => {
-    try {
-      setSearchLoading(true);
-      setError("");
+    setError("");
 
-      if (!currentUsername) {
-        setSearchResults([]);
-        return;
-      }
-
-      if (!query.trim()) {
-        setSearchResults([]);
-        return;
-      }
-
-      const data = await searchFriendsApi(currentUsername, query);
-      setSearchResults(data.results);
-    } catch (err) {
-      setError(err.message || "Failed to search users");
-    } finally {
-      setSearchLoading(false);
+    if (!currentUsername) {
+      setSearchResults([]);
+      return;
     }
+
+    const trimmedQuery = query.trim();
+
+    if (searchTimeoutRef.current) {
+      clearTimeout(searchTimeoutRef.current);
+    }
+
+    if (!trimmedQuery) {
+      setSearchResults([]);
+      setSearchLoading(false);
+      return;
+    }
+
+    setSearchLoading(true);
+
+    searchTimeoutRef.current = setTimeout(async () => {
+      try {
+        const data = await searchFriendsApi(trimmedQuery);
+        setSearchResults(data.results || []);
+      } catch (err) {
+        setError(err.message || "Failed to search users");
+      } finally {
+        setSearchLoading(false);
+      }
+    }, 300);
   };
 
   const handleSendFriendRequest = async (username) => {
-    try {
-      setError("");
+    if (!currentUsername) {
+      const err = new Error("No logged-in user");
+      setError(err.message);
+      throw err;
+    }
 
-      if (!currentUsername) {
-        throw new Error("No logged-in user");
-      }
+    const normalizedUsername = (username || "").toLowerCase();
 
-      await sendFriendRequestApi(currentUsername, username);
-      await loadAllFriendData();
-      setSearchResults((prev) =>
-        prev.filter(
-          (user) => user.username.toLowerCase() !== username.toLowerCase()
-        )
+    setError("");
+    setActionLoading(true);
+
+    const previousOutgoing = outgoingRequests;
+    const previousSearchResults = searchResults;
+
+    const optimisticRequest = {
+      id: `temp-${normalizedUsername}`,
+      toUsername: username,
+      fromUsername: currentUsername,
+      status: "pending",
+    };
+
+    setOutgoingRequests((prev) => {
+      const alreadyExists = prev.some(
+        (request) =>
+          (request.toUsername || "").toLowerCase() === normalizedUsername
       );
+
+      if (alreadyExists) return prev;
+      return [...prev, optimisticRequest];
+    });
+
+    setSearchResults((prev) =>
+      prev.filter(
+        (user) => (user.username || "").toLowerCase() !== normalizedUsername
+      )
+    );
+
+    try {
+      const data = await sendFriendRequestApi(username);
+
+      if (data?.request) {
+        setOutgoingRequests((prev) => {
+          const withoutTemp = prev.filter(
+            (request) =>
+              (request.toUsername || "").toLowerCase() !== normalizedUsername
+          );
+
+          return [...withoutTemp, data.request];
+        });
+      }
     } catch (err) {
+      setOutgoingRequests(previousOutgoing);
+      setSearchResults(previousSearchResults);
       setError(err.message || "Failed to send friend request");
       throw err;
+    } finally {
+      setActionLoading(false);
     }
   };
 
   const handleAcceptFriendRequest = async (requestId) => {
+    if (!currentUsername) {
+      const err = new Error("No logged-in user");
+      setError(err.message);
+      throw err;
+    }
+
+    setError("");
+    setActionLoading(true);
+
+    const requestToAccept = incomingRequests.find(
+      (request) => String(request.id || request._id) === String(requestId)
+    );
+
+    const previousIncoming = incomingRequests;
+    const previousFriends = friends;
+
+    if (requestToAccept) {
+      setIncomingRequests((prev) =>
+        prev.filter(
+          (request) => String(request.id || request._id) !== String(requestId)
+        )
+      );
+
+      const optimisticFriend = {
+        id:
+          requestToAccept.fromUser?.id ||
+          requestToAccept.fromUser?._id ||
+          requestToAccept.fromUsername,
+        _id:
+          requestToAccept.fromUser?._id ||
+          requestToAccept.fromUser?.id ||
+          requestToAccept.fromUsername,
+        username: requestToAccept.fromUsername,
+        name:
+          requestToAccept.fromUser?.name ||
+          requestToAccept.fromUsername ||
+          "Unknown",
+        info: "Friends for less than a day",
+      };
+
+      setFriends((prev) => {
+        const alreadyExists = prev.some(
+          (friend) =>
+            (friend.username || "").toLowerCase() ===
+            optimisticFriend.username.toLowerCase()
+        );
+
+        if (alreadyExists) return prev;
+        return [...prev, optimisticFriend];
+      });
+    }
+
     try {
-      setError("");
+      const data = await acceptFriendRequestApi(requestId);
 
-      if (!currentUsername) {
-        throw new Error("No logged-in user");
+      if (data?.friend) {
+        setFriends((prev) => {
+          const withoutTemp = prev.filter(
+            (friend) =>
+              (friend.username || "").toLowerCase() !==
+              (data.friend.username || "").toLowerCase()
+          );
+
+          return [...withoutTemp, data.friend];
+        });
       }
-
-      await acceptFriendRequestApi(currentUsername, requestId);
-      await loadAllFriendData();
     } catch (err) {
+      setIncomingRequests(previousIncoming);
+      setFriends(previousFriends);
       setError(err.message || "Failed to accept friend request");
       throw err;
+    } finally {
+      setActionLoading(false);
     }
   };
 
   const handleDeclineFriendRequest = async (requestId) => {
     try {
+      setActionLoading(true);
       setError("");
 
       if (!currentUsername) {
         throw new Error("No logged-in user");
       }
 
-      await declineFriendRequestApi(currentUsername, requestId);
-      await loadAllFriendData();
+      await declineFriendRequestApi(requestId);
+
+      setIncomingRequests((prev) =>
+        prev.filter(
+          (request) => String(request.id || request._id) !== String(requestId)
+        )
+      );
     } catch (err) {
       setError(err.message || "Failed to decline friend request");
       throw err;
+    } finally {
+      setActionLoading(false);
     }
   };
 
   const handleRemoveFriend = async (username) => {
+    if (!currentUsername) {
+      const err = new Error("No logged-in user");
+      setError(err.message);
+      throw err;
+    }
+
+    const normalizedUsername = (username || "").toLowerCase();
+
+    if (removingUsernames.has(normalizedUsername)) {
+      return;
+    }
+
+    setError("");
+    setActionLoading(true);
+    setRemovingUsernames((prev) => new Set(prev).add(normalizedUsername));
+
+    const previousFriends = friends;
+
+    setFriends((prev) =>
+      prev.filter(
+        (friend) =>
+          (friend.username || "").toLowerCase() !== normalizedUsername
+      )
+    );
+
     try {
-      setError("");
-
-      if (!currentUsername) {
-        throw new Error("No logged-in user");
-      }
-
-      await removeFriendApi(currentUsername, username);
-      await loadAllFriendData();
+      await removeFriendApi(username);
     } catch (err) {
+      setFriends(previousFriends);
       setError(err.message || "Failed to remove friend");
       throw err;
+    } finally {
+      setRemovingUsernames((prev) => {
+        const next = new Set(prev);
+        next.delete(normalizedUsername);
+        return next;
+      });
+      setActionLoading(false);
     }
   };
 
   useEffect(() => {
     loadAllFriendData();
-  }, [currentUsername]);
+  }, [currentUserId]);
+
+  useEffect(() => {
+    return () => {
+      if (searchTimeoutRef.current) {
+        clearTimeout(searchTimeoutRef.current);
+      }
+    };
+  }, []);
 
   return (
     <FriendsContext.Provider
@@ -186,6 +343,8 @@ export const FriendsProvider = ({ children }) => {
         outgoingRequests,
         loading,
         searchLoading,
+        actionLoading,
+        removingUsernames,
         error,
         loadAllFriendData,
         handleSearch,

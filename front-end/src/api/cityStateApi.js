@@ -1,27 +1,40 @@
 const BASE_URL = "http://localhost:3000/api/city-state";
 
-export async function getCityState(username) {
-  const response = await fetch(`${BASE_URL}/${username}`);
+function getAuthHeaders() {
+  const token = localStorage.getItem("token");
 
-  if (!response.ok) {
-    throw new Error("Failed to fetch city state");
-  }
-
-  return response.json();
+  return {
+    "Content-Type": "application/json",
+    Authorization: `Bearer ${token}`,
+  };
 }
 
-export async function saveCityState(username, city) {
-  const response = await fetch(`${BASE_URL}/${username}`, {
+export async function getCityState() {
+  const response = await fetch(`${BASE_URL}/me`, {
+    headers: getAuthHeaders(),
+  });
+
+  const data = await response.json();
+
+  if (!response.ok) {
+    throw new Error(data.error || "Failed to fetch city state");
+  }
+
+  return data;
+}
+
+export async function saveCityState(city) {
+  const response = await fetch(`${BASE_URL}/me`, {
     method: "PUT",
-    headers: {
-      "Content-Type": "application/json",
-    },
+    headers: getAuthHeaders(),
     body: JSON.stringify(city),
   });
 
+  const data = await response.json();
+
   if (!response.ok) {
-    throw new Error("Failed to save city state");
+    throw new Error(data.error || "Failed to save city state");
   }
 
-  return response.json();
+  return data;
 }

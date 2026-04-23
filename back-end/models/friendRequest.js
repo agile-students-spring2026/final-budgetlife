@@ -21,4 +21,9 @@ const friendRequestSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
+friendRequestSchema.index(
+  { fromUser: 1, toUser: 1, status: 1 },
+  { unique: true, partialFilterExpression: { status: "pending" } }
+);
+
 module.exports = mongoose.model("FriendRequest", friendRequestSchema);

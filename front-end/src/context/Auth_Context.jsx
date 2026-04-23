@@ -6,6 +6,7 @@ import {
   updateEmail as updateEmailApi,
   changePassword as changePasswordApi,
   deleteAccount as deleteAccountApi,
+  logout as logoutApi,
 } from "../api/authApi";
 
 const AuthContext = createContext();
@@ -162,6 +163,8 @@ export const AuthProvider = ({ children }) => {
       localStorage.setItem("budgetlifeUser", JSON.stringify(nextUser));
       return nextUser;
     });
+    localStorage.removeItem("budgetlifeUser");
+    logoutApi();
   };
 
   return (

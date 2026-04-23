@@ -79,12 +79,13 @@ function Friends_List() {
   const { currentUser } = useAuth();
 
   const filteredFriends = useMemo(() => {
+    const q = search.toLowerCase();
+
     return friends.filter((friend) => {
-      const q = search.toLowerCase();
-      return (
-        friend.username.toLowerCase().includes(q) ||
-        friend.name.toLowerCase().includes(q)
-      );
+      const username = (friend.username || "").toLowerCase();
+      const name = (friend.name || "").toLowerCase();
+
+      return username.includes(q) || name.includes(q);
     });
   }, [friends, search]);
 
@@ -129,7 +130,7 @@ function Friends_List() {
           ) : filteredFriends.length > 0 ? (
             filteredFriends.map((friend) => (
               <FriendRow
-                key={friend.id}
+                key={friend.id || friend._id || friend.username}
                 friend={friend}
                 onRemove={handleRemoveFriend}
               />
