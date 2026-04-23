@@ -23,7 +23,73 @@ BudgetLife emphasizes non-predatory design, requires no paid currency, and avoid
 
 ## Building and Testing
 
-TBD
+### Prerequisites
+
+- [Node.js](https://nodejs.org/) 18 or newer
+- npm (bundled with Node.js)
+
+### Clone the repository
+
+```bash
+git clone https://github.com/agile-students-spring2026/final-budgetlife.git
+cd final-budgetlife
+```
+
+### Install dependencies
+
+Install the back-end and front-end dependencies separately:
+
+```bash
+# Back-end
+cd back-end
+npm install
+
+# Front-end
+cd ../front-end
+npm install
+```
+
+### Run the app (development mode)
+
+Start the back-end and front-end in **two separate terminals**:
+
+```bash
+# Terminal 1 — back-end (http://localhost:3000)
+cd back-end
+npm run dev
+
+# Terminal 2 — front-end (http://localhost:5173)
+cd front-end
+npm run dev
+```
+
+Open `http://localhost:5173` in your browser.
+
+### Seeded test accounts
+
+The back-end ships with a few in-memory users you can log in as while developing. All of them use the password `password123`:
+
+- `alexr`
+- `jordy88`
+- `caseybuilds`
+
+Newly signed-up users are also stored in memory and will be lost when the back-end process restarts.
+
+### Run the back-end tests
+
+```bash
+cd back-end
+npm test          # runs all mocha tests
+npm run coverage  # runs tests with c8 code-coverage report
+```
+
+### Build the front-end for production
+
+```bash
+cd front-end
+npm run build     # output in front-end/dist
+npm run preview   # serve the production build locally
+```
 
 ## Project History & Contributing
 

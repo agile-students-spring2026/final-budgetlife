@@ -135,8 +135,8 @@ router.post("/reward", (req, res) => {
     if (!currentUsername) {
         return res.status(400).json({ error: "currentUsername is required" });
     }
-    const message = rewardUser(currentUsername);
-    res.status(200).json({ message });
+    const reward = rewardUser(currentUsername);
+    res.status(200).json(reward);
 });
 
 module.exports = router;

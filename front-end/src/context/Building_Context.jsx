@@ -4,6 +4,39 @@ import { useAuth } from "./Auth_Context";
 
 export const BuildingContext = createContext();
 
+// Maps a building's category/name to the healthCategory key expected by
+// the budget APIs. Returns null for buildings that aren't tied to a
+// backend budget category (e.g. School, Transit Hub).
+function inferHealthCategory(building) {
+  if (building.healthCategory !== undefined) return building.healthCategory;
+  if (building.type === "primary") return "cityhall";
+
+  const cat = (building.category || "").toLowerCase();
+  const name = (building.name || "").toLowerCase();
+
+  if (cat === "residential" || name.includes("housing") || name.includes("house"))
+    return "houses";
+  if (cat === "food" || name.includes("food") || name.includes("restaurant") || name.includes("market"))
+    return "restaurant";
+  if (cat === "health" || name.includes("hospital"))
+    return "hospital";
+  if (cat === "entertainment" || name.includes("cinema") || name.includes("movie"))
+    return "cinema";
+
+  return null;
+}
+
+function addHealthCategories(city) {
+  if (!city || !city.buildings) return city;
+  return {
+    ...city,
+    buildings: city.buildings.map((b) => ({
+      ...b,
+      healthCategory: inferHealthCategory(b),
+    })),
+  };
+}
+
 function createDefaultCity() {
   return {
     version: 1,
@@ -15,6 +48,7 @@ function createDefaultCity() {
         level: 5,
         name: "City Hall",
         category: "government",
+        healthCategory: "cityhall",
         budget: 2550,
         spent: 1232,
         currentExp: 1500,
@@ -29,6 +63,7 @@ function createDefaultCity() {
         level: 2,
         name: "Housing",
         category: "residential",
+        healthCategory: "houses",
         budget: 700,
         spent: 320,
         currentExp: 100,
@@ -43,6 +78,7 @@ function createDefaultCity() {
         level: 1,
         name: "Food Market",
         category: "food",
+        healthCategory: "restaurant",
         budget: 600,
         spent: 250,
         currentExp: 70,
@@ -62,6 +98,7 @@ function createDefaultCity() {
         level: 4,
         name: "Hospital",
         category: "health",
+        healthCategory: "hospital",
         budget: 300,
         spent: 120,
         currentExp: 300,
@@ -112,7 +149,7 @@ export function BuildingProvider({ children }) {
 
     async function loadCity() {
       if (!currentUser?.username) {
-        setCity(createDefaultCity());
+        setCity(addHealthCategories(createDefaultCity()));
         setIsLoading(false);
         return;
       }
@@ -122,13 +159,13 @@ export function BuildingProvider({ children }) {
         const savedCity = await getCityState();
 
         if (!cancelled) {
-          setCity(savedCity);
+          setCity(addHealthCategories(savedCity));
         }
       } catch (err) {
         console.error("Failed to load city state:", err);
 
         if (!cancelled) {
-          setCity(createDefaultCity());
+          setCity(addHealthCategories(createDefaultCity()));
         }
       } finally {
         if (!cancelled) {

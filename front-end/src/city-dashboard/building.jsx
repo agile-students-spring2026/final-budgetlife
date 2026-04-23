@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import "./Building.css";
 import { useAuth } from "../context/Auth_Context";
-import { getBudgetGoals, updateBudgetGoal } from "../api/budgetApi";
+import { getBudgetGoals, updateBudgetGoal, updateBudgetDates } from "../api/budgetApi";
 
 // Maps building.healthCategory ("houses", "restaurant", ...) to the backend
 // budget category key ("housing", "food", ...). Duplicated from
@@ -27,12 +27,187 @@ class Building {
   }
 }
 
+// Shared editor for the user's total budget goal and budget period dates.
+// Used by City Hall (DisplayMenu) and by the BudgetHeader progress bar.
+export function TotalBudgetEditor({
+  username,
+  initialGoal,
+  initialStartDate,
+  initialEndDate,
+  minGoal = 0,
+  onSaved,
+  onCancel,
+}) {
+  const [goal, setGoal] = useState(String(initialGoal ?? ""));
+  const [startDate, setStartDate] = useState(initialStartDate || "");
+  const [endDate, setEndDate] = useState(initialEndDate || "");
+  const [error, setError] = useState("");
+  const [saving, setSaving] = useState(false);
+
+  const inputStyle = {
+    width: "100%",
+    height: 42,
+    background: "#cfbda5",
+    border: "1px solid #b39f86",
+    outline: "none",
+    borderRadius: 8,
+    padding: "0 12px",
+    fontSize: 16,
+    color: "#2f241b",
+    boxSizing: "border-box",
+  };
+
+  const handleSave = async () => {
+    const numericGoal = Number(goal);
+    if (!Number.isFinite(numericGoal)) {
+      setError("Enter a valid number");
+      return;
+    }
+    if (numericGoal < minGoal) {
+      setError(`Total must be at least $${minGoal}`);
+      return;
+    }
+    if (!startDate || !endDate) {
+      setError("Please select both dates");
+      return;
+    }
+    if (startDate > endDate) {
+      setError("Start date must be before end date");
+      return;
+    }
+    try {
+      setSaving(true);
+      await updateBudgetGoal(username, "total", numericGoal);
+      await updateBudgetDates(username, startDate, endDate);
+      setError("");
+      if (typeof window.refreshBuildingHealth === "function") {
+        window.refreshBuildingHealth();
+      }
+      window.dispatchEvent(new Event("budget:refresh"));
+      onSaved?.({ goal: numericGoal, startDate, endDate });
+    } catch (err) {
+      setError(err.message || "Update failed");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  return (
+    <div>
+      <div style={{ marginBottom: 10 }}>
+        <div style={{ fontSize: 13, color: "#6b5d4d", marginBottom: 4 }}>
+          Total budget goal
+        </div>
+        <input
+          type="number"
+          value={goal}
+          onChange={(e) => setGoal(e.target.value)}
+          style={inputStyle}
+          autoFocus
+        />
+      </div>
+      <div style={{ display: "flex", gap: 8, marginBottom: 10 }}>
+        <div style={{ flex: 1 }}>
+          <div style={{ fontSize: 13, color: "#6b5d4d", marginBottom: 4 }}>
+            Start
+          </div>
+          <input
+            type="date"
+            value={startDate}
+            onChange={(e) => setStartDate(e.target.value)}
+            style={inputStyle}
+          />
+        </div>
+        <div style={{ flex: 1 }}>
+          <div style={{ fontSize: 13, color: "#6b5d4d", marginBottom: 4 }}>
+            End
+          </div>
+          <input
+            type="date"
+            value={endDate}
+            onChange={(e) => setEndDate(e.target.value)}
+            style={inputStyle}
+          />
+        </div>
+      </div>
+      <div style={{ display: "flex", gap: 8 }}>
+        <button
+          type="button"
+          onClick={handleSave}
+          disabled={saving}
+          style={{
+            flex: 1,
+            background: "#7c3aed",
+            color: "#fff",
+            border: "none",
+            borderRadius: 8,
+            padding: "10px 16px",
+            fontWeight: 700,
+            cursor: saving ? "default" : "pointer",
+            opacity: saving ? 0.6 : 1,
+          }}
+        >
+          Save
+        </button>
+        <button
+          type="button"
+          onClick={onCancel}
+          disabled={saving}
+          style={{
+            flex: 1,
+            background: "#bfa88c",
+            color: "#2f241b",
+            border: "1px solid #b39f86",
+            borderRadius: 8,
+            padding: "10px 16px",
+            fontWeight: 700,
+            cursor: saving ? "default" : "pointer",
+            opacity: saving ? 0.6 : 1,
+          }}
+        >
+          Cancel
+        </button>
+      </div>
+      <div style={{ marginTop: 6, fontSize: 13, color: "#6b5d4d" }}>
+        Minimum total: ${minGoal}
+      </div>
+      {error && (
+        <div style={{ marginTop: 6, fontSize: 13, color: "#ff6b6b" }}>
+          {error}
+        </div>
+      )}
+    </div>
+  );
+}
+
 export function BuildingBox({ building, onClick }) {
-  const { i, budget, spent, name, type, showBudget, sprite } = building;
+  const { i, budget, spent, name, type, showBudget, sprite, level = 1 } = building;
   const isPrimary = type === "primary";
   const boxSize = isPrimary ? 280 : 200;
   const barWidth = boxSize;
   const fontSize = isPrimary ? "1.35rem" : "1.1rem";
+  const upgradeTier = level >= 10 ? 2 : level >= 5 ? 1 : 0;
+  const tierLabel = upgradeTier === 2 ? "Tier III" : upgradeTier === 1 ? "Tier II" : null;
+  const placeholderTheme =
+    upgradeTier === 2
+      ? {
+          background: "linear-gradient(160deg, #f6e7b6 0%, #d6a84f 42%, #6e4a1f 100%)",
+          border: "3px solid #f5d36a",
+          boxShadow: "0 18px 30px rgba(91, 58, 14, 0.42)",
+          accent: "#fff4be",
+          labelBg: "rgba(87, 48, 6, 0.82)",
+          subtitle: "Skyline upgrade ready",
+        }
+      : upgradeTier === 1
+        ? {
+            background: "linear-gradient(160deg, #d9ecff 0%, #78aef5 45%, #294f80 100%)",
+            border: "3px solid #d6ecff",
+            boxShadow: "0 14px 24px rgba(24, 54, 96, 0.36)",
+            accent: "#edf7ff",
+            labelBg: "rgba(17, 52, 96, 0.8)",
+            subtitle: "Neighborhood upgrade ready",
+          }
+        : null;
 
   return (
     <div
@@ -61,7 +236,7 @@ export function BuildingBox({ building, onClick }) {
       )}
 
       <div
-        className={sprite ? undefined : "building-box"}
+        className={sprite && upgradeTier === 0 ? undefined : "building-box"}
         style={{
           width: boxSize,
           height: boxSize,
@@ -69,9 +244,10 @@ export function BuildingBox({ building, onClick }) {
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
-          background: sprite ? "none" : undefined,
-          boxShadow: sprite ? "none" : undefined,
-          border: "none",
+          background: sprite && upgradeTier === 0 ? "none" : upgradeTier > 0 ? placeholderTheme.background : undefined,
+          boxShadow: sprite && upgradeTier === 0 ? "none" : upgradeTier > 0 ? placeholderTheme.boxShadow : undefined,
+          border: upgradeTier > 0 ? placeholderTheme.border : "none",
+          borderRadius: upgradeTier > 0 ? 20 : undefined,
           padding: 0,
           margin: 0,
           position: "relative",
@@ -80,7 +256,7 @@ export function BuildingBox({ building, onClick }) {
         }}
         onClick={onClick}
       >
-        {sprite ? (
+        {sprite && upgradeTier === 0 ? (
           <img
             src={sprite}
             alt={name}
@@ -95,6 +271,94 @@ export function BuildingBox({ building, onClick }) {
               pointerEvents: "none",
             }}
           />
+        ) : upgradeTier > 0 ? (
+          <div
+            style={{
+              width: "100%",
+              height: "100%",
+              borderRadius: 18,
+              position: "relative",
+              overflow: "hidden",
+              color: placeholderTheme.accent,
+              padding: isPrimary ? 18 : 14,
+              display: "flex",
+              flexDirection: "column",
+              justifyContent: "space-between",
+              textAlign: "left",
+            }}
+          >
+            <div
+              style={{
+                position: "absolute",
+                inset: 10,
+                borderRadius: 14,
+                border: `1px solid ${placeholderTheme.accent}55`,
+                pointerEvents: "none",
+              }}
+            />
+            <div style={{ position: "relative", zIndex: 1 }}>
+              <div
+                style={{
+                  display: "inline-flex",
+                  alignItems: "center",
+                  padding: isPrimary ? "6px 12px" : "5px 10px",
+                  borderRadius: 999,
+                  background: placeholderTheme.labelBg,
+                  fontSize: isPrimary ? 14 : 12,
+                  fontWeight: 800,
+                  letterSpacing: 0.8,
+                  textTransform: "uppercase",
+                }}
+              >
+                {tierLabel}
+              </div>
+            </div>
+
+            <div style={{ position: "relative", zIndex: 1 }}>
+              <div
+                style={{
+                  fontSize: isPrimary ? 34 : 26,
+                  fontWeight: 900,
+                  lineHeight: 1,
+                  marginBottom: 8,
+                  textShadow: "0 4px 12px rgba(0,0,0,0.24)",
+                }}
+              >
+                {name || `Building ${i}`}
+              </div>
+              <div
+                style={{
+                  fontSize: isPrimary ? 16 : 13,
+                  fontWeight: 700,
+                  opacity: 0.92,
+                  marginBottom: 12,
+                }}
+              >
+                {placeholderTheme.subtitle}
+              </div>
+              <div
+                style={{
+                  display: "flex",
+                  gap: 8,
+                  alignItems: "flex-end",
+                  height: isPrimary ? 82 : 64,
+                }}
+              >
+                {[0.45, 0.65, 0.9, 0.72].map((height, index) => (
+                  <div
+                    key={index}
+                    style={{
+                      flex: 1,
+                      height: `${height * 100}%`,
+                      borderRadius: "10px 10px 4px 4px",
+                      background: "rgba(255,255,255,0.22)",
+                      border: `1px solid ${placeholderTheme.accent}33`,
+                    }}
+                  />
+                ))}
+              </div>
+            </div>
+          </div>
         ) : (
           <div style={{ fontWeight: "bold" }}>{name || `Building ${i}`}</div>
         )}
@@ -143,12 +407,14 @@ export function DisplayMenu({ building, onClose }) {
   if (!building) return null;
 
   const budgetCategory = HEALTH_TO_BUDGET_CATEGORY[building.healthCategory];
-  // City Hall (total) is intentionally not editable; School has no
-  // healthCategory mapping so it's also non-editable.
-  const isEditable = !!budgetCategory && budgetCategory !== "total";
+  // School has no healthCategory mapping so it's non-editable; everything
+  // else (including City Hall / total) is editable.
+  const isEditable = !!budgetCategory;
+  const isTotal = budgetCategory === "total";
 
   const minAllowed = Math.max(0, building.spent || 0);
   let maxAllowed = null;
+  let totalMinAllowed = minAllowed;
   if (goalsSnapshot && budgetCategory) {
     const totalGoal = goalsSnapshot.total?.goal || 0;
     let othersSum = 0;
@@ -157,6 +423,15 @@ export function DisplayMenu({ building, onClose }) {
       othersSum += entry?.goal || 0;
     }
     maxAllowed = Math.max(0, totalGoal - othersSum);
+
+    // Total must be at least (sum of all category goals) and at least
+    // what has already been spent overall.
+    let allCategoriesSum = 0;
+    for (const [cat, entry] of Object.entries(goalsSnapshot)) {
+      if (cat === "total") continue;
+      allCategoriesSum += entry?.goal || 0;
+    }
+    totalMinAllowed = Math.max(minAllowed, allCategoriesSum);
   }
 
   const handleStartEdit = () => {
@@ -339,6 +614,19 @@ export function DisplayMenu({ building, onClose }) {
                 (not editable)
               </span>
             </div>
+          ) : isTotal && editingGoal ? (
+            <TotalBudgetEditor
+              username={currentUser?.username}
+              initialGoal={localBudget}
+              initialStartDate={goalsSnapshot?.total?.startDate || ""}
+              initialEndDate={goalsSnapshot?.total?.endDate || ""}
+              minGoal={totalMinAllowed}
+              onSaved={({ goal }) => {
+                setLocalBudget(goal);
+                setEditingGoal(false);
+              }}
+              onCancel={handleCancelEdit}
+            />
           ) : !editingGoal ? (
             <button
               type="button"

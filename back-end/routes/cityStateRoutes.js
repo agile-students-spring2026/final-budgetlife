@@ -7,6 +7,11 @@ const City = require("../models/City");
 function createDefaultCity() {
   return {
     version: 1,
+    budgetRewardStatus: {
+      claimedIntervals: {},
+      currentStreak: 0,
+      lastRewardedIntervalEndDate: null,
+    },
     buildings: [
       {
         type: "primary",
@@ -116,6 +121,14 @@ function createDefaultCity() {
 function sanitizeCityState(payload) {
   return {
     version: Number(payload?.version ?? 1),
+    budgetRewardStatus: {
+      claimedIntervals:
+        payload?.budgetRewardStatus && typeof payload.budgetRewardStatus.claimedIntervals === "object"
+          ? payload.budgetRewardStatus.claimedIntervals
+          : {},
+      currentStreak: Number(payload?.budgetRewardStatus?.currentStreak ?? 0),
+      lastRewardedIntervalEndDate: payload?.budgetRewardStatus?.lastRewardedIntervalEndDate ?? null,
+    },
     decorations: Array.isArray(payload?.decorations) ? payload.decorations : [],
     buildings: Array.isArray(payload?.buildings)
       ? payload.buildings.map((b) => ({
