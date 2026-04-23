@@ -27,6 +27,7 @@ export const FriendsProvider = ({ children }) => {
   const [error, setError] = useState("");
   const searchTimeoutRef = useRef(null);
 
+  const currentUserId = currentUser?.id || "";
   const currentUsername = currentUser?.username || "";
 
   const loadFriends = async () => {
@@ -323,7 +324,7 @@ export const FriendsProvider = ({ children }) => {
 
   useEffect(() => {
     loadAllFriendData();
-  }, [currentUsername]);
+  }, [currentUserId]);
 
   useEffect(() => {
     return () => {

@@ -56,7 +56,6 @@
     transform: translateY(-2px);
 }
 
-
 .profile-row {
     display: flex;
     justify-content: center;
@@ -237,7 +236,6 @@
     max-width: 360px;
     display: flex;
     flex-direction: column;
-    gap: 12px;
     align-items: center;
 }
 
@@ -261,4 +259,15 @@
     background: #7a1f1f;
     color: white;
     border: 1px solid #5a1414;
+}
+
+.account-success {
+  margin: 10px 0 14px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: rgba(80, 170, 110, 0.14);
+  border: 1px solid rgba(80, 170, 110, 0.35);
+  color: #1f5e33;
+  font-size: 14px;
+  font-weight: 600;
 }

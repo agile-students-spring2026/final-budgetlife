@@ -66,6 +66,10 @@ export async function updateUsername(currentUsername, newUsername) {
     throw new Error(data.error || "Failed to update username");
   }
 
+  if (data.token) {
+    localStorage.setItem("token", data.token);
+  }
+
   return data;
 }
 

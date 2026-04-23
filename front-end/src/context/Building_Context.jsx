@@ -148,7 +148,7 @@ export function BuildingProvider({ children }) {
     let cancelled = false;
 
     async function loadCity() {
-      if (!currentUser?.username) {
+      if (!currentUser?.id) {
         setCity(addHealthCategories(createDefaultCity()));
         setIsLoading(false);
         return;
@@ -179,10 +179,10 @@ export function BuildingProvider({ children }) {
     return () => {
       cancelled = true;
     };
-  }, [currentUser?.username]);
+  }, [currentUser?.id]);
 
   useEffect(() => {
-    if (!currentUser?.username || !city) return;
+    if (!currentUser?.id || !city) return;
 
     const timeout = setTimeout(() => {
       saveCityState(city).catch((err) => {
@@ -191,7 +191,7 @@ export function BuildingProvider({ children }) {
     }, 300);
 
     return () => clearTimeout(timeout);
-  }, [city, currentUser?.username]);
+  }, [city, currentUser?.id]);
 
   const updateBuilding = (buildingId, updates) => {
     setCity((prevCity) => {
