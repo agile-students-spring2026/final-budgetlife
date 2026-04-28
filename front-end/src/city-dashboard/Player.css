@@ -1,0 +1,9 @@
+@keyframes playerBounce {
+  0%   { transform: translate(-50%, -100%) translateY(0px); }
+  50%  { transform: translate(-50%, -100%) translateY(-6px); }
+  100% { transform: translate(-50%, -100%) translateY(0px); }
+}
+
+.player-bounce {
+  animation: playerBounce 0.8s ease-in-out infinite;
+}
