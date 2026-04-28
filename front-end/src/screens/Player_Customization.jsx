@@ -3,14 +3,13 @@ import { useNavigate } from "react-router-dom";
 import { PlayerAvatar } from "../components/PlayerAvatar";
 import { PlayerContext } from "../context/Player_Context";
 import {
-    getCustomizationItem,
     PLAYER_CUSTOMIZATION_SLOTS,
 } from "../data/playerCustomization";
 import "./Player_Customization.css";
 
 function PlayerCustomization() {
     const navigate = useNavigate();
-    const { equippedItems, equipItem, ownsItem, isHydrated } = useContext(PlayerContext);
+    const { equippedItems, equipItem, ownsItem } = useContext(PlayerContext);
     const [activeTab, setActiveTab] = useState(PLAYER_CUSTOMIZATION_SLOTS[0].id);
 
     const activeSlot = useMemo(
@@ -34,28 +33,14 @@ function PlayerCustomization() {
                 </div>
 
                 <div className="preview-panel">
-                    <div className="preview-copy">
-                        <div className="preview-kicker">Live Preview</div>
-                        <h2>Build the alien in layers</h2>
-                        <p>
-                            Each item is rendered as a full-size transparent overlay on top of the base sprite.
-                        </p>
-                    </div>
-
                     <div className="preview-stage">
-                        <PlayerAvatar width={220} height={440} alt="Customized player avatar" />
-                    </div>
-
-                    <div className="slot-summary">
-                        {PLAYER_CUSTOMIZATION_SLOTS.map((slot) => {
-                            const equippedItem = getCustomizationItem(equippedItems[slot.id]);
-                            return (
-                                <div key={slot.id} className="slot-chip">
-                                    <span className="slot-chip-label">{slot.label}</span>
-                                    <span className="slot-chip-value">{equippedItem?.label || "None"}</span>
-                                </div>
-                            );
-                        })}
+                        <PlayerAvatar
+                            width={220}
+                            height={420}
+                            alt="Customized player avatar"
+                            imageScale={1.55}
+                            imageOffsetY={-18}
+                        />
                     </div>
                 </div>
 
@@ -72,25 +57,6 @@ function PlayerCustomization() {
                         ))}
                     </div>
 
-                    <div className="section-header">
-                        <div>
-                            <div className="section-title">{activeSlot.label}</div>
-                            <div className="section-subtitle">
-                                {isHydrated
-                                    ? "Choose one overlay for this slot."
-                                    : "Loading your owned items..."}
-                            </div>
-                        </div>
-                        <button
-                            type="button"
-                            className="clear-btn"
-                            onClick={() => equipItem(activeSlot.id, null)}
-                            disabled={!equippedItems[activeSlot.id]}
-                        >
-                            Clear Slot
-                        </button>
-                    </div>
-
                     <div className="item-grid">
                         {activeSlot.items.map((item) => {
                             const selected = equippedItems[activeSlot.id] === item.id;
@@ -105,7 +71,6 @@ function PlayerCustomization() {
                                         <img src={item.iconSrc} alt={item.label} className="item-card-icon" />
                                     </div>
                                     <div className="item-card-title">{item.label}</div>
-                                    <div className="item-card-price">${item.price}</div>
                                     <button
                                         type="button"
                                         className={`item-card-action-btn ${selected ? "equipped" : ""}`}
