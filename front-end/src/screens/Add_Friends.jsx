@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useFriends } from "../context/Friends_Context";
 import { useAuth } from "../context/Auth_Context";
+import { PlayerAvatar } from "../components/PlayerAvatar";
 import "./Add_Friends.css";
 
 function Add_Friends() {
@@ -21,17 +22,19 @@ function Add_Friends() {
   const [search, setSearch] = useState("");
   const { currentUser } = useAuth();
 
-  const onSearchChange = async (e) => {
+  const onSearchChange = (e) => {
     const value = e.target.value;
     setSearch(value);
-    await handleSearch(value);
+    handleSearch(value);
   };
 
   return (
     <div className="add-friends-page">
       <div className="add-friends-screen">
         <div className="add-friends-top">
-          <div className="add-friends-player-icon">Player Icon</div>
+          <div className="add-friends-player-icon">
+            <PlayerAvatar width="100%" height="100%" alt="Player avatar" />
+          </div>
 
           <div className="add-friends-user-text">
             <div className="username">{currentUser?.username || "Username"}</div>
@@ -51,7 +54,14 @@ function Add_Friends() {
           <div className="add-friends-results">
             {incomingRequests.length > 0 ? (
               incomingRequests.map((request) => (
-                <div key={request.id} className="add-friends-result-row">
+                <div
+                  key={
+                    request.id ||
+                    request._id ||
+                    `${request.fromUsername}-${request.toUsername}`
+                  }
+                  className="add-friends-result-row"
+                >
                   <span className="add-friends-result-name">
                     @{request.fromUsername}
                   </span>
@@ -59,13 +69,17 @@ function Add_Friends() {
                   <div className="request-actions">
                     <button
                       className="add-friends-send-btn"
-                      onClick={() => handleAcceptFriendRequest(request.id)}
+                      onClick={() =>
+                        handleAcceptFriendRequest(request.id || request._id)
+                      }
                     >
                       Accept
                     </button>
                     <button
                       className="add-friends-send-btn"
-                      onClick={() => handleDeclineFriendRequest(request.id)}
+                      onClick={() =>
+                        handleDeclineFriendRequest(request.id || request._id)
+                      }
                     >
                       Decline
                     </button>
@@ -82,7 +96,14 @@ function Add_Friends() {
           <div className="add-friends-results">
             {outgoingRequests.length > 0 ? (
               outgoingRequests.map((request) => (
-                <div key={request.id} className="add-friends-result-row">
+                <div
+                  key={
+                    request.id ||
+                    request._id ||
+                    `${request.fromUsername}-${request.toUsername}`
+                  }
+                  className="add-friends-result-row"
+                >
                   <span className="add-friends-result-name">
                     @{request.toUsername}
                   </span>
@@ -112,7 +133,10 @@ function Add_Friends() {
               <div className="add-friends-empty">Searching...</div>
             ) : searchResults.length > 0 ? (
               searchResults.map((user) => (
-                <div key={user.id} className="add-friends-result-row">
+                <div
+                  key={user.id || user._id || user.username}
+                  className="add-friends-result-row"
+                >
                   <span className="add-friends-result-name">
                     @{user.username}
                   </span>

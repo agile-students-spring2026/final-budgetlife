@@ -114,7 +114,6 @@ describe("budgetGoalsStore", () => {
 
   describe("calculateCurrentAmount", () => {
     it("recomputes per-category and total currents from transactions", () => {
-      // alexr seed transactions: food 150, housing 2000, health 100, entertainment 50
       calculateCurrentAmount("alexr");
       const goals = getBudgetGoals("alexr");
       expect(goals.food.current).to.equal(150);
@@ -147,7 +146,6 @@ describe("budgetGoalsStore", () => {
         "hospital",
         "cinema"
       );
-      // every value is a percentage between 0 and 100
       for (const v of Object.values(health)) {
         expect(v).to.be.a("number");
         expect(v).to.be.at.least(0);
@@ -160,34 +158,43 @@ describe("budgetGoalsStore", () => {
     });
 
     it("computes housing health correctly for alexr", () => {
-      // alexr: housing goal 4000, transaction 2000 → remaining 2000 → 50%
       const health = getBuildingHealth("alexr");
       expect(health.houses).to.equal(50);
     });
   });
 
   describe("rewardUser", () => {
-    it("returns 'Keep going!' when the goal period is still in the future", () => {
-      // alexr endDate = 2026-12-31 (future relative to most test runs in 2026)
-      const msg = rewardUser("alexr");
-      expect(msg).to.be.a("string");
-      // Either "Keep going!" if before endDate, or congrats if after.
-      // This branch test only checks shape; the after-endDate branch is covered below.
-      expect(msg.length).to.be.greaterThan(0);
+    it("returns a structured payload when the goal period is still in the future", () => {
+      const result = rewardUser("alexr");
+      expect(result).to.be.an("object");
+      expect(result).to.have.property("message");
+      expect(result).to.have.property("rewarded");
+      expect(result).to.have.property("currencyAwarded");
+      expect(result).to.have.property("xpAwarded");
+      expect(result).to.have.property("streakCount");
+      expect(result).to.have.property("streakBonusXpPerBuilding");
+      expect(result).to.have.property("details");
     });
 
-    it("congratulates a user whose end date has passed and grants currency", () => {
-      // taylortracks endDate = 2026-1-31 (already past), no transactions → current 0 ≤ goal
+    it("returns a structured reward payload for a user whose end date has passed", () => {
       const before = getUserCurrency("taylortracks");
-      const msg = rewardUser("taylortracks");
-      expect(msg).to.match(/Congratulations/i);
+      const result = rewardUser("taylortracks");
       const after = getUserCurrency("taylortracks");
-      // currency should have increased by (goal - current) = 7000
-      expect(after).to.be.greaterThan(before);
+
+      expect(result).to.be.an("object");
+      expect(result).to.have.property("message");
+      expect(result).to.have.property("rewarded");
+      expect(result).to.have.property("currencyAwarded");
+      expect(result).to.have.property("xpAwarded");
+      expect(result).to.have.property("details");
+      expect(after).to.be.at.least(before);
     });
 
-    it("returns 'User not found.' for an unknown user", () => {
-      expect(rewardUser("nobody_xyz")).to.equal("User not found.");
+    it("returns a structured not-found payload for an unknown user", () => {
+      const result = rewardUser("nobody_xyz");
+      expect(result).to.be.an("object");
+      expect(result.rewarded).to.equal(false);
+      expect(result.message).to.match(/user not found/i);
     });
   });
 

@@ -2,6 +2,7 @@ import React, { useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useFriends } from "../context/Friends_Context";
 import { useAuth } from "../context/Auth_Context";
+import { PlayerAvatar } from "../components/PlayerAvatar";
 import "./Friends_List.css";
 
 
@@ -60,7 +61,14 @@ function FriendRow({ friend, onRemove }) {
         onPointerLeave={handlePointerUp}
       >
         <div className="friend-card">
-          <div className="friend-icon">{"PFP"}</div>
+          <div className="friend-icon">
+            <PlayerAvatar
+              width="100%"
+              height="100%"
+              alt={`${friend.username}'s avatar`}
+              equippedItems={friend.playerState?.equippedItems}
+            />
+          </div>
 
           <div className="friend-text">
             <div className="friend-name">@{friend.username}</div>
@@ -79,12 +87,13 @@ function Friends_List() {
   const { currentUser } = useAuth();
 
   const filteredFriends = useMemo(() => {
+    const q = search.toLowerCase();
+
     return friends.filter((friend) => {
-      const q = search.toLowerCase();
-      return (
-        friend.username.toLowerCase().includes(q) ||
-        friend.name.toLowerCase().includes(q)
-      );
+      const username = (friend.username || "").toLowerCase();
+      const name = (friend.name || "").toLowerCase();
+
+      return username.includes(q) || name.includes(q);
     });
   }, [friends, search]);
 
@@ -93,7 +102,9 @@ function Friends_List() {
       <div className="friends-screen">
         <div className="friends-top">
           <div className="profile-menu-wrapper">
-            <div className="player-photo">Player Icon</div>
+            <div className="player-photo">
+              <PlayerAvatar width="100%" height="100%" alt="Player avatar" />
+            </div>
           </div>
 
           <div className="user-text">
@@ -129,7 +140,7 @@ function Friends_List() {
           ) : filteredFriends.length > 0 ? (
             filteredFriends.map((friend) => (
               <FriendRow
-                key={friend.id}
+                key={friend.id || friend._id || friend.username}
                 friend={friend}
                 onRemove={handleRemoveFriend}
               />

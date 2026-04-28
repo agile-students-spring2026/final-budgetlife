@@ -33,7 +33,10 @@ const citySchema = new mongoose.Schema(
       type: Number,
       default: 1,
     },
-    buildings: [buildingSchema],
+    buildings: {
+      type: [buildingSchema],
+      default: [],
+    },
     decorations: {
       type: Array,
       default: [],

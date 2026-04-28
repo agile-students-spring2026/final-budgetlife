@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useEffect, useState } from "react";
+import React, { createContext, useCallback, useContext, useEffect, useState } from "react";
 import {
   login as loginApi,
   signup as signupApi,
@@ -6,6 +6,7 @@ import {
   updateEmail as updateEmailApi,
   changePassword as changePasswordApi,
   deleteAccount as deleteAccountApi,
+  logout as logoutApi,
 } from "../api/authApi";
 
 const AuthContext = createContext();
@@ -14,6 +15,16 @@ export const AuthProvider = ({ children }) => {
   const [currentUser, setCurrentUser] = useState(null);
   const [authLoading, setAuthLoading] = useState(false);
   const [authError, setAuthError] = useState("");
+
+  const persistUser = useCallback((user) => {
+    setCurrentUser(user);
+
+    if (user) {
+      localStorage.setItem("budgetlifeUser", JSON.stringify(user));
+    } else {
+      localStorage.removeItem("budgetlifeUser");
+    }
+  }, []);
 
   useEffect(() => {
     const savedUser = localStorage.getItem("budgetlifeUser");
@@ -26,9 +37,9 @@ export const AuthProvider = ({ children }) => {
     }
   }, []);
 
-  const clearAuthError = () => {
+  const clearAuthError = useCallback(() => {
     setAuthError("");
-  };
+  }, []);
 
   const login = async (usernameOrEmail, password) => {
     try {
@@ -36,8 +47,7 @@ export const AuthProvider = ({ children }) => {
       setAuthError("");
 
       const data = await loginApi({ usernameOrEmail, password });
-      setCurrentUser(data.user);
-      localStorage.setItem("budgetlifeUser", JSON.stringify(data.user));
+      persistUser(data.user);
 
       return data.user;
     } catch (err) {
@@ -54,8 +64,7 @@ export const AuthProvider = ({ children }) => {
       setAuthError("");
 
       const data = await signupApi({ username, email, password });
-      setCurrentUser(data.user);
-      localStorage.setItem("budgetlifeUser", JSON.stringify(data.user));
+      persistUser(data.user);
 
       return data.user;
     } catch (err) {
@@ -72,8 +81,7 @@ export const AuthProvider = ({ children }) => {
       setAuthError("");
 
       const data = await updateUsernameApi(currentUser.username, newUsername);
-      setCurrentUser(data.user);
-      localStorage.setItem("budgetlifeUser", JSON.stringify(data.user));
+      persistUser(data.user);
 
       return data.user;
     } catch (err) {
@@ -90,8 +98,7 @@ export const AuthProvider = ({ children }) => {
       setAuthError("");
 
       const data = await updateEmailApi(currentUser.username, newEmail);
-      setCurrentUser(data.user);
-      localStorage.setItem("budgetlifeUser", JSON.stringify(data.user));
+      persistUser(data.user);
 
       return data.user;
     } catch (err) {
@@ -128,8 +135,7 @@ export const AuthProvider = ({ children }) => {
       setAuthError("");
 
       await deleteAccountApi(currentUser.username);
-      setCurrentUser(null);
-      localStorage.removeItem("budgetlifeUser");
+      persistUser(null);
     } catch (err) {
       setAuthError(err.message || "Failed to delete account");
       throw err;
@@ -138,11 +144,32 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  const logout = () => {
-    setCurrentUser(null);
+  const logout = useCallback(() => {
+    persistUser(null);
     setAuthError("");
-    localStorage.removeItem("budgetlifeUser");
-  };
+    logoutApi();
+  }, [persistUser]);
+
+  const syncPlayerState = useCallback((playerState) => {
+    setCurrentUser((prevUser) => {
+      if (!prevUser) {
+        return prevUser;
+      }
+
+      const previousPlayerState = prevUser.playerState || null;
+      if (JSON.stringify(previousPlayerState) === JSON.stringify(playerState)) {
+        return prevUser;
+      }
+
+      const nextUser = {
+        ...prevUser,
+        playerState,
+      };
+
+      localStorage.setItem("budgetlifeUser", JSON.stringify(nextUser));
+      return nextUser;
+    });
+  }, []);
 
   return (
     <AuthContext.Provider
@@ -157,6 +184,7 @@ export const AuthProvider = ({ children }) => {
         changePassword,
         deleteAccount,
         logout,
+        syncPlayerState,
         clearAuthError,
       }}
     >

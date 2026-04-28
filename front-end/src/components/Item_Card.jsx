@@ -8,7 +8,13 @@ function Item_Card({ item, money, inventory, buyItem }) {
     <div className="shop-card">
 
       <div className="shop-card-left">
-        <div className="shop-icon">{item.name}</div>
+        <div className="shop-icon">
+          {item.iconSrc ? (
+            <img src={item.iconSrc} alt={item.name} className="shop-icon-image" />
+          ) : (
+            item.name
+          )}
+        </div>
 
         <div className="shop-text">
           <div className="shop-name">{item.name}</div>
