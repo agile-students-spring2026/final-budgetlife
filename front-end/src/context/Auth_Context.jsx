@@ -1,13 +1,14 @@
-import React, { createContext, useCallback, useContext, useEffect, useState } from "react";
+import { createContext, useCallback, useContext, useEffect, useState } from "react";
 import {
-  login as loginApi,
-  signup as signupApi,
-  updateUsername as updateUsernameApi,
-  updateEmail as updateEmailApi,
   changePassword as changePasswordApi,
   deleteAccount as deleteAccountApi,
+  login as loginApi,
   logout as logoutApi,
+  signup as signupApi,
+  updateEmail as updateEmailApi,
+  updateUsername as updateUsernameApi,
 } from "../api/authApi";
+import { getBudgetGoals } from "../api/budgetApi";
 
 const AuthContext = createContext();
 
@@ -15,6 +16,22 @@ export const AuthProvider = ({ children }) => {
   const [currentUser, setCurrentUser] = useState(null);
   const [authLoading, setAuthLoading] = useState(false);
   const [authError, setAuthError] = useState("");
+  const [needsBudgetSetup, setNeedsBudgetSetup] = useState(false);
+
+  const checkBudgetGoals = useCallback(async (username) => {
+    if (!username) return;
+    try {
+      const goals = await getBudgetGoals(username);
+      setNeedsBudgetSetup(goals === null);
+    } catch (err) {
+      console.error("Failed to check budget goals:", err);
+      setNeedsBudgetSetup(false);
+    }
+  }, []);
+
+  const markBudgetSetupComplete = useCallback(() => {
+    setNeedsBudgetSetup(false);
+  }, []);
 
   const persistUser = useCallback((user) => {
     setCurrentUser(user);
@@ -30,12 +47,14 @@ export const AuthProvider = ({ children }) => {
     const savedUser = localStorage.getItem("budgetlifeUser");
     if (savedUser) {
       try {
-        setCurrentUser(JSON.parse(savedUser));
+        const parsed = JSON.parse(savedUser);
+        setCurrentUser(parsed);
+        checkBudgetGoals(parsed?.username);
       } catch {
         localStorage.removeItem("budgetlifeUser");
       }
     }
-  }, []);
+  }, [checkBudgetGoals]);
 
   const clearAuthError = useCallback(() => {
     setAuthError("");
@@ -48,6 +67,7 @@ export const AuthProvider = ({ children }) => {
 
       const data = await loginApi({ usernameOrEmail, password });
       persistUser(data.user);
+      await checkBudgetGoals(data.user?.username);
 
       return data.user;
     } catch (err) {
@@ -65,6 +85,7 @@ export const AuthProvider = ({ children }) => {
 
       const data = await signupApi({ username, email, password });
       persistUser(data.user);
+      setNeedsBudgetSetup(true);
 
       return data.user;
     } catch (err) {
@@ -147,6 +168,7 @@ export const AuthProvider = ({ children }) => {
   const logout = useCallback(() => {
     persistUser(null);
     setAuthError("");
+    setNeedsBudgetSetup(false);
     logoutApi();
   }, [persistUser]);
 
@@ -186,6 +208,8 @@ export const AuthProvider = ({ children }) => {
         logout,
         syncPlayerState,
         clearAuthError,
+        needsBudgetSetup,
+        markBudgetSetupComplete,
       }}
     >
       {children}
