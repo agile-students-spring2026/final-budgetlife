@@ -121,8 +121,8 @@ function TransactionPanel({ mode = "popup", onClose = () => {}, onSubmit }) {
     setError(null);
     setSubmitting(true);
 
-    // "+" = expense (adds to spending), "-" = refund / income (subtracts).
-    const signedAmount = type === "+" ? Number(amount) : -Number(amount);
+    // "-" = expense (adds to spending), "+" = refund / income (subtracts from spending).
+    const signedAmount = type === "-" ? Number(amount) : -Number(amount);
 
     try {
       if (currentUser?.username) {
