@@ -5,6 +5,7 @@ import "./Player.css";
 export function PlayerBox({ x, y, size = 60 }) {
   return (
     <div
+      className="player-bounce"
       style={{
         position: "absolute",
         left: x,
