@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { getBudgetGoals } from "../api/budgetApi";
 import DropdownMenu from "../components/Dropdown";
+import { PlayerAvatar } from "../components/PlayerAvatar";
 import { useAuth } from "../context/Auth_Context";
 import "./BudgetHeader.css";
 import { TotalBudgetEditor } from "./building";
@@ -99,8 +100,7 @@ function BudgetHeader() {
             onClick={() => setMenuOpen(!menuOpen)}
           >
             <div className="player-icon">
-              <span>Player</span>
-              <span>Icon</span>
+              <PlayerAvatar width="100%" height="100%" alt="Player avatar" />
             </div>
           </button>
 

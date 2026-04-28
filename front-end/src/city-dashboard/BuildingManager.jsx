@@ -58,8 +58,171 @@ const SECONDARY_BUILDINGS = [
   { name: "Restaurant", category: "food",          healthCategory: "restaurant", sprite: RestaurantImg },
   { name: "Hospital",   category: "health",        healthCategory: "hospital",   sprite: HospitalImg },
   { name: "Cinema",     category: "entertainment", healthCategory: "cinema",     sprite: CinemaImg },
-  { name: "School",     category: "education",     healthCategory: null,         sprite: null },
 ];
+
+const TILE_SIZE = 96;
+const TILEMAP_MULTIPLIER = 4;
+
+const TILE_STYLES = {
+  terrain: {
+    background: "rgba(112, 157, 92, 0.68)",
+    border: "1px solid rgba(63, 101, 49, 0.16)",
+  },
+  road: {
+    background: "rgba(191, 168, 140, 0.86)",
+    border: "1px solid rgba(122, 94, 55, 0.18)",
+  },
+  lot: {
+    background: "rgba(106, 132, 164, 0.72)",
+    border: "1px solid rgba(46, 66, 92, 0.22)",
+  },
+};
+
+function clamp(value, min, max) {
+  return Math.max(min, Math.min(max, value));
+}
+
+function worldToTileIndex(value, span, tileSize) {
+  return clamp(
+    Math.floor((value + span / 2) / tileSize),
+    0,
+    Math.ceil(span / tileSize) - 1
+  );
+}
+
+function fillTileRect(grid, startCol, endCol, startRow, endRow, type) {
+  const rowCount = grid.length;
+  const colCount = grid[0]?.length || 0;
+
+  for (let row = clamp(startRow, 0, rowCount - 1); row <= clamp(endRow, 0, rowCount - 1); row++) {
+    for (let col = clamp(startCol, 0, colCount - 1); col <= clamp(endCol, 0, colCount - 1); col++) {
+      grid[row][col] = type;
+    }
+  }
+}
+
+function paintRoadSegment(grid, col, row, thickness = 1) {
+  fillTileRect(grid, col - thickness, col + thickness, row - thickness, row + thickness, "road");
+}
+
+function paintRoadPath(grid, startCol, startRow, endCol, endRow, preferHorizontalFirst) {
+  const stepCol = startCol <= endCol ? 1 : -1;
+  const stepRow = startRow <= endRow ? 1 : -1;
+
+  paintRoadSegment(grid, startCol, startRow, 1);
+
+  if (preferHorizontalFirst) {
+    for (let col = startCol; col !== endCol; col += stepCol) {
+      paintRoadSegment(grid, col, startRow, 0);
+    }
+    for (let row = startRow; row !== endRow; row += stepRow) {
+      paintRoadSegment(grid, endCol, row, 0);
+    }
+  } else {
+    for (let row = startRow; row !== endRow; row += stepRow) {
+      paintRoadSegment(grid, startCol, row, 0);
+    }
+    for (let col = startCol; col !== endCol; col += stepCol) {
+      paintRoadSegment(grid, col, endRow, 0);
+    }
+  }
+
+  paintRoadSegment(grid, endCol, endRow, 1);
+}
+
+function buildPlaceholderTiles(city, cityWidth, cityHeight, tileSize) {
+  if (!city?.buildings?.length) return [];
+
+  const rows = Math.ceil(cityHeight / tileSize);
+  const cols = Math.ceil(cityWidth / tileSize);
+  const grid = Array.from({ length: rows }, () => Array(cols).fill(null));
+
+  const cityHall = city.buildings.find((building) => building.type === "primary");
+
+  const lotBounds = city.buildings.map((building) => {
+    const lotSize = building.type === "primary" ? 360 : 260;
+    const lotPadding = building.type === "primary" ? 40 : 30;
+    const half = lotSize / 2;
+
+    const startCol = worldToTileIndex(building.location.x - half - lotPadding, cityWidth, tileSize);
+    const endCol = worldToTileIndex(building.location.x + half + lotPadding, cityWidth, tileSize);
+    const startRow = worldToTileIndex(building.location.y - half - lotPadding, cityHeight, tileSize);
+    const endRow = worldToTileIndex(building.location.y + half + lotPadding, cityHeight, tileSize);
+
+    fillTileRect(grid, startCol, endCol, startRow, endRow, "lot");
+
+    return {
+      building,
+      startCol,
+      endCol,
+      startRow,
+      endRow,
+    };
+  });
+
+  if (cityHall) {
+    const hallBounds = lotBounds.find((entry) => entry.building.i === cityHall.i);
+    const hallCol = worldToTileIndex(cityHall.location.x, cityWidth, tileSize);
+    const hallRow = worldToTileIndex(cityHall.location.y, cityHeight, tileSize);
+
+    if (hallBounds) {
+      fillTileRect(
+        grid,
+        hallBounds.startCol - 1,
+        hallBounds.endCol + 1,
+        hallBounds.startRow - 1,
+        hallBounds.endRow + 1,
+        "road"
+      );
+    }
+
+    for (const entry of lotBounds) {
+      const { building, startCol, endCol, startRow, endRow } = entry;
+      if (building.i === cityHall.i) continue;
+
+      const targetCol = worldToTileIndex(building.location.x, cityWidth, tileSize);
+      const targetRow = worldToTileIndex(building.location.y, cityHeight, tileSize);
+      const deltaCol = targetCol - hallCol;
+      const deltaRow = targetRow - hallRow;
+
+      let connectorCol;
+      let connectorRow;
+
+      if (Math.abs(deltaCol) >= Math.abs(deltaRow)) {
+        connectorCol = deltaCol >= 0 ? startCol - 1 : endCol + 1;
+        connectorRow = clamp(hallRow, startRow, endRow);
+      } else {
+        connectorRow = deltaRow >= 0 ? startRow - 1 : endRow + 1;
+        connectorCol = clamp(hallCol, startCol, endCol);
+      }
+
+      connectorCol = clamp(connectorCol, 1, cols - 2);
+      connectorRow = clamp(connectorRow, 1, rows - 2);
+
+      paintRoadPath(
+        grid,
+        hallCol,
+        hallRow,
+        connectorCol,
+        connectorRow,
+        Math.abs(deltaCol) >= Math.abs(deltaRow)
+      );
+    }
+  }
+
+  return grid.flatMap((row, rowIndex) =>
+    row.flatMap((type, colIndex) =>
+      type
+        ? [{
+            key: `${colIndex}-${rowIndex}`,
+            type,
+            left: colIndex * tileSize,
+            top: rowIndex * tileSize,
+          }]
+        : []
+    )
+  );
+}
 
 function getBuildingSprite(building) {
   if (building.type === "primary") return CityHallImg;
@@ -103,11 +266,11 @@ function createDefaultCity() {
     },
   ];
 
-  const angleStep = (2 * Math.PI) / 5;
-  const radius = 500;
+  const angleStep = (2 * Math.PI) / SECONDARY_BUILDINGS.length;
+  const radius = 700;
   const jitter = 40;
 
-  for (let idx = 0; idx < 5; idx++) {
+  for (let idx = 0; idx < SECONDARY_BUILDINGS.length; idx++) {
     const angle = idx * angleStep;
     const r = radius + (Math.random() - 0.55) * jitter;
     const meta = SECONDARY_BUILDINGS[idx];
@@ -187,6 +350,13 @@ export function BuildingManager({
   const BUILDING_SIZE = 200;
   const CITY_WIDTH = 1600;
   const CITY_HEIGHT = 1600;
+  const TILEMAP_WIDTH = CITY_WIDTH * TILEMAP_MULTIPLIER;
+  const TILEMAP_HEIGHT = CITY_HEIGHT * TILEMAP_MULTIPLIER;
+
+  const placeholderTiles = useMemo(
+    () => buildPlaceholderTiles(cityWithSprites, TILEMAP_WIDTH, TILEMAP_HEIGHT, TILE_SIZE),
+    [cityWithSprites, TILEMAP_WIDTH, TILEMAP_HEIGHT]
+  );
 
   useEffect(() => {
     playerPosRef.current = playerPos;
@@ -953,10 +1123,49 @@ export function BuildingManager({
           }}
         />
 
+        <div
+          aria-hidden
+          style={{
+            position: "absolute",
+            left: `${-(TILEMAP_WIDTH - CITY_WIDTH) / 2}px`,
+            top: `${-(TILEMAP_HEIGHT - CITY_HEIGHT) / 2}px`,
+            width: `${TILEMAP_WIDTH}px`,
+            height: `${TILEMAP_HEIGHT}px`,
+            backgroundColor: "rgba(112, 157, 92, 0.22)",
+            backgroundImage: [
+              `linear-gradient(rgba(63, 101, 49, 0.12) 1px, transparent 1px)`,
+              `linear-gradient(90deg, rgba(63, 101, 49, 0.12) 1px, transparent 1px)`,
+            ].join(", "),
+            backgroundSize: `${TILE_SIZE}px ${TILE_SIZE}px`,
+            pointerEvents: "none",
+            zIndex: 0,
+          }}
+        >
+          {placeholderTiles.map((tile) => {
+            const tileStyle = TILE_STYLES[tile.type];
+
+            return (
+              <div
+                key={tile.key}
+                style={{
+                  position: "absolute",
+                  left: tile.left,
+                  top: tile.top,
+                  width: TILE_SIZE,
+                  height: TILE_SIZE,
+                  background: tileStyle.background,
+                  border: tileStyle.border,
+                  boxSizing: "border-box",
+                }}
+              />
+            );
+          })}
+        </div>
+
         <PlayerBox
           x={CITY_WIDTH / 2 + playerPos.x}
           y={CITY_HEIGHT / 2 + playerPos.y}
-          size={60}
+          size={180}
         />
 
         {cityWithSprites.buildings.map((b) => (

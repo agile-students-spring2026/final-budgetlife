@@ -4,6 +4,16 @@ const jwt = require("jsonwebtoken");
 const router = express.Router();
 const User = require("../models/User");
 
+function createAuthToken(user) {
+  const secret = process.env.JWT_SECRET || "budgetlife-dev-secret";
+
+  return jwt.sign(
+    { userId: user._id, username: user.username },
+    secret,
+    { expiresIn: process.env.JWT_EXPIRES_IN || "7d" }
+  );
+}
+
 function normalizePlayerState(playerState) {
   return {
     money: typeof playerState?.money === "number" ? playerState.money : 1000,
@@ -68,11 +78,7 @@ router.post("/signup", async (req, res) => {
       friends: [],
     });
 
-    const token = jwt.sign(
-      { userId: newUser._id, username: newUser.username },
-      process.env.JWT_SECRET,
-      { expiresIn: process.env.JWT_EXPIRES_IN || "7d" }
-    );
+    const token = createAuthToken(newUser);
 
     res.status(201).json({
       message: "Signup successful",
@@ -115,11 +121,7 @@ router.post("/login", async (req, res) => {
       return res.status(401).json({ error: "Invalid login credentials" });
     }
 
-    const token = jwt.sign(
-      { userId: user._id, username: user.username },
-      process.env.JWT_SECRET,
-      { expiresIn: process.env.JWT_EXPIRES_IN || "7d" }
-    );
+    const token = createAuthToken(user);
 
     res.status(200).json({
       message: "Login successful",
@@ -157,21 +159,12 @@ router.patch("/username", async (req, res) => {
     user.username = cleanedNew;
     await user.save();
 
-    const token = jwt.sign(
-      { userId: user._id, username: user.username },
-      process.env.JWT_SECRET,
-      { expiresIn: process.env.JWT_EXPIRES_IN || "7d" }
-    );
+    const token = createAuthToken(user);
 
     res.status(200).json({
       message: "Username updated",
       user: buildUserResponse(user),
       token,
-      user: {
-        id: user._id,
-        username: user.username,
-        email: user.email,
-      },
     });
   } catch (err) {
     console.error("Username update failed:", err);

@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useFriends } from "../context/Friends_Context";
 import { useAuth } from "../context/Auth_Context";
+import { PlayerAvatar } from "../components/PlayerAvatar";
 import "./Add_Friends.css";
 
 function Add_Friends() {
@@ -31,7 +32,9 @@ function Add_Friends() {
     <div className="add-friends-page">
       <div className="add-friends-screen">
         <div className="add-friends-top">
-          <div className="add-friends-player-icon">Player Icon</div>
+          <div className="add-friends-player-icon">
+            <PlayerAvatar width="100%" height="100%" alt="Player avatar" />
+          </div>
 
           <div className="add-friends-user-text">
             <div className="username">{currentUser?.username || "Username"}</div>

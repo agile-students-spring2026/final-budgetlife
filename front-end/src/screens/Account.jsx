@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/Auth_Context";
+import { PlayerAvatar } from "../components/PlayerAvatar";
 import "./Account.css";
 
 function Account() {
@@ -116,7 +117,9 @@ function Account() {
 
         <div className="profile-row">
           <button className="user-icon-button">
-            <div className="shop-player-icon">Player Icon</div>
+            <div className="shop-player-icon">
+              <PlayerAvatar width="100%" height="100%" alt="Player avatar" />
+            </div>
           </button>
 
           <div className="account-info-display">

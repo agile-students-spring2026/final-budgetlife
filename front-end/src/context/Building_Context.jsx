@@ -4,6 +4,8 @@ import { useAuth } from "./Auth_Context";
 
 export const BuildingContext = createContext();
 
+const SECONDARY_BUILDING_RADIUS = 700;
+
 // Maps a building's category/name to the healthCategory key expected by
 // the budget APIs. Returns null for buildings that aren't tied to a
 // backend budget category (e.g. School, Transit Hub).
@@ -26,11 +28,63 @@ function inferHealthCategory(building) {
   return null;
 }
 
-function addHealthCategories(city) {
-  if (!city || !city.buildings) return city;
+function isSchoolBuilding(building) {
+  const category = (building.category || "").toLowerCase();
+  const name = (building.name || "").toLowerCase();
+
+  return category === "education" || name.includes("school");
+}
+
+function normalizeCityLayout(city) {
+  if (!city || !Array.isArray(city.buildings)) {
+    return city;
+  }
+
+  const primaryBuilding = city.buildings.find((building) => building.type === "primary");
+  const secondaryBuildings = city.buildings
+    .filter((building) => building.type === "secondary" && !isSchoolBuilding(building))
+    .sort((left, right) => left.i - right.i);
+
+  const angleStep = secondaryBuildings.length
+    ? (2 * Math.PI) / secondaryBuildings.length
+    : 0;
+
+  const normalizedBuildings = [];
+
+  if (primaryBuilding) {
+    normalizedBuildings.push({
+      ...primaryBuilding,
+      i: 1,
+      location: { x: 0, y: 0 },
+    });
+  }
+
+  secondaryBuildings.forEach((building, index) => {
+    const angle = index * angleStep;
+
+    normalizedBuildings.push({
+      ...building,
+      location: {
+        x: Math.round(SECONDARY_BUILDING_RADIUS * Math.cos(angle)),
+        y: Math.round(SECONDARY_BUILDING_RADIUS * Math.sin(angle)),
+      },
+    });
+  });
+
   return {
     ...city,
-    buildings: city.buildings.map((b) => ({
+    buildings: normalizedBuildings,
+  };
+}
+
+function addHealthCategories(city) {
+  if (!city || !city.buildings) return city;
+
+  const normalizedCity = normalizeCityLayout(city);
+
+  return {
+    ...normalizedCity,
+    buildings: normalizedCity.buildings.map((b) => ({
       ...b,
       healthCategory: inferHealthCategory(b),
     })),
@@ -59,7 +113,7 @@ function createDefaultCity() {
       {
         type: "secondary",
         i: 2,
-        location: { x: 500, y: 0 },
+        location: { x: 700, y: 0 },
         level: 2,
         name: "Housing",
         category: "residential",
@@ -74,7 +128,7 @@ function createDefaultCity() {
       {
         type: "secondary",
         i: 3,
-        location: { x: 150, y: 475 },
+        location: { x: 0, y: 700 },
         level: 1,
         name: "Food Market",
         category: "food",
@@ -94,7 +148,7 @@ function createDefaultCity() {
       {
         type: "secondary",
         i: 4,
-        location: { x: -405, y: 294 },
+        location: { x: -700, y: 0 },
         level: 4,
         name: "Hospital",
         category: "health",
@@ -109,21 +163,7 @@ function createDefaultCity() {
       {
         type: "secondary",
         i: 5,
-        location: { x: -405, y: -294 },
-        level: 2,
-        name: "School",
-        category: "education",
-        budget: 750,
-        spent: 338,
-        currentExp: 100,
-        expToNextLevel: 250,
-        savingGoal: "$30",
-        history: ["- $120 on books", "- $18 on supplies"],
-      },
-      {
-        type: "secondary",
-        i: 6,
-        location: { x: 150, y: -475 },
+        location: { x: 0, y: -700 },
         level: 3,
         name: "Cinema",
         category: "entertainment",

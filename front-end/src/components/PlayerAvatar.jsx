@@ -12,6 +12,9 @@ export function PlayerAvatar({
   equippedItems,
   alt = "Player avatar",
   style,
+  imageScale = 1,
+  imageOffsetX = 0,
+  imageOffsetY = 0,
 }) {
   const playerContext = useContext(PlayerContext);
   const resolvedEquipment = equippedItems || playerContext?.equippedItems || DEFAULT_EQUIPPED_ITEMS;
@@ -38,6 +41,8 @@ export function PlayerAvatar({
           width: "100%",
           height: "100%",
           objectFit: "contain",
+          transform: `translate(${imageOffsetX}px, ${imageOffsetY}px) scale(${imageScale})`,
+          transformOrigin: "center center",
           userSelect: "none",
           WebkitUserDrag: "none",
         }}
@@ -55,6 +60,8 @@ export function PlayerAvatar({
             width: "100%",
             height: "100%",
             objectFit: "contain",
+            transform: `translate(${imageOffsetX}px, ${imageOffsetY}px) scale(${imageScale})`,
+            transformOrigin: "center center",
             userSelect: "none",
             WebkitUserDrag: "none",
             pointerEvents: "none",
