@@ -1,58 +1,52 @@
-const userCurrency = {
-    alexr:        { currency: 0 },
-    jordy88:      { currency: 0 },
-    caseybuilds:  { currency: 0 },
-    taylortracks: { currency: 0 },
-    morgmoney:    { currency: 0 },
-    rileybudgets: { currency: 0 },
-    jamiecity:    { currency: 0 },
-    averyplays:   { currency: 0 },
-    parkerplans:  { currency: 0 },
-    skylerstacks: { currency: 0 },
-}
+const UserCurrency = require("../models/userCurrency");
 
 const shopItemsPrice = {
     houseUpgrade: 200,
     park: 150,
     hospital: 500,
-    school: 300
-}
+    school: 300,
+};
 
-let userCurrencyCopy = JSON.parse(JSON.stringify(userCurrency));
-let shopItemsPriceCopy = JSON.parse(JSON.stringify(shopItemsPrice));
-
-function getUserCurrency(username) {
-    return userCurrencyCopy[username] ? userCurrencyCopy[username].currency : null;
+async function getUserCurrency(userId) {
+    const doc = await UserCurrency.findOne({ user: userId });
+    return doc ? doc.currency : null;
 }
 
 function getShopItemsPrice() {
-    return shopItemsPriceCopy;
+    return shopItemsPrice;
 }
 
-function updateUserCurrency(username, amount) {
-    if (userCurrencyCopy[username]) {
-        userCurrencyCopy[username].currency = amount;
-    }
+async function updateUserCurrency(userId, amount) {
+    const doc = await UserCurrency.findOne({ user: userId });
+    if (!doc) return false;
+    doc.currency = amount;
+    await doc.save();
+    return true;
 }
 
-function addUserCurrency(username, amount) {
-    if (userCurrencyCopy[username]) {
-        userCurrencyCopy[username].currency += amount;
-    }
+async function addUserCurrency(userId, amount) {
+    await UserCurrency.findOneAndUpdate(
+        { user: userId },
+        { $inc: { currency: amount } },
+        { upsert: true, new: true }
+    );
 }
 
-function purchaseItem(username, item) {
-    const itemPrice = shopItemsPriceCopy[item];
+async function purchaseItem(userId, item) {
+    const itemPrice = shopItemsPrice[item];
     if (itemPrice === undefined) {
-        return { success: false, message: 'Item not found' };
+        return { success: false, message: "Item not found" };
     }
-    if (userCurrencyCopy[username].currency >= itemPrice) {
-        userCurrencyCopy[username].currency -= itemPrice;
-        return { success: true, message: 'Purchase successful' };
-    } else {
-        return { success: false, message: 'Insufficient funds' };
+    const doc = await UserCurrency.findOne({ user: userId });
+    if (!doc) {
+        return { success: false, message: "Insufficient funds" };
     }
+    if (doc.currency < itemPrice) {
+        return { success: false, message: "Insufficient funds" };
+    }
+    doc.currency -= itemPrice;
+    await doc.save();
+    return { success: true, message: "Purchase successful" };
 }
 
 module.exports = { addUserCurrency, getShopItemsPrice, getUserCurrency, purchaseItem, updateUserCurrency };
-

@@ -1,146 +1,69 @@
 const { addUserCurrency } = require("./shop");
 const { getTransactionHistory } = require("./transaction");
 const cityStates = require("./cityStates");
+const Goal = require("../models/budgetGoal");
+const User = require("../models/User");
 
-
-const budgetGoals = {
-    alexr: {
-        total: { goal: 10000 , current: 5000 , startDate: '2026-01-01', endDate: '2026-12-31' },
-        food: { goal: 2000, current: 1000 },
-        housing: { goal: 4000, current: 2000 },
-        health: { goal: 3000, current: 1500 },
-        entertainment: { goal: 1000, current: 500 },
-    },
-    jordy88: {
-        total: { goal: 5000, current: 2500, startDate: '2026-01-02', endDate: '2026-03-31' },
-        food: { goal: 1000, current: 500 },
-        housing: { goal: 2000, current: 1000 },
-        health: { goal: 1000, current: 500 },
-        entertainment: { goal: 1000, current: 500 },
-    },
-    caseybuilds: {
-        total: { goal: 7000, current: 3500, startDate: '2026-01-03', endDate: '2026-02-28' },
-        food: { goal: 2000, current: 1000 },
-        housing: { goal: 3000, current: 1500 },
-        health: { goal: 500, current: 250 },
-        entertainment: { goal: 1500, current: 750 },
-    },
-    taylortracks: {
-        total: { goal: 7000, current: 3500, startDate: '2026-01-04', endDate: '2026-01-31' },
-        food: { goal: 2000, current: 1000 },
-        housing: { goal: 3000, current: 1500 },
-        health: { goal: 500, current: 250 },
-        entertainment: { goal: 1500, current: 750 },
-    },
-    morgmoney: {
-        total: { goal: 7000, current: 3500, startDate: '2026-01-05', endDate: '2026-03-31' },
-        food: { goal: 2000, current: 1000 },
-        housing: { goal: 3000, current: 1500 },
-        health: { goal: 500, current: 250 },
-        entertainment: { goal: 1500, current: 750 },
-    },
-    rileybudgets: {
-        total: { goal: 7000, current: 3500, startDate: '2026-01-06', endDate: '2026-05-31' },
-        food: { goal: 2000, current: 1000 },
-        housing: { goal: 3000, current: 1500 },
-        health: { goal: 500, current: 250 },
-        entertainment: { goal: 1500, current: 750 },
-    },
-    jamiecity: {
-        total: { goal: 7000, current: 3500, startDate: '2026-01-07', endDate: '2026-06-30' },
-        food: { goal: 2000, current: 1000 },
-        housing: { goal: 3000, current: 1500 },
-        health: { goal: 500, current: 250 },
-        entertainment: { goal: 1500, current: 750 },
-    },
-    averyplays: {
-        total: { goal: 7000, current: 3500, startDate: '2026-01-08', endDate: '2026-07-31' },
-        food: { goal: 2000, current: 1000 },
-        housing: { goal: 3000, current: 1500 },
-        health: { goal: 500, current: 250 },
-        entertainment: { goal: 1500, current: 750 },
-    },
-    parkerplans: {
-        total: { goal: 7000, current: 3500, startDate: '2026-01-09', endDate: '2026-08-31' },
-        food: { goal: 2000, current: 1000 },
-        housing: { goal: 3000, current: 1500 },
-        health: { goal: 500, current: 250 },
-        entertainment: { goal: 1500, current: 750 },
-    },
-    skylerstacks: {
-        total: { goal: 7000, current: 3500, startDate: '2026-01-10', endDate: '2026-09-30' },
-        food: { goal: 2000, current: 1000 },
-        housing: { goal: 3000, current: 1500 },
-        health: { goal: 500, current: 250 },
-        entertainment: { goal: 1500, current: 750 },
-    },
+const EMPTY_GOAL_TEMPLATE = {
+    total: { goal: 0, current: 0, startDate: null, endDate: null },
+    food: { goal: 0, current: 0 },
+    housing: { goal: 0, current: 0 },
+    health: { goal: 0, current: 0 },
+    entertainment: { goal: 0, current: 0 },
 };
 
-let budgetGoalsCopy = JSON.parse(JSON.stringify(budgetGoals));
-
-function getBudgetGoals(username) {
-    return budgetGoalsCopy[username] || null;
+async function getBudgetGoals(userId) {
+    return await Goal.findOne({ user: userId });
 }
 
-function updateBudgetGoals(username, category, newGoal) {
-    if (budgetGoalsCopy[username] && budgetGoalsCopy[username][category]) {
-        budgetGoalsCopy[username][category].goal = newGoal;
-        return true;
-    }
-    return false;
+async function updateBudgetGoals(userId, category, newGoal) {
+    const goal = await Goal.findOne({ user: userId });
+    if (!goal || !goal[category]) return false;
+    goal[category].goal = newGoal;
+    await goal.save();
+    return true;
 }
 
-function updateCurrentAmount(username, category, newCurrent) {
-    if (budgetGoalsCopy[username] && budgetGoalsCopy[username][category]) {
-        budgetGoalsCopy[username][category].current = newCurrent;
-        return true;
-    }
-    return false;
+async function updateCurrentAmount(userId, category, newCurrent) {
+    const goal = await Goal.findOne({ user: userId });
+    if (!goal || !goal[category]) return false;
+    goal[category].current = newCurrent;
+    await goal.save();
+    return true;
 }
 
-function resetBudgetGoals() {
-    budgetGoalsCopy = JSON.parse(JSON.stringify(budgetGoals));
+async function resetBudgetGoals() {
+    await Goal.deleteMany({});
 }
 
-function addUserBudgetGoals(username) {
-    if (!budgetGoalsCopy[username]) {
-        budgetGoalsCopy[username] = {
-            total: { goal: 0, current: 0, startDate: null, endDate: null },
-            food: { goal: 0, current: 0 },
-            housing: { goal: 0, current: 0 },
-            health: { goal: 0, current: 0 },
-            entertainment: { goal: 0, current: 0 },
-        };
-        return true;
-    }
-    return false;
+async function addUserBudgetGoals(userId) {
+    const existing = await Goal.findOne({ user: userId });
+    if (existing) return false;
+    await Goal.create({ user: userId, ...EMPTY_GOAL_TEMPLATE });
+    return true;
 }
 
-function deleteUserBudgetGoals(username) {
-    if (budgetGoalsCopy[username]) {
-        delete budgetGoalsCopy[username];
-        return true;
-    }
-    return false;
+async function deleteUserBudgetGoals(userId) {
+    const result = await Goal.findOneAndDelete({ user: userId });
+    return result !== null;
 }
 
-function updateBudgetGoalDates(username, startDate, endDate) {
-    if (budgetGoalsCopy[username] && budgetGoalsCopy[username].total) {
-        budgetGoalsCopy[username].total.startDate = startDate;
-        budgetGoalsCopy[username].total.endDate = endDate;
-        return true;
-    }
-    return false;
+async function updateBudgetGoalDates(userId, startDate, endDate) {
+    const goal = await Goal.findOne({ user: userId });
+    if (!goal || !goal.total) return false;
+    goal.total.startDate = startDate;
+    goal.total.endDate = endDate;
+    await goal.save();
+    return true;
 }
 
-function calculateCurrentAmount(username) {
-    if (!budgetGoalsCopy[username]) return;
-    const transactions = getTransactionHistory(username);
+async function recalcGoalCurrents(goal, userId) {
+    if (!goal) return null;
+    const transactions = await getTransactionHistory(userId);
 
-    // reset per-category currents so deletes/updates are reflected
     for (const cat of ['food', 'housing', 'health', 'entertainment']) {
-        if (budgetGoalsCopy[username][cat]) {
-            budgetGoalsCopy[username][cat].current = 0;
+        if (goal[cat]) {
+            goal[cat].current = 0;
         }
     }
 
@@ -152,14 +75,23 @@ function calculateCurrentAmount(username) {
             categoryCurrent += amt;
             totalCurrent += amt;
         }
-        if (budgetGoalsCopy[username][category]) {
-            budgetGoalsCopy[username][category].current = categoryCurrent;
+        if (goal[category]) {
+            goal[category].current = categoryCurrent;
         }
     }
 
-    if (budgetGoalsCopy[username].total) {
-        budgetGoalsCopy[username].total.current = totalCurrent;
+    if (goal.total) {
+        goal.total.current = totalCurrent;
     }
+
+    await goal.save();
+    return goal;
+}
+
+async function calculateCurrentAmount(userId) {
+    const goal = await Goal.findOne({ user: userId });
+    if (!goal) return;
+    await recalcGoalCurrents(goal, userId);
 }
 
 const CATEGORY_TO_BUILDING = {
@@ -325,9 +257,7 @@ function applyXpDelta(building, xpDelta) {
 
     return { levelsGained, levelsLost, currentExp, expToNextLevel };
 }
-
-function rewardEligibleBuildings(username) {
-    const goals = budgetGoalsCopy[username];
+function rewardEligibleBuildings(goals, username) {
     const city = cityStates[username];
 
     if (!goals || !goals.total || !city) {
@@ -467,13 +397,14 @@ function rewardEligibleBuildings(username) {
     };
 }
 
-function getBuildingHealth(username) {
-    if (!budgetGoalsCopy[username]) return null;
-    calculateCurrentAmount(username);
+async function getBuildingHealth(userId) {
+    const goal = await Goal.findOne({ user: userId });
+    if (!goal) return null;
+    await recalcGoalCurrents(goal, userId);
 
     const result = {};
     for (const [category, building] of Object.entries(CATEGORY_TO_BUILDING)) {
-        const entry = budgetGoalsCopy[username][category];
+        const entry = goal[category];
         if (!entry || !entry.goal) {
             result[building] = 100;
             continue;
@@ -485,73 +416,78 @@ function getBuildingHealth(username) {
     return result;
 }
 
-function rewardUser(username) {
-    if (budgetGoalsCopy[username] && budgetGoalsCopy[username].total) {
-        calculateCurrentAmount(username);
-        const totalGoal = budgetGoalsCopy[username].total.goal;
-        const totalCurrent = budgetGoalsCopy[username].total.current;
-        const rewardResult = rewardEligibleBuildings(username);
-        if (totalCurrent <= totalGoal && new Date() >= new Date(budgetGoalsCopy[username].total.endDate)) {
-            let added = totalGoal - totalCurrent;
-            if (rewardResult.reason !== 'already-claimed') {
-                addUserCurrency(username, added);
-            }
+async function rewardUser(userId) {
+    const userDoc = await User.findById(userId).select('username').lean();
+    const goal = await Goal.findOne({ user: userId });
 
-            const gainedCount = rewardResult.details.filter((detail) => detail.xpAwarded > 0).length;
-            const lostCount = rewardResult.details.filter((detail) => detail.xpAwarded < 0).length;
-            const detailsSuffix = rewardResult.rewarded
-                ? `${gainedCount > 0 ? ` ${gainedCount} building${gainedCount === 1 ? '' : 's'} gained XP.` : ''}${lostCount > 0 ? ` ${lostCount} building${lostCount === 1 ? '' : 's'} lost XP from overspending.` : ''}`
-                : "";
-
-            return {
-                rewarded: rewardResult.rewarded,
-                currencyAwarded: rewardResult.reason === 'already-claimed' ? 0 : added,
-                xpAwarded: rewardResult.xpAwarded,
-                intervalDays: rewardResult.intervalDays,
-                streakCount: rewardResult.streakCount || 0,
-                streakBonusXpPerBuilding: rewardResult.streakBonusXpPerBuilding || 0,
-                details: rewardResult.details,
-                message: rewardResult.reason === 'already-claimed'
-                    ? "Budget reward already claimed for this interval."
-                    : `Congratulations! You've met your budget goal!${detailsSuffix}${rewardResult.streakCount > 1 ? ` Streak ${rewardResult.streakCount} adds ${rewardResult.streakBonusXpPerBuilding} bonus XP per building.` : ''}`,
-            };
-        } else if (new Date() >= new Date(budgetGoalsCopy[username].total.endDate) && rewardResult.details.length > 0) {
-            const lostCount = rewardResult.details.filter((detail) => detail.xpAwarded < 0).length;
-            return {
-                rewarded: true,
-                currencyAwarded: 0,
-                xpAwarded: rewardResult.xpAwarded,
-                intervalDays: rewardResult.intervalDays,
-                streakCount: rewardResult.streakCount || 0,
-                streakBonusXpPerBuilding: rewardResult.streakBonusXpPerBuilding || 0,
-                details: rewardResult.details,
-                message: lostCount > 0
-                    ? `${lostCount} building${lostCount === 1 ? '' : 's'} lost XP for overspending this interval.`
-                    : "Budget interval processed.",
-            };
-        } else {
-            return {
-                rewarded: false,
-                currencyAwarded: 0,
-                xpAwarded: 0,
-                intervalDays: rewardResult.intervalDays,
-                streakCount: rewardResult.streakCount || 0,
-                streakBonusXpPerBuilding: rewardResult.streakBonusXpPerBuilding || 0,
-                details: [],
-                message: "Keep going! You're doing great!",
-            };
-        }
+    if (!userDoc || !goal || !goal.total) {
+        return {
+            rewarded: false,
+            currencyAwarded: 0,
+            xpAwarded: 0,
+            intervalDays: 0,
+            streakCount: 0,
+            streakBonusXpPerBuilding: 0,
+            details: [],
+            message: "User not found.",
+        };
     }
-    return {
-        rewarded: false,
-        currencyAwarded: 0,
-        xpAwarded: 0,
-        intervalDays: 0,
-        streakCount: 0,
-        streakBonusXpPerBuilding: 0,
-        details: [],
-        message: "User not found.",
-    };
+
+    await recalcGoalCurrents(goal, userId);
+    const totalGoal = goal.total.goal;
+    const totalCurrent = goal.total.current;
+    const rewardResult = rewardEligibleBuildings(goal, userDoc.username);
+
+    if (totalCurrent <= totalGoal && new Date() >= new Date(goal.total.endDate)) {
+        let added = totalGoal - totalCurrent;
+        if (rewardResult.reason !== 'already-claimed') {
+            await addUserCurrency(userId, added);
+        }
+
+        const gainedCount = rewardResult.details.filter((detail) => detail.xpAwarded > 0).length;
+        const lostCount = rewardResult.details.filter((detail) => detail.xpAwarded < 0).length;
+        const detailsSuffix = rewardResult.rewarded
+            ? `${gainedCount > 0 ? ` ${gainedCount} building${gainedCount === 1 ? '' : 's'} gained XP.` : ''}${lostCount > 0 ? ` ${lostCount} building${lostCount === 1 ? '' : 's'} lost XP from overspending.` : ''}`
+            : "";
+
+        return {
+            rewarded: rewardResult.rewarded,
+            currencyAwarded: rewardResult.reason === 'already-claimed' ? 0 : added,
+            xpAwarded: rewardResult.xpAwarded,
+            intervalDays: rewardResult.intervalDays,
+            streakCount: rewardResult.streakCount || 0,
+            streakBonusXpPerBuilding: rewardResult.streakBonusXpPerBuilding || 0,
+            details: rewardResult.details,
+            message: rewardResult.reason === 'already-claimed'
+                ? "Budget reward already claimed for this interval."
+                : `Congratulations! You've met your budget goal!${detailsSuffix}${rewardResult.streakCount > 1 ? ` Streak ${rewardResult.streakCount} adds ${rewardResult.streakBonusXpPerBuilding} bonus XP per building.` : ''}`,
+        };
+    } else if (new Date() >= new Date(goal.total.endDate) && rewardResult.details.length > 0) {
+        const lostCount = rewardResult.details.filter((detail) => detail.xpAwarded < 0).length;
+        return {
+            rewarded: true,
+            currencyAwarded: 0,
+            xpAwarded: rewardResult.xpAwarded,
+            intervalDays: rewardResult.intervalDays,
+            streakCount: rewardResult.streakCount || 0,
+            streakBonusXpPerBuilding: rewardResult.streakBonusXpPerBuilding || 0,
+            details: rewardResult.details,
+            message: lostCount > 0
+                ? `${lostCount} building${lostCount === 1 ? '' : 's'} lost XP for overspending this interval.`
+                : "Budget interval processed.",
+        };
+    } else {
+        return {
+            rewarded: false,
+            currencyAwarded: 0,
+            xpAwarded: 0,
+            intervalDays: rewardResult.intervalDays,
+            streakCount: rewardResult.streakCount || 0,
+            streakBonusXpPerBuilding: rewardResult.streakBonusXpPerBuilding || 0,
+            details: [],
+            message: "Keep going! You're doing great!",
+        };
+    }
 }
 
 module.exports = {
