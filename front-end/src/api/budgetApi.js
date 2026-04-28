@@ -4,9 +4,41 @@ export async function getBudgetGoals(currentUsername) {
     const response = await fetch(
         `${BASE_URL}/goals?currentUsername=${encodeURIComponent(currentUsername)}`
     );
+    if (response.status === 404) {
+        return null;
+    }
     const data = await response.json();
     if (!response.ok) {
         throw new Error(data.error || "Failed to fetch budget goals");
+    }
+    return data.goals;
+}
+
+export async function initBudgetGoals({
+    currentUsername,
+    food,
+    housing,
+    health,
+    entertainment,
+    startDate,
+    endDate,
+}) {
+    const response = await fetch(`${BASE_URL}/goals/init`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+            currentUsername,
+            food,
+            housing,
+            health,
+            entertainment,
+            startDate,
+            endDate,
+        }),
+    });
+    const data = await response.json();
+    if (!response.ok) {
+        throw new Error(data.error || "Failed to initialize budget goals");
     }
     return data.goals;
 }

@@ -3,6 +3,8 @@ const router = express.Router();
 
 const User = require("../models/User");
 
+const Goal = require("../models/budgetGoal");
+
 const {
     getBudgetGoals,
     updateBudgetGoals,
@@ -195,6 +197,54 @@ router.put("/dates", async (req, res) => {
         res.status(200).json({ message: "Dates updated" });
     } catch (err) {
         console.error("PUT /dates failed:", err);
+        res.status(500).json({ error: "Internal server error" });
+    }
+});
+
+// POST /api/budget/goals/init  (new-user onboarding)
+// body: { currentUsername, food, housing, health, entertainment, startDate, endDate }
+// total.goal is computed as the sum of the four category goals
+router.post("/goals/init", async (req, res) => {
+    try {
+        const { currentUsername, food, housing, health, entertainment, startDate, endDate } = req.body;
+
+        if (!currentUsername || !startDate || !endDate) {
+            return res.status(400).json({ error: "currentUsername, startDate, and endDate are required" });
+        }
+
+        const categoryGoals = { food, housing, health, entertainment };
+        for (const [cat, val] of Object.entries(categoryGoals)) {
+            const num = Number(val);
+            if (!Number.isFinite(num) || num < 0) {
+                return res.status(400).json({ error: `${cat} must be a non-negative number` });
+            }
+            categoryGoals[cat] = num;
+        }
+
+        const userId = await resolveUserId(currentUsername);
+        if (!userId) {
+            return res.status(404).json({ error: "User not found" });
+        }
+
+        const existing = await Goal.findOne({ user: userId });
+        if (existing) {
+            return res.status(409).json({ error: "Budget goals already initialized" });
+        }
+
+        const totalGoal = categoryGoals.food + categoryGoals.housing + categoryGoals.health + categoryGoals.entertainment;
+
+        const goal = await Goal.create({
+            user: userId,
+            total: { goal: totalGoal, current: 0, startDate, endDate },
+            food:          { goal: categoryGoals.food, current: 0 },
+            housing:       { goal: categoryGoals.housing, current: 0 },
+            health:        { goal: categoryGoals.health, current: 0 },
+            entertainment: { goal: categoryGoals.entertainment, current: 0 },
+        });
+
+        res.status(201).json({ message: "Budget goals initialized", goals: goal });
+    } catch (err) {
+        console.error("POST /goals/init failed:", err);
         res.status(500).json({ error: "Internal server error" });
     }
 });
