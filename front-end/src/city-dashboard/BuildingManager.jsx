@@ -58,7 +58,6 @@ const SECONDARY_BUILDINGS = [
   { name: "Restaurant", category: "food",          healthCategory: "restaurant", sprite: RestaurantImg },
   { name: "Hospital",   category: "health",        healthCategory: "hospital",   sprite: HospitalImg },
   { name: "Cinema",     category: "entertainment", healthCategory: "cinema",     sprite: CinemaImg },
-  { name: "School",     category: "education",     healthCategory: null,         sprite: null },
 ];
 
 function getBuildingSprite(building) {
@@ -103,11 +102,11 @@ function createDefaultCity() {
     },
   ];
 
-  const angleStep = (2 * Math.PI) / 5;
-  const radius = 500;
+  const angleStep = (2 * Math.PI) / SECONDARY_BUILDINGS.length;
+  const radius = 700;
   const jitter = 40;
 
-  for (let idx = 0; idx < 5; idx++) {
+  for (let idx = 0; idx < SECONDARY_BUILDINGS.length; idx++) {
     const angle = idx * angleStep;
     const r = radius + (Math.random() - 0.55) * jitter;
     const meta = SECONDARY_BUILDINGS[idx];
@@ -956,7 +955,7 @@ export function BuildingManager({
         <PlayerBox
           x={CITY_WIDTH / 2 + playerPos.x}
           y={CITY_HEIGHT / 2 + playerPos.y}
-          size={60}
+          size={180}
         />
 
         {cityWithSprites.buildings.map((b) => (

@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useEffect, useState } from "react";
+import React, { createContext, useCallback, useContext, useEffect, useState } from "react";
 import {
   login as loginApi,
   signup as signupApi,
@@ -16,7 +16,7 @@ export const AuthProvider = ({ children }) => {
   const [authLoading, setAuthLoading] = useState(false);
   const [authError, setAuthError] = useState("");
 
-  const persistUser = (user) => {
+  const persistUser = useCallback((user) => {
     setCurrentUser(user);
 
     if (user) {
@@ -24,7 +24,7 @@ export const AuthProvider = ({ children }) => {
     } else {
       localStorage.removeItem("budgetlifeUser");
     }
-  };
+  }, []);
 
   useEffect(() => {
     const savedUser = localStorage.getItem("budgetlifeUser");
@@ -37,9 +37,9 @@ export const AuthProvider = ({ children }) => {
     }
   }, []);
 
-  const clearAuthError = () => {
+  const clearAuthError = useCallback(() => {
     setAuthError("");
-  };
+  }, []);
 
   const login = async (usernameOrEmail, password) => {
     try {
@@ -144,14 +144,20 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  const logout = () => {
+  const logout = useCallback(() => {
     persistUser(null);
     setAuthError("");
-  };
+    logoutApi();
+  }, [persistUser]);
 
-  const syncPlayerState = (playerState) => {
+  const syncPlayerState = useCallback((playerState) => {
     setCurrentUser((prevUser) => {
       if (!prevUser) {
+        return prevUser;
+      }
+
+      const previousPlayerState = prevUser.playerState || null;
+      if (JSON.stringify(previousPlayerState) === JSON.stringify(playerState)) {
         return prevUser;
       }
 
@@ -163,9 +169,7 @@ export const AuthProvider = ({ children }) => {
       localStorage.setItem("budgetlifeUser", JSON.stringify(nextUser));
       return nextUser;
     });
-    localStorage.removeItem("budgetlifeUser");
-    logoutApi();
-  };
+  }, []);
 
   return (
     <AuthContext.Provider

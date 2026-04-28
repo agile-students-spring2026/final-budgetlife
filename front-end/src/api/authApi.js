@@ -153,6 +153,8 @@ export async function updatePlayerState(currentUsername, playerState) {
   }
 
   return data.playerState;
+  }
+
 export function logout() {
   localStorage.removeItem("token");
 }
