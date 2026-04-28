@@ -1,13 +1,20 @@
 const { expect } = require("chai");
 const request = require("supertest");
 
+const { connectTestDB, clearTestDB, closeTestDB } = require("./setupMongoMemory");
 const app = require("../app");
 const User = require("../models/User");
 
 describe("auth player state routes", () => {
   const username = "playerstateuser";
 
+  before(async () => {
+    await connectTestDB();
+  });
+
   beforeEach(async () => {
+    await clearTestDB();
+
     await User.deleteMany({ username });
     await User.create({
       username,
@@ -17,8 +24,8 @@ describe("auth player state routes", () => {
     });
   });
 
-  afterEach(async () => {
-    await User.deleteMany({ username });
+  after(async () => {
+    await closeTestDB();
   });
 
   it("returns the default player state for a user", async () => {
