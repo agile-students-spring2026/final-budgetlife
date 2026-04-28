@@ -13,8 +13,25 @@ router.get("/", requireAuth, async (req, res) => {
       return res.status(404).json({ error: "User not found" });
     }
 
+    const friendIds = (currentUser.friends || []).map((friend) => friend.user).filter(Boolean);
+    const friendUsers = await User.find({ _id: { $in: friendIds } }).select(
+      "_id username playerState"
+    );
+    const friendUserById = new Map(
+      friendUsers.map((friendUser) => [String(friendUser._id), friendUser])
+    );
+
+    const friends = (currentUser.friends || []).map((friend) => {
+      const friendUser = friendUserById.get(String(friend.user));
+
+      return {
+        ...friend.toObject(),
+        playerState: friendUser?.playerState || null,
+      };
+    });
+
     res.status(200).json({
-      friends: currentUser.friends || [],
+      friends,
       currentUser: currentUsername,
     });
   } catch (err) {
@@ -270,6 +287,7 @@ router.post("/requests/:id/accept", requireAuth, async (req, res) => {
         username: sender.username,
         name: sender.name || sender.username,
         info: "Friends for less than a day",
+        playerState: sender.playerState || null,
       },
     });
   } catch (err) {
