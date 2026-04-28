@@ -123,6 +123,36 @@ export async function deleteAccount(currentUsername) {
   return data;
 }
 
+export async function getPlayerState(currentUsername) {
+  const response = await fetch(
+    `${BASE_URL}/player-state?currentUsername=${encodeURIComponent(currentUsername)}`
+  );
+
+  const data = await response.json();
+
+  if (!response.ok) {
+    throw new Error(data.error || "Failed to load player state");
+  }
+
+  return data.playerState;
+}
+
+export async function updatePlayerState(currentUsername, playerState) {
+  const response = await fetch(`${BASE_URL}/player-state`, {
+    method: "PUT",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ currentUsername, playerState }),
+  });
+
+  const data = await response.json();
+
+  if (!response.ok) {
+    throw new Error(data.error || "Failed to save player state");
+  }
+
+  return data.playerState;
 export function logout() {
   localStorage.removeItem("token");
 }
