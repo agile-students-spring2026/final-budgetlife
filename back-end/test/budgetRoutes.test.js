@@ -2,6 +2,11 @@ const { expect } = require("chai");
 const request = require("supertest");
 const app = require("../app");
 const {
+  connectTestDB,
+  clearTestDB,
+  closeTestDB,
+} = require("./setupMongoMemory");
+const {
   addUserBudgetGoals,
   resetBudgetGoals,
   updateBudgetGoalDates,
@@ -10,9 +15,18 @@ const cityStates = require("../data/cityStates");
 const { addTransaction } = require("../data/transaction");
 
 describe("Budget API routes", () => {
-  beforeEach(() => {
+  before(async () => {
+    await connectTestDB();
+  });
+
+  beforeEach(async () => {
+    await clearTestDB();
     resetBudgetGoals();
     delete cityStates._budget_reward_test_user_;
+  });
+
+  after(async () => {
+    await closeTestDB();
   });
 
   describe("GET /api/budget/goals", () => {
@@ -223,95 +237,20 @@ describe("Budget API routes", () => {
         version: 1,
         budgetRewardStatus: { claimedIntervals: {} },
         buildings: [
-          {
-            type: "primary",
-            i: 1,
-            location: { x: 0, y: 0 },
-            level: 1,
-            name: "City Hall",
-            category: "government",
-            budget: 1000,
-            spent: 0,
-            currentExp: 0,
-            expToNextLevel: 100,
-            savingGoal: "",
-            history: [],
-          },
-          {
-            type: "secondary",
-            i: 2,
-            location: { x: 0, y: 0 },
-            level: 1,
-            name: "Housing",
-            category: "residential",
-            budget: 1000,
-            spent: 0,
-            currentExp: 0,
-            expToNextLevel: 100,
-            savingGoal: "",
-            history: [],
-          },
-          {
-            type: "secondary",
-            i: 3,
-            location: { x: 0, y: 0 },
-            level: 1,
-            name: "Food Market",
-            category: "food",
-            budget: 1000,
-            spent: 0,
-            currentExp: 0,
-            expToNextLevel: 100,
-            savingGoal: "",
-            history: [],
-          },
-          {
-            type: "secondary",
-            i: 4,
-            location: { x: 0, y: 0 },
-            level: 1,
-            name: "Hospital",
-            category: "health",
-            budget: 1000,
-            spent: 0,
-            currentExp: 0,
-            expToNextLevel: 100,
-            savingGoal: "",
-            history: [],
-          },
-          {
-            type: "secondary",
-            i: 5,
-            location: { x: 0, y: 0 },
-            level: 1,
-            name: "Cinema",
-            category: "entertainment",
-            budget: 1000,
-            spent: 0,
-            currentExp: 0,
-            expToNextLevel: 100,
-            savingGoal: "",
-            history: [],
-          },
+          { type: "primary", i: 1, location: { x: 0, y: 0 }, level: 1, name: "City Hall", category: "government", budget: 1000, spent: 0, currentExp: 0, expToNextLevel: 100, savingGoal: "", history: [] },
+          { type: "secondary", i: 2, location: { x: 0, y: 0 }, level: 1, name: "Housing", category: "residential", budget: 1000, spent: 0, currentExp: 0, expToNextLevel: 100, savingGoal: "", history: [] },
+          { type: "secondary", i: 3, location: { x: 0, y: 0 }, level: 1, name: "Food Market", category: "food", budget: 1000, spent: 0, currentExp: 0, expToNextLevel: 100, savingGoal: "", history: [] },
+          { type: "secondary", i: 4, location: { x: 0, y: 0 }, level: 1, name: "Hospital", category: "health", budget: 1000, spent: 0, currentExp: 0, expToNextLevel: 100, savingGoal: "", history: [] },
+          { type: "secondary", i: 5, location: { x: 0, y: 0 }, level: 1, name: "Cinema", category: "entertainment", budget: 1000, spent: 0, currentExp: 0, expToNextLevel: 100, savingGoal: "", history: [] },
         ],
         decorations: [],
       };
 
-      await request(app)
-        .put("/api/budget/goals")
-        .send({ currentUsername: "_budget_reward_test_user_", category: "food", goal: 500 });
-      await request(app)
-        .put("/api/budget/goals")
-        .send({ currentUsername: "_budget_reward_test_user_", category: "housing", goal: 700 });
-      await request(app)
-        .put("/api/budget/goals")
-        .send({ currentUsername: "_budget_reward_test_user_", category: "health", goal: 600 });
-      await request(app)
-        .put("/api/budget/goals")
-        .send({ currentUsername: "_budget_reward_test_user_", category: "entertainment", goal: 300 });
-      await request(app)
-        .put("/api/budget/goals")
-        .send({ currentUsername: "_budget_reward_test_user_", category: "total", goal: 2200 });
+      await request(app).put("/api/budget/goals").send({ currentUsername: "_budget_reward_test_user_", category: "food", goal: 500 });
+      await request(app).put("/api/budget/goals").send({ currentUsername: "_budget_reward_test_user_", category: "housing", goal: 700 });
+      await request(app).put("/api/budget/goals").send({ currentUsername: "_budget_reward_test_user_", category: "health", goal: 600 });
+      await request(app).put("/api/budget/goals").send({ currentUsername: "_budget_reward_test_user_", category: "entertainment", goal: 300 });
+      await request(app).put("/api/budget/goals").send({ currentUsername: "_budget_reward_test_user_", category: "total", goal: 2200 });
       updateBudgetGoalDates("_budget_reward_test_user_", "2026-01-01", "2026-01-31");
 
       const res = await request(app)
@@ -345,95 +284,20 @@ describe("Budget API routes", () => {
         version: 1,
         budgetRewardStatus: { claimedIntervals: {}, currentStreak: 0, lastRewardedIntervalEndDate: null },
         buildings: [
-          {
-            type: "primary",
-            i: 1,
-            location: { x: 0, y: 0 },
-            level: 1,
-            name: "City Hall",
-            category: "government",
-            budget: 1000,
-            spent: 0,
-            currentExp: 0,
-            expToNextLevel: 100,
-            savingGoal: "",
-            history: [],
-          },
-          {
-            type: "secondary",
-            i: 2,
-            location: { x: 0, y: 0 },
-            level: 1,
-            name: "Housing",
-            category: "residential",
-            budget: 1000,
-            spent: 0,
-            currentExp: 0,
-            expToNextLevel: 100,
-            savingGoal: "",
-            history: [],
-          },
-          {
-            type: "secondary",
-            i: 3,
-            location: { x: 0, y: 0 },
-            level: 1,
-            name: "Food Market",
-            category: "food",
-            budget: 1000,
-            spent: 0,
-            currentExp: 0,
-            expToNextLevel: 100,
-            savingGoal: "",
-            history: [],
-          },
-          {
-            type: "secondary",
-            i: 4,
-            location: { x: 0, y: 0 },
-            level: 1,
-            name: "Hospital",
-            category: "health",
-            budget: 1000,
-            spent: 0,
-            currentExp: 0,
-            expToNextLevel: 100,
-            savingGoal: "",
-            history: [],
-          },
-          {
-            type: "secondary",
-            i: 5,
-            location: { x: 0, y: 0 },
-            level: 1,
-            name: "Cinema",
-            category: "entertainment",
-            budget: 1000,
-            spent: 0,
-            currentExp: 0,
-            expToNextLevel: 100,
-            savingGoal: "",
-            history: [],
-          },
+          { type: "primary", i: 1, location: { x: 0, y: 0 }, level: 1, name: "City Hall", category: "government", budget: 1000, spent: 0, currentExp: 0, expToNextLevel: 100, savingGoal: "", history: [] },
+          { type: "secondary", i: 2, location: { x: 0, y: 0 }, level: 1, name: "Housing", category: "residential", budget: 1000, spent: 0, currentExp: 0, expToNextLevel: 100, savingGoal: "", history: [] },
+          { type: "secondary", i: 3, location: { x: 0, y: 0 }, level: 1, name: "Food Market", category: "food", budget: 1000, spent: 0, currentExp: 0, expToNextLevel: 100, savingGoal: "", history: [] },
+          { type: "secondary", i: 4, location: { x: 0, y: 0 }, level: 1, name: "Hospital", category: "health", budget: 1000, spent: 0, currentExp: 0, expToNextLevel: 100, savingGoal: "", history: [] },
+          { type: "secondary", i: 5, location: { x: 0, y: 0 }, level: 1, name: "Cinema", category: "entertainment", budget: 1000, spent: 0, currentExp: 0, expToNextLevel: 100, savingGoal: "", history: [] },
         ],
         decorations: [],
       };
 
-      await request(app)
-        .put("/api/budget/goals")
-        .send({ currentUsername: "_budget_reward_test_user_", category: "food", goal: 500 });
-      await request(app)
-        .put("/api/budget/goals")
-        .send({ currentUsername: "_budget_reward_test_user_", category: "housing", goal: 700 });
-      await request(app)
-        .put("/api/budget/goals")
-        .send({ currentUsername: "_budget_reward_test_user_", category: "health", goal: 600 });
-      await request(app)
-        .put("/api/budget/goals")
-        .send({ currentUsername: "_budget_reward_test_user_", category: "entertainment", goal: 300 });
-      await request(app)
-        .put("/api/budget/goals")
-        .send({ currentUsername: "_budget_reward_test_user_", category: "total", goal: 2200 });
+      await request(app).put("/api/budget/goals").send({ currentUsername: "_budget_reward_test_user_", category: "food", goal: 500 });
+      await request(app).put("/api/budget/goals").send({ currentUsername: "_budget_reward_test_user_", category: "housing", goal: 700 });
+      await request(app).put("/api/budget/goals").send({ currentUsername: "_budget_reward_test_user_", category: "health", goal: 600 });
+      await request(app).put("/api/budget/goals").send({ currentUsername: "_budget_reward_test_user_", category: "entertainment", goal: 300 });
+      await request(app).put("/api/budget/goals").send({ currentUsername: "_budget_reward_test_user_", category: "total", goal: 2200 });
 
       updateBudgetGoalDates("_budget_reward_test_user_", "2026-01-01", "2026-01-31");
       const firstRes = await request(app)
@@ -467,95 +331,20 @@ describe("Budget API routes", () => {
         version: 1,
         budgetRewardStatus: { claimedIntervals: {}, currentStreak: 0, lastRewardedIntervalEndDate: null },
         buildings: [
-          {
-            type: "primary",
-            i: 1,
-            location: { x: 0, y: 0 },
-            level: 2,
-            name: "City Hall",
-            category: "government",
-            budget: 1000,
-            spent: 0,
-            currentExp: 20,
-            expToNextLevel: 150,
-            savingGoal: "",
-            history: [],
-          },
-          {
-            type: "secondary",
-            i: 2,
-            location: { x: 0, y: 0 },
-            level: 2,
-            name: "Housing",
-            category: "residential",
-            budget: 1000,
-            spent: 0,
-            currentExp: 20,
-            expToNextLevel: 150,
-            savingGoal: "",
-            history: [],
-          },
-          {
-            type: "secondary",
-            i: 3,
-            location: { x: 0, y: 0 },
-            level: 2,
-            name: "Food Market",
-            category: "food",
-            budget: 1000,
-            spent: 0,
-            currentExp: 20,
-            expToNextLevel: 150,
-            savingGoal: "",
-            history: [],
-          },
-          {
-            type: "secondary",
-            i: 4,
-            location: { x: 0, y: 0 },
-            level: 2,
-            name: "Hospital",
-            category: "health",
-            budget: 1000,
-            spent: 0,
-            currentExp: 20,
-            expToNextLevel: 150,
-            savingGoal: "",
-            history: [],
-          },
-          {
-            type: "secondary",
-            i: 5,
-            location: { x: 0, y: 0 },
-            level: 2,
-            name: "Cinema",
-            category: "entertainment",
-            budget: 1000,
-            spent: 0,
-            currentExp: 20,
-            expToNextLevel: 150,
-            savingGoal: "",
-            history: [],
-          },
+          { type: "primary", i: 1, location: { x: 0, y: 0 }, level: 2, name: "City Hall", category: "government", budget: 1000, spent: 0, currentExp: 20, expToNextLevel: 150, savingGoal: "", history: [] },
+          { type: "secondary", i: 2, location: { x: 0, y: 0 }, level: 2, name: "Housing", category: "residential", budget: 1000, spent: 0, currentExp: 20, expToNextLevel: 150, savingGoal: "", history: [] },
+          { type: "secondary", i: 3, location: { x: 0, y: 0 }, level: 2, name: "Food Market", category: "food", budget: 1000, spent: 0, currentExp: 20, expToNextLevel: 150, savingGoal: "", history: [] },
+          { type: "secondary", i: 4, location: { x: 0, y: 0 }, level: 2, name: "Hospital", category: "health", budget: 1000, spent: 0, currentExp: 20, expToNextLevel: 150, savingGoal: "", history: [] },
+          { type: "secondary", i: 5, location: { x: 0, y: 0 }, level: 2, name: "Cinema", category: "entertainment", budget: 1000, spent: 0, currentExp: 20, expToNextLevel: 150, savingGoal: "", history: [] },
         ],
         decorations: [],
       };
 
-      await request(app)
-        .put("/api/budget/goals")
-        .send({ currentUsername: "_budget_reward_test_user_", category: "food", goal: 500 });
-      await request(app)
-        .put("/api/budget/goals")
-        .send({ currentUsername: "_budget_reward_test_user_", category: "housing", goal: 700 });
-      await request(app)
-        .put("/api/budget/goals")
-        .send({ currentUsername: "_budget_reward_test_user_", category: "health", goal: 600 });
-      await request(app)
-        .put("/api/budget/goals")
-        .send({ currentUsername: "_budget_reward_test_user_", category: "entertainment", goal: 400 });
-      await request(app)
-        .put("/api/budget/goals")
-        .send({ currentUsername: "_budget_reward_test_user_", category: "total", goal: 2200 });
+      await request(app).put("/api/budget/goals").send({ currentUsername: "_budget_reward_test_user_", category: "food", goal: 500 });
+      await request(app).put("/api/budget/goals").send({ currentUsername: "_budget_reward_test_user_", category: "housing", goal: 700 });
+      await request(app).put("/api/budget/goals").send({ currentUsername: "_budget_reward_test_user_", category: "health", goal: 600 });
+      await request(app).put("/api/budget/goals").send({ currentUsername: "_budget_reward_test_user_", category: "entertainment", goal: 400 });
+      await request(app).put("/api/budget/goals").send({ currentUsername: "_budget_reward_test_user_", category: "total", goal: 2200 });
 
       addTransaction("_budget_reward_test_user_", "food", "2026-01-10", "Overspend test", 650);
       updateBudgetGoalDates("_budget_reward_test_user_", "2026-01-01", "2026-01-31");
