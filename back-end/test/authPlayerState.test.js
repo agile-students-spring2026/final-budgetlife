@@ -3,7 +3,7 @@ const request = require("supertest");
 
 const { connectTestDB, clearTestDB, closeTestDB } = require("./setupMongoMemory");
 const app = require("../app");
-const User = require("../models/User");
+const User = require("../models/user");
 
 describe("auth player state routes", () => {
   const username = "playerstateuser";
@@ -72,4 +72,4 @@ describe("auth player state routes", () => {
 
     expect(reloadResponse.body.playerState).to.deep.equal(nextState);
   });
-});
+}); 

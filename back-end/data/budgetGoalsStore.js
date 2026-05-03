@@ -2,7 +2,7 @@ const { addUserCurrency } = require("./shop");
 const { getTransactionHistory } = require("./transaction");
 const cityStates = require("./cityStates");
 const Goal = require("../models/budgetGoal");
-const User = require("../models/User");
+const User = require("../models/user");
 
 const EMPTY_GOAL_TEMPLATE = {
     total: { goal: 0, current: 0, startDate: null, endDate: null },

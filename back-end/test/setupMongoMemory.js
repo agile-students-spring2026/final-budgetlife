@@ -5,9 +5,9 @@ const bcrypt = require("bcrypt");
 let mongoServer;
 
 async function seedInMemoryDatabase() {
-  const User = require("../models/User");
-  const FriendRequest = require("../models/FriendRequest");
-  const City = require("../models/City");
+  const User = require("../models/user");
+  const FriendRequest = require("../models/friendRequest");
+  const City = require("../models/city");
   const cityStates = require("../data/cityStates");
 
   await FriendRequest.deleteMany({});

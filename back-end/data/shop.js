@@ -1,4 +1,4 @@
-const User = require("../models/User");
+const User = require("../models/user");
 
 async function getUserCurrency(userId) {
     const user = await User.findById(userId).select("playerState.money").lean();
