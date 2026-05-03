@@ -1,8 +1,8 @@
 const express = require("express");
 const router = express.Router();
 const requireAuth = require("../middleware/requireAuth");
-const User = require("../models/User");
-const FriendRequest = require("../models/FriendRequest");
+const User = require("../models/user");
+const FriendRequest = require("../models/friendRequest");
 
 router.get("/", requireAuth, async (req, res) => {
   try {
