@@ -1,6 +1,6 @@
 require('dotenv').config();
 const mongoose = require('mongoose');
-const User = require('../models/User');
+const User = require('../models/user');
 const Goal = require('../models/budgetGoal');
 
 const goalsByUsername = {

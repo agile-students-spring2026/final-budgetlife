@@ -1,8 +1,8 @@
 const express = require("express");
 const router = express.Router();
 const requireAuth = require("../middleware/requireAuth");
-const User = require("../models/User");
-const City = require("../models/City");
+const User = require("../models/user");
+const City = require("../models/city");
 
 function createDefaultCity() {
   return {
