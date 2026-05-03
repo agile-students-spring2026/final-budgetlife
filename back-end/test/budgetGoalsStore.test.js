@@ -1,5 +1,10 @@
 const { expect } = require("chai");
 const {
+  connectTestDB,
+  clearTestDB,
+  closeTestDB,
+} = require("./setupMongoMemory");
+const {
   getBudgetGoals,
   updateBudgetGoals,
   updateCurrentAmount,
@@ -14,8 +19,17 @@ const {
 const { getUserCurrency } = require("../data/shop");
 
 describe("budgetGoalsStore", () => {
+  before(async () => {
+    await connectTestDB();
+  });
+
   beforeEach(async () => {
+    await clearTestDB();
     await resetBudgetGoals();
+  });
+
+  after(async () => {
+    await closeTestDB();
   });
 
   describe("getBudgetGoals", () => {
@@ -128,7 +142,7 @@ describe("budgetGoalsStore", () => {
       expect(goals.housing.current).to.equal(2000);
       expect(goals.health.current).to.equal(100);
       expect(goals.entertainment.current).to.equal(50);
-      expect(goals.total.current).to.equal(150 + 2000 + 100 + 50);
+      expect(goals.total.current).to.equal(2300);
     });
 
     it("yields zero currents for a user with no transactions", async () => {
