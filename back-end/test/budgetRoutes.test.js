@@ -21,7 +21,7 @@ describe("Budget API routes", () => {
 
   beforeEach(async () => {
     await clearTestDB();
-    resetBudgetGoals();
+    await resetBudgetGoals();
     delete cityStates._budget_reward_test_user_;
   });
 
@@ -231,7 +231,7 @@ describe("Budget API routes", () => {
     });
 
     it("awards building XP once for a completed interval when buildings stay under budget", async () => {
-      addUserBudgetGoals("_budget_reward_test_user_");
+      await addUserBudgetGoals("_budget_reward_test_user_");
 
       cityStates._budget_reward_test_user_ = {
         version: 1,
@@ -251,7 +251,7 @@ describe("Budget API routes", () => {
       await request(app).put("/api/budget/goals").send({ currentUsername: "_budget_reward_test_user_", category: "health", goal: 600 });
       await request(app).put("/api/budget/goals").send({ currentUsername: "_budget_reward_test_user_", category: "entertainment", goal: 300 });
       await request(app).put("/api/budget/goals").send({ currentUsername: "_budget_reward_test_user_", category: "total", goal: 2200 });
-      updateBudgetGoalDates("_budget_reward_test_user_", "2026-01-01", "2026-01-31");
+      await updateBudgetGoalDates("_budget_reward_test_user_", "2026-01-01", "2026-01-31");
 
       const res = await request(app)
         .post("/api/budget/reward")
@@ -278,7 +278,7 @@ describe("Budget API routes", () => {
     });
 
     it("adds streak bonus XP for consecutive successful budget intervals", async () => {
-      addUserBudgetGoals("_budget_reward_test_user_");
+      await addUserBudgetGoals("_budget_reward_test_user_");
 
       cityStates._budget_reward_test_user_ = {
         version: 1,
@@ -299,12 +299,12 @@ describe("Budget API routes", () => {
       await request(app).put("/api/budget/goals").send({ currentUsername: "_budget_reward_test_user_", category: "entertainment", goal: 300 });
       await request(app).put("/api/budget/goals").send({ currentUsername: "_budget_reward_test_user_", category: "total", goal: 2200 });
 
-      updateBudgetGoalDates("_budget_reward_test_user_", "2026-01-01", "2026-01-31");
+      await updateBudgetGoalDates("_budget_reward_test_user_", "2026-01-01", "2026-01-31");
       const firstRes = await request(app)
         .post("/api/budget/reward")
         .send({ currentUsername: "_budget_reward_test_user_" });
 
-      updateBudgetGoalDates("_budget_reward_test_user_", "2026-02-01", "2026-02-28");
+      await updateBudgetGoalDates("_budget_reward_test_user_", "2026-02-01", "2026-02-28");
       const secondRes = await request(app)
         .post("/api/budget/reward")
         .send({ currentUsername: "_budget_reward_test_user_" });
@@ -325,7 +325,7 @@ describe("Budget API routes", () => {
     });
 
     it("removes building XP when a building overspends its budget", async () => {
-      addUserBudgetGoals("_budget_reward_test_user_");
+      await addUserBudgetGoals("_budget_reward_test_user_");
 
       cityStates._budget_reward_test_user_ = {
         version: 1,
@@ -346,8 +346,8 @@ describe("Budget API routes", () => {
       await request(app).put("/api/budget/goals").send({ currentUsername: "_budget_reward_test_user_", category: "entertainment", goal: 400 });
       await request(app).put("/api/budget/goals").send({ currentUsername: "_budget_reward_test_user_", category: "total", goal: 2200 });
 
-      addTransaction("_budget_reward_test_user_", "food", "2026-01-10", "Overspend test", 650);
-      updateBudgetGoalDates("_budget_reward_test_user_", "2026-01-01", "2026-01-31");
+      await addTransaction("_budget_reward_test_user_", "food", "2026-01-10", "Overspend test", 650);
+      await updateBudgetGoalDates("_budget_reward_test_user_", "2026-01-01", "2026-01-31");
 
       const res = await request(app)
         .post("/api/budget/reward")
