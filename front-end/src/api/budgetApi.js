@@ -1,4 +1,4 @@
-const BASE_URL = "http://localhost:3000/api/budget";
+const BASE_URL = "/api/budget";
 
 export async function getBudgetGoals(currentUsername) {
     const response = await fetch(
