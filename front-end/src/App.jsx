@@ -7,7 +7,7 @@ import Account from "./screens/Account.jsx";
 import Add_Friends from "./screens/Add_Friends";
 import Friends_List from "./screens/Friends_List";
 import Home from "./screens/Home";
-import Login from "./screens/login.jsx";
+import Login from "./screens/Login.jsx";
 import Login_In from "./screens/Login_In.jsx";
 import PlayerCustomization from "./screens/Player_Customization.jsx";
 import Shop from "./screens/Shop";
@@ -46,7 +46,7 @@ function AppRoutes() {
 
 function App() {
   return (
-    <Router basename={import.meta.env.BASE_URL}>
+    <Router>
       <AppRoutes />
     </Router>
   );

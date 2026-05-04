@@ -67,7 +67,9 @@ export const AuthProvider = ({ children }) => {
 
       const data = await loginApi({ usernameOrEmail, password });
       persistUser(data.user);
-      await checkBudgetGoals(data.user?.username);
+      checkBudgetGoals(data.user?.username).catch((err) => {
+        console.error("Failed to check budget goals:", err);
+      });
 
       return data.user;
     } catch (err) {
