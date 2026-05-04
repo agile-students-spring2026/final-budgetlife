@@ -1,10 +1,11 @@
+
 .budget-header {
   width: 100%;
   min-height: 100px;
-  background: linear-gradient(180deg, #e2d6c6, #e0c7a6);
+  background: linear-gradient(180deg, #080a10, #0c0e14);
   padding: 47.5px 10px;
   box-sizing: border-box;
-  border-bottom: 1px solid #b39f86;
+  border-bottom: 1px solid #1f2338;
 }
 
 .header-row {
@@ -17,49 +18,57 @@
   flex: 1;
 }
 
-
 .budget-title {
-  background: #cfbda5;
-  color: #2f241b;
+  background: linear-gradient(145deg, #1b1f2e, #141726);
+  color: #eef0ff;
   border-radius: 8px;
   padding: 8px 12px;
   font-size: 15px;
   font-weight: 700;
   margin-bottom: 6px;
-  border: 1px solid #b39f86;
+  border: 1px solid #3b4679;
+  letter-spacing: 0.04em;
+  box-shadow: 0 2px 6px rgba(8, 10, 16, 0.5);
 }
-
 
 .budget-values {
   display: flex;
   width: 100%;
   border-radius: 10px;
   overflow: hidden;
-  border: 1px solid #b39f86;
+  border: 1px solid #2f3550;
+  background: #141726;
 }
 
-
 .budget-left {
-  background: linear-gradient(135deg, #6366f1, #8b5cf6); /* purple */
+  background: linear-gradient(135deg, #5f6dff 0%, #8b25ff 40%, #ab8cff 100%);
   color: #ffffff;
   padding: 8px 12px;
   font-size: 14px;
   font-weight: 800;
   flex: 1;
-  box-shadow: inset 0 -2px 4px rgba(0,0,0,0.15);
+  box-shadow: inset 0 -3px 6px rgba(0, 0, 0, 0.45);
+  position: relative;
 }
 
+.budget-left::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.12), transparent 60%);
+  pointer-events: none;
+}
 
 .budget-right {
-  background: #bfa88c;
-  color: #2a2017;
+  background: linear-gradient(145deg, #1b1f2e, #141726);
+  color: #cfd4ff;
   padding: 8px 12px;
   font-size: 14px;
   font-weight: 700;
   min-width: 70px;
   text-align: center;
+  border-left: 1px solid #2f3550;
 }
-
 
 .player-menu-wrapper {
   position: relative;
@@ -82,8 +91,8 @@
   width: 85px;
   height: 85px;
   border-radius: 50%;
-  background: linear-gradient(145deg, #e6d6bf, #bfa88c);
-  color: #2f241b;
+  background: linear-gradient(145deg, #1b1f2e, #0c0e14);
+  color: #eef0ff;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -91,19 +100,23 @@
   font-size: 14px;
   font-weight: 600;
   line-height: 1.1;
-  border: 1px solid #9f8b73;
-  box-shadow: 0 8px 18px rgba(0, 0, 0, 0.14);
+  border: 1px solid #2f3550;
+  box-shadow:
+    0 10px 20px rgba(0, 0, 0, 0.55),
+    inset 0 1px 0 rgba(255, 255, 255, 0.05);
   transition: transform 0.15s ease, box-shadow 0.15s ease;
   z-index: 21;
 }
 
 .player-icon:hover {
   transform: translateY(-3px) scale(1.05);
-  box-shadow: 0 14px 26px rgba(0, 0, 0, 0.22);
+  box-shadow:
+    0 16px 30px rgba(0, 0, 0, 0.75),
+    inset 0 1px 0 rgba(255, 255, 255, 0.06);
 }
 
 .budget-values:hover {
-  filter: brightness(1.05);
+  filter: brightness(1.06);
 }
 
 .budget-period-row {
@@ -117,9 +130,9 @@
 .budget-days-left {
   font-size: 12px;
   font-weight: 600;
-  color: #2f241b;
-  background: #cfbda5;
-  border: 1px solid #b39f86;
+  color: #cfd4ff;
+  background: linear-gradient(145deg, #1b1f2e, #141726);
+  border: 1px solid #2f3550;
   border-radius: 8px;
   padding: 4px 10px;
   text-align: center;
@@ -127,6 +140,7 @@
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  letter-spacing: 0.03em;
 }
 
 .budget-period {
@@ -135,15 +149,19 @@
 }
 
 .budget-period:hover {
-  filter: brightness(1.05);
+  filter: brightness(1.12);
+}
+
+.budget-days-left {
+  flex: 1;
 }
 
 .budget-date-detail {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  background: #cfbda5;
-  border: 1px solid #b39f86;
+  background: linear-gradient(145deg, #1b1f2e, #141726);
+  border: 1px solid #2f3550;
   border-radius: 8px;
   padding: 8px 12px;
   margin-bottom: 8px;
@@ -151,36 +169,44 @@
 
 .budget-date-label {
   font-size: 13px;
-  color: #6b5d4d;
+  color: #7b83b8;
   font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  font-size: 11px;
 }
 
 .budget-date-value {
   font-size: 15px;
-  color: #2f241b;
+  color: #eef0ff;
   font-weight: 700;
 }
 
 .budget-date-close {
   width: 100%;
   margin-top: 6px;
-  background: #7c3aed;
-  color: #fff;
+  background: linear-gradient(135deg, #5f6dff, #8b25ff);
+  color: #eef0ff;
   border: none;
   border-radius: 8px;
   padding: 10px 16px;
   font-weight: 700;
   cursor: pointer;
+  letter-spacing: 0.04em;
+  box-shadow: 0 6px 14px rgba(95, 109, 255, 0.35);
+  transition: transform 0.12s ease, box-shadow 0.12s ease;
 }
 
-.budget-days-left {
-  flex: 1;
+.budget-date-close:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 10px 20px rgba(95, 109, 255, 0.45);
 }
 
 .budget-edit-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.35);
+  background: rgba(8, 10, 16, 0.75);
+  backdrop-filter: blur(4px);
   z-index: 9999;
   display: flex;
   align-items: center;
@@ -189,18 +215,22 @@
 }
 
 .budget-edit-modal {
-  background: linear-gradient(180deg, #e2d6c6, #e0c7a6);
-  color: #2f241b;
-  border: 1px solid #b39f86;
+  background: linear-gradient(180deg, #0c0e14, #1b1f2e);
+  color: #eef0ff;
+  border: 1px solid #2f3550;
   border-radius: 16px;
   padding: 20px;
   width: 100%;
   max-width: 400px;
-  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.25);
+  box-shadow:
+    0 25px 50px rgba(0, 0, 0, 0.7),
+    inset 0 1px 0 rgba(255, 255, 255, 0.04);
 }
 
 .budget-edit-title {
   margin: 0 0 12px 0;
   font-size: 20px;
   font-weight: 800;
+  letter-spacing: 0.03em;
+  color: #eef0ff;
 }
