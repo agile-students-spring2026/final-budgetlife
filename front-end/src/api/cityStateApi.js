@@ -1,4 +1,4 @@
-const BASE_URL = "http://localhost:3000/api/city-state";
+const BASE_URL = "/api/city-state";
 
 function getAuthHeaders() {
   const token = localStorage.getItem("token");

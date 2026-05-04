@@ -1,4 +1,4 @@
-const BASE_URL = "http://localhost:3000/api/auth";
+const BASE_URL = "/api/auth";
 
 function getAuthHeaders() {
   const token = localStorage.getItem("token");
