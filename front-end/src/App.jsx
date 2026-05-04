@@ -46,7 +46,7 @@ function AppRoutes() {
 
 function App() {
   return (
-    <Router basename={import.meta.env.BASE_URL}>
+    <Router>
       <AppRoutes />
     </Router>
   );
