@@ -27,6 +27,8 @@ BudgetLife emphasizes non-predatory design, requires no paid currency, and avoid
 
 - [Node.js](https://nodejs.org/) 18 or newer
 - npm (bundled with Node.js)
+- A MongoDB connection string (a free [MongoDB Atlas](https://www.mongodb.com/atlas) cluster works)
+- Optional: [Docker Desktop](https://www.docker.com/products/docker-desktop/) if you want to run everything via `docker compose`
 
 ### Clone the repository
 
@@ -49,6 +51,17 @@ cd ../front-end
 npm install
 ```
 
+### Configure environment variables
+
+The back-end reads its configuration from `back-end/.env`, which is **gitignored** and never copied into Docker images. Create your own copy from the template and fill in the values:
+
+```bash
+cp back-end/.env.example back-end/.env
+# then edit back-end/.env and paste in your MongoDB connection string
+```
+
+The only required variable is `MONGODB_URI`. See [back-end/.env.example](back-end/.env.example) for the full list and defaults.
+
 ### Run the app (development mode)
 
 Start the back-end and front-end in **two separate terminals**:
@@ -64,6 +77,49 @@ npm run dev
 ```
 
 Open `http://localhost:5173` in your browser.
+
+### Run the app with Docker (alternative)
+
+If you'd rather not install Node locally, you can run the entire stack with Docker Compose. Both services are defined in [docker-compose.yml](docker-compose.yml).
+
+Make sure `back-end/.env` exists first (see [Configure environment variables](#configure-environment-variables)). It is loaded into the back-end container at runtime via `env_file` and is **not** baked into the image.
+
+```bash
+docker compose up --build
+```
+
+This builds and starts:
+
+- **backend** — Node.js / Express on `http://localhost:3000`
+- **frontend** — Vite dev server on `http://localhost:5173`
+
+The front-end container proxies `/api/*` to `http://backend:3000` over the Compose-managed Docker network (configured via the `VITE_API_PROXY` environment variable in [docker-compose.yml](docker-compose.yml)). The back-end continues to talk to your hosted MongoDB (e.g. Atlas) using `MONGODB_URI` from `.env`.
+
+Open `http://localhost:5173` in your browser, the same as the local-dev flow.
+
+To stop everything:
+
+```bash
+docker compose down
+```
+
+To run in the background:
+
+```bash
+docker compose up -d --build
+```
+
+To see logs from a running stack:
+
+```bash
+docker compose logs -f
+```
+
+#### Notes
+
+- `back-end/.env` is excluded from the build context by [back-end/.dockerignore](back-end/.dockerignore), so secrets never end up inside a published image.
+- `node_modules`, `.git`, and build artifacts are also excluded from the build context to keep images small and rebuilds fast.
+- The Compose file uses two services only; MongoDB is expected to be hosted externally (Atlas or similar). If you ever want a fully containerized DB, add a `mongo` service and point `MONGODB_URI` at `mongodb://db:27017/budgetlife`.
 
 ### Seeded test accounts
 

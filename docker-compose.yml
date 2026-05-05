@@ -1,0 +1,20 @@
+services:
+  backend:
+    build: ./back-end
+    ports:
+      - "3000:3000"
+    env_file:
+      - ./back-end/.env
+    environment:
+      PORT: 3000
+    restart: unless-stopped
+
+  frontend:
+    build: ./front-end
+    ports:
+      - "5173:5173"
+    environment:
+      VITE_API_PROXY: http://backend:3000
+    depends_on:
+      - backend
+    restart: unless-stopped
