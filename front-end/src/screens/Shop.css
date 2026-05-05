@@ -3,36 +3,41 @@
   display: flex;
   justify-content: center;
   align-items: stretch;
-  background: #efefef;
+  background: linear-gradient(180deg, #080a10, #0c0e14);
+  font-family: 'DM Mono', 'Courier New', monospace;
 }
-
+ 
 .shop-screen {
   width: min(90vw, 900px);
   min-height: 100vh;
   min-width: 100vw;
-  background: #e0c7a6;
+  background: linear-gradient(180deg, #0c0e14, #141726);
   display: flex;
   flex-direction: column;
 }
-
-
+ 
 .shop-top {
-  background: linear-gradient(180deg, #e2d6c6, #e0c7a6);
+  background: linear-gradient(180deg, #0c0e14, #141726);
   min-height: 180px;
   display: flex;
   align-items: center;
   padding: 10px 10px;
   position: relative;
   box-sizing: border-box;
-  border-bottom: 1px solid #b39f86;
+  border-bottom: 1px solid #2f3550;
 }
-
+ 
 .shop-player-icon {
   width: 85px;
   height: 85px;
   border-radius: 50%;
-  background: linear-gradient(145deg, #e6d6bf, #bfa88c);
-  color: #2f241b;
+  background-image:
+    linear-gradient(145deg, #1b1f2e, #0c0e14),
+    linear-gradient(135deg, #5f6dff 0%, #8b25ff 50%, #ab8cff 100%);
+  background-origin: border-box;
+  background-clip: padding-box, border-box;
+  border: 1px solid transparent;
+  color: #eef0ff;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -42,116 +47,123 @@
   font-weight: 700;
   line-height: 1.1;
   flex-shrink: 0;
-  border: 1px solid #9f8b73;
   overflow: hidden;
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.55);
 }
-
+ 
 .shop-user-text {
   margin-left: 28px;
-  color: #2f241b;
+  color: #eef0ff;
   font-weight: bold;
   line-height: 1.1;
 }
-
+ 
 .shop-username,
 .shop-userid {
   font-size: 32px;
-  color: #2f241b;
+  color: #eef0ff;
 }
-
+ 
 .shop-close-btn {
   position: absolute;
   top: 18px;
   right: 16px;
   width: 50px;
   height: 50px;
-  border: none;
+  border: 1px solid #2f3550;
   border-radius: 50%;
-  background: #2a2017;
-  color: white;
+  background: linear-gradient(145deg, #1b1f2e, #141726);
+  color: #cfd4ff;
   font-size: 32px;
   font-weight: bold;
   cursor: pointer;
+  transition: filter 0.15s ease, transform 0.15s ease;
 }
-
+ 
+.shop-close-btn:hover {
+  filter: brightness(1.15);
+  transform: translateY(-1px);
+}
+ 
 .shop-header-row {
-  background: #cfbda5;
+  background: linear-gradient(180deg, #141726, #0c0e14);
   display: flex;
   align-items: center;
   padding: 12px;
-  border-bottom: 1px solid #b39f86;
+  border-bottom: 1px solid #2f3550;
 }
-
+ 
 .shop-title {
   font-size: 22px;
   font-weight: bold;
-  color: #2f241b;
+  color: #eef0ff;
+  letter-spacing: 0.05em;
 }
-
-
-
+ 
 .shop-list {
   flex: 1;
   overflow-y: auto;
   padding-bottom: 24px;
 }
-
+ 
 .shop-section {
   padding-top: 10px;
 }
-
+ 
 .shop-section-header {
   padding: 0 18px 12px;
 }
-
+ 
 .shop-section-title {
   margin: 0;
   font-size: 22px;
   font-weight: 800;
-  color: #2f241b;
+  color: #eef0ff;
+  letter-spacing: 0.03em;
 }
-
+ 
 .shop-section-description {
   margin: 6px 0 0;
-  color: #6d563a;
+  color: #7b83b8;
   font-weight: 600;
+  font-size: 13px;
 }
-
+ 
 .shop-section-items {
   display: flex;
   flex-direction: column;
 }
-
-
 
 .shop-card {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 18px;
-  background: #cfbda5;
+  background: linear-gradient(145deg, #1b1f2e, #141726);
   padding: 18px;
-  border-bottom: 12px solid #e0c7a6;
+  border-bottom: 12px solid #0c0e14;
   box-sizing: border-box;
   min-height: 140px;
+  transition: filter 0.15s ease;
 }
-
-
-
+ 
+.shop-card:hover {
+  filter: brightness(1.04);
+}
+ 
 .shop-card-left {
   display: flex;
   align-items: center;
   gap: 18px;
   flex: 1;
 }
-
-
-
+ 
 .shop-icon {
   width: 100px;
   height: 100px;
   border-radius: 20px;
-  background: linear-gradient(145deg, #e6d6bf, #bfa88c);
+  background: linear-gradient(145deg, #252a40, #1b1f2e);
+  border: 1px solid #2f3550;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -162,58 +174,65 @@
   padding: 0 8px;
   box-sizing: border-box;
   flex-shrink: 0;
-  border: 1px solid #9f8b73;
-  color: #2f241b;
+  color: #cfd4ff;
 }
-
+ 
 .shop-icon-image {
   width: 76px;
   height: 76px;
   object-fit: contain;
 }
-
-
-
+ 
 .shop-text {
   line-height: 1.2;
 }
-
+ 
 .shop-name {
   font-size: 22px;
   font-weight: bold;
-  color: #2f241b;
+  color: #eef0ff;
 }
-
+ 
 .shop-info {
-  font-size: 18px;
+  font-size: 16px;
   font-weight: bold;
-  color: #2f241b;
+  color: #7b83b8;
 }
-
+ 
 
 .buy-btn {
   width: 92px;
   height: 92px;
-  border: none;
+  border: 1px solid #3b4679;
   border-radius: 20px;
-  background: #2a2017;
-  color: white;
+  background: linear-gradient(135deg, #5f6dff 0%, #8b25ff 50%, #ab8cff 100%);
+  color: #ffffff;
   font-size: 18px;
   font-weight: bold;
   cursor: pointer;
   flex-shrink: 0;
+  font-family: inherit;
+  box-shadow: 0 8px 20px rgba(95, 109, 255, 0.3);
+  transition: transform 0.12s ease, box-shadow 0.12s ease;
 }
-
+ 
+.buy-btn:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 28px rgba(95, 109, 255, 0.4);
+}
+ 
 .buy-btn:disabled {
-  background: #bfa88c;
+  background: linear-gradient(145deg, #1b1f2e, #141726);
+  border-color: #2f3550;
   cursor: not-allowed;
-  color: #2f241b;
+  color: #3b4679;
+  box-shadow: none;
 }
-
-
+ 
 .shop-bottom {
   display: flex;
   justify-content: center;
   align-items: center;
   padding: 22px 0;
+  border-top: 1px solid #1f2338;
 }
