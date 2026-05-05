@@ -83,7 +83,7 @@
 }
 
 .add-friends-body {
-  padding: 12px 80px 40px;
+  padding: 12px 28px 80px 40px;
 }
 
 .add-friends-search-input {
@@ -114,10 +114,11 @@
 }
 
 .add-friends-result-row {
-  display: flex;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
   align-items: center;
-  justify-content: space-between;
-  gap: 16px;
+  column-gap: 16px;
+  width: 100%;
 }
 
 .add-friends-result-name {
@@ -168,4 +169,20 @@
 .request-actions {
   display: flex;
   gap: 10px;
+  justify-self: end;
+}
+
+
+.request-actions button {
+  width: 84px;
+  height: 36px;
+  padding: 0;
+  box-sizing: border-box;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  text-align: center;
+  white-space: nowrap;
 }
