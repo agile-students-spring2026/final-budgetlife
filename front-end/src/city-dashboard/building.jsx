@@ -49,13 +49,13 @@ export function TotalBudgetEditor({
   const inputStyle = {
     width: "100%",
     height: 42,
-    background: "#cfbda5",
-    border: "1px solid #b39f86",
+    background: "#141726",
+    border: "1px solid #3b4679",
     outline: "none",
     borderRadius: 8,
     padding: "0 12px",
     fontSize: 16,
-    color: "#2f241b",
+    color: "#eef0ff",
     boxSizing: "border-box",
   };
 
@@ -97,7 +97,7 @@ export function TotalBudgetEditor({
   return (
     <div>
       <div style={{ marginBottom: 10 }}>
-        <div style={{ fontSize: 13, color: "#6b5d4d", marginBottom: 4 }}>
+        <div style={{ fontSize: 13, color: "#7b83b8", marginBottom: 4 }}>
           Total budget goal
         </div>
         <input
@@ -110,7 +110,7 @@ export function TotalBudgetEditor({
       </div>
       <div style={{ display: "flex", gap: 8, marginBottom: 10 }}>
         <div style={{ flex: 1 }}>
-          <div style={{ fontSize: 13, color: "#6b5d4d", marginBottom: 4 }}>
+          <div style={{ fontSize: 13, color: "#7b83b8", marginBottom: 4 }}>
             Start
           </div>
           <input
@@ -121,7 +121,7 @@ export function TotalBudgetEditor({
           />
         </div>
         <div style={{ flex: 1 }}>
-          <div style={{ fontSize: 13, color: "#6b5d4d", marginBottom: 4 }}>
+          <div style={{ fontSize: 13, color: "#7b83b8", marginBottom: 4 }}>
             End
           </div>
           <input
@@ -139,7 +139,7 @@ export function TotalBudgetEditor({
           disabled={saving}
           style={{
             flex: 1,
-            background: "#7c3aed",
+            background: "linear-gradient(135deg, #5f6dff, #8b25ff)",
             color: "#fff",
             border: "none",
             borderRadius: 8,
@@ -157,9 +157,9 @@ export function TotalBudgetEditor({
           disabled={saving}
           style={{
             flex: 1,
-            background: "#bfa88c",
-            color: "#2f241b",
-            border: "1px solid #b39f86",
+            background: "linear-gradient(145deg, #1b1f2e, #141726)",
+            color: "#cfd4ff",
+            border: "1px solid #2f3550",
             borderRadius: 8,
             padding: "10px 16px",
             fontWeight: 700,
@@ -170,7 +170,7 @@ export function TotalBudgetEditor({
           Cancel
         </button>
       </div>
-      <div style={{ marginTop: 6, fontSize: 13, color: "#6b5d4d" }}>
+      <div style={{ marginTop: 6, fontSize: 13, color: "#7b83b8" }}>
         Minimum total: ${minGoal}
       </div>
       {error && (
@@ -565,8 +565,8 @@ export function DisplayMenu({ building, onClose }) {
     >
       <div
         style={{
-          background: "linear-gradient(180deg, #e2d6c6, #e0c7a6)",
-          color: "#2f241b",
+          background: "linear-gradient(180deg, #1b1f2e, #0c0e14)",
+          color: "#eef0ff",
           borderBottomLeftRadius: 24,
           borderBottomRightRadius: 24,
           padding: "32px 24px 24px 24px",
@@ -579,7 +579,8 @@ export function DisplayMenu({ building, onClose }) {
           maxWidth: 600,
           width: "90vw",
           margin: "0 auto",
-          border: "1px solid #b39f86",
+          border: "1px solid #3b4679",
+          boxShadow: "0 8px 32px rgba(0,0,0,0.6)",
         }}
       >
         <h2
@@ -597,12 +598,12 @@ export function DisplayMenu({ building, onClose }) {
         <div style={{ display: "flex", gap: 12, marginBottom: 16, flexWrap: "wrap" }}>
           <span
             style={{
-              background: "#cfbda5",
+              background: "linear-gradient(145deg, #1b1f2e, #141726)",
               borderRadius: 8,
               padding: "4px 12px",
               fontWeight: 700,
-              color: "#2f241b",
-              border: "1px solid #b39f86",
+              color: "#cfd4ff",
+              border: "1px solid #3b4679",
             }}
           >
             Level {building.level}
@@ -610,12 +611,12 @@ export function DisplayMenu({ building, onClose }) {
 
           <span
             style={{
-              background: "#cfbda5",
+              background: "linear-gradient(145deg, #1b1f2e, #141726)",
               borderRadius: 8,
               padding: "4px 12px",
               fontWeight: 700,
-              color: "#2f241b",
-              border: "1px solid #b39f86",
+              color: "#cfd4ff",
+              border: "1px solid #3b4679",
             }}
           >
             {building.category}
@@ -657,13 +658,13 @@ export function DisplayMenu({ building, onClose }) {
           {!isEditable ? (
             <div
               style={{
-                background: "#cfbda5",
+                background: "linear-gradient(145deg, #1b1f2e, #141726)",
                 borderRadius: 8,
                 padding: "10px 16px",
                 fontSize: 16,
-                color: "#6b5d4d",
+                color: "#7b83b8",
                 boxSizing: "border-box",
-                border: "1px solid #b39f86",
+                border: "1px solid #2f3550",
               }}
             >
               ${localBudget}{" "}
@@ -690,13 +691,13 @@ export function DisplayMenu({ building, onClose }) {
               onClick={handleStartEdit}
               style={{
                 width: "100%",
-                background: "#cfbda5",
-                border: "1px solid #b39f86",
+                background: "linear-gradient(145deg, #1b1f2e, #141726)",
+                border: "1px solid #2f3550",
                 outline: "none",
                 borderRadius: 8,
                 padding: "10px 16px",
                 fontSize: 16,
-                color: "#2f241b",
+                color: "#eef0ff",
                 textAlign: "left",
                 cursor: "pointer",
                 boxSizing: "border-box",
@@ -719,13 +720,13 @@ export function DisplayMenu({ building, onClose }) {
                     flex: 1,
                     minWidth: 0,
                     height: 42,
-                    background: "#cfbda5",
-                    border: "1px solid #b39f86",
+                    background: "#141726",
+                    border: "1px solid #3b4679",
                     outline: "none",
                     borderRadius: 8,
                     padding: "0 16px",
                     fontSize: 16,
-                    color: "#2f241b",
+                    color: "#eef0ff",
                     boxSizing: "border-box",
                   }}
                 />
@@ -734,7 +735,7 @@ export function DisplayMenu({ building, onClose }) {
                   onClick={handleSaveGoal}
                   disabled={saving}
                   style={{
-                    background: "#7c3aed",
+                    background: "linear-gradient(135deg, #5f6dff, #8b25ff)",
                     color: "#fff",
                     border: "none",
                     borderRadius: 8,
@@ -751,9 +752,9 @@ export function DisplayMenu({ building, onClose }) {
                   onClick={handleCancelEdit}
                   disabled={saving}
                   style={{
-                    background: "#bfa88c",
-                    color: "#2f241b",
-                    border: "1px solid #b39f86",
+                    background: "linear-gradient(145deg, #1b1f2e, #141726)",
+                    color: "#cfd4ff",
+                    border: "1px solid #2f3550",
                     borderRadius: 8,
                     padding: "0 16px",
                     fontWeight: 700,
@@ -764,7 +765,7 @@ export function DisplayMenu({ building, onClose }) {
                   Cancel
                 </button>
               </div>
-              <div style={{ marginTop: 6, fontSize: 13, color: "#6b5d4d" }}>
+              <div style={{ marginTop: 6, fontSize: 13, color: "#7b83b8" }}>
                 {maxAllowed === null
                   ? "Loading limits…"
                   : `Allowed range: $${minAllowed} – $${maxAllowed}`}
@@ -781,17 +782,17 @@ export function DisplayMenu({ building, onClose }) {
         </div>
 
         <div style={{ marginBottom: 18, width: "100%", maxWidth: 400 }}>
-          <div style={{ fontWeight: 700, fontSize: 18, marginBottom: 6 }}>
+          <div style={{ fontWeight: 700, fontSize: 18, marginBottom: 6, color: "#eef0ff" }}>
             History
           </div>
           <div
             style={{
-              background: "#cfbda5",
+              background: "linear-gradient(145deg, #1b1f2e, #141726)",
               borderRadius: 8,
               padding: "8px 16px",
-              color: "#2f241b",
+              color: "#cfd4ff",
               fontSize: 15,
-              border: "1px solid #b39f86",
+              border: "1px solid #2f3550",
             }}
           >
             {building.history && building.history.length > 0 ? (
