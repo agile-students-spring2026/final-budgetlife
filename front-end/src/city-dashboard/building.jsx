@@ -187,6 +187,7 @@ export function BuildingBox({ building, onClick }) {
   const barWidth = boxSize;
   const fontSize = isPrimary ? "1.35rem" : "1.1rem";
   const upgradeTier = level >= 10 ? 2 : level >= 5 ? 1 : 0;
+  const hasSprite = Boolean(sprite);
   const tierLabel = upgradeTier === 2 ? "Tier III" : upgradeTier === 1 ? "Tier II" : null;
   const placeholderTheme =
     upgradeTier === 2
@@ -236,7 +237,7 @@ export function BuildingBox({ building, onClick }) {
       )}
 
       <div
-        className={sprite && upgradeTier === 0 ? undefined : "building-box"}
+        className={hasSprite ? undefined : "building-box"}
         style={{
           width: boxSize,
           height: boxSize,
@@ -244,10 +245,10 @@ export function BuildingBox({ building, onClick }) {
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
-          background: sprite && upgradeTier === 0 ? "none" : upgradeTier > 0 ? placeholderTheme.background : undefined,
-          boxShadow: sprite && upgradeTier === 0 ? "none" : upgradeTier > 0 ? placeholderTheme.boxShadow : undefined,
-          border: upgradeTier > 0 ? placeholderTheme.border : "none",
-          borderRadius: upgradeTier > 0 ? 20 : undefined,
+          background: hasSprite ? "none" : upgradeTier > 0 ? placeholderTheme.background : undefined,
+          boxShadow: hasSprite ? "none" : upgradeTier > 0 ? placeholderTheme.boxShadow : undefined,
+          border: !hasSprite && upgradeTier > 0 ? placeholderTheme.border : "none",
+          borderRadius: !hasSprite && upgradeTier > 0 ? 20 : undefined,
           padding: 0,
           margin: 0,
           position: "relative",
@@ -256,7 +257,7 @@ export function BuildingBox({ building, onClick }) {
         }}
         onClick={onClick}
       >
-        {sprite && upgradeTier === 0 ? (
+        {hasSprite ? (
           <img
             src={sprite}
             alt={name}

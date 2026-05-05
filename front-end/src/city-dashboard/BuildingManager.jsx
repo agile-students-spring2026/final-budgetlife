@@ -1,9 +1,17 @@
 import { useContext, useEffect, useMemo, useRef, useState } from "react";
 import CityHallImg from "../../ArtAssets/Buildings/CityHall.png";
+import CityHallTier2Img from "../../ArtAssets/Buildings/CityHall2.png";
+import CityHallTier3Img from "../../ArtAssets/Buildings/CityHall3.png";
 import CinemaImg from "../../ArtAssets/Buildings/Secondary/Cinema.png";
+import CinemaTier2Img from "../../ArtAssets/Buildings/Secondary/Cinema2.png";
 import HospitalImg from "../../ArtAssets/Buildings/Secondary/Hospital.png";
+import HospitalTier2Img from "../../ArtAssets/Buildings/Secondary/Hospital2.png";
+import HospitalTier3Img from "../../ArtAssets/Buildings/Secondary/Hospital3.png";
 import HousesImg from "../../ArtAssets/Buildings/Secondary/Houses.png";
+import HousesTier2Img from "../../ArtAssets/Buildings/Secondary/Houses2.png";
 import RestaurantImg from "../../ArtAssets/Buildings/Secondary/Restraunt.png";
+import RestaurantTier2Img from "../../ArtAssets/Buildings/Secondary/Restraunt2.png";
+import RestaurantTier3Img from "../../ArtAssets/Buildings/Secondary/Restraunt3.png";
 import GrassBackground from "../../ArtAssets/GrassBackground.png";
 import { claimReward, getBudgetGoals, getBuildingHealth, getTransactions } from "../api/budgetApi";
 import { useAuth } from "../context/Auth_Context";
@@ -26,6 +34,14 @@ const HEALTH_TO_BUDGET_CATEGORY = {
   restaurant: "food",
   hospital:   "health",
   cinema:     "entertainment",
+};
+
+const BUILDING_SPRITES = {
+  cityhall: [CityHallImg, CityHallTier2Img, CityHallTier3Img],
+  houses: [HousesImg, HousesTier2Img, HousesTier2Img],
+  restaurant: [RestaurantImg, RestaurantTier2Img, RestaurantTier3Img],
+  hospital: [HospitalImg, HospitalTier2Img, HospitalTier3Img],
+  cinema: [CinemaImg, CinemaTier2Img, CinemaTier2Img],
 };
 
 function buildHistoryForBuilding(b, txMap) {
@@ -225,27 +241,17 @@ function buildPlaceholderTiles(city, cityWidth, cityHeight, tileSize) {
 }
 
 function getBuildingSprite(building) {
-  if (building.type === "primary") return CityHallImg;
+  const key = building.healthCategory || (building.type === "primary" ? "cityhall" : "");
+  const spriteSet = BUILDING_SPRITES[key];
 
-  const key = (building.name || building.category || "").toLowerCase();
-
-  if (key.includes("house") || key.includes("housing") || key.includes("residential")) {
-    return HousesImg;
+  if (!spriteSet) {
+    return null;
   }
 
-  if (key.includes("restaurant") || key.includes("food")) {
-    return RestaurantImg;
-  }
+  const level = Number(building.level) || 1;
+  const tierIndex = level >= 10 ? 2 : level >= 5 ? 1 : 0;
 
-  if (key.includes("hospital") || key.includes("health")) {
-    return HospitalImg;
-  }
-
-  if (key.includes("cinema") || key.includes("movie") || key.includes("entertainment")) {
-    return CinemaImg;
-  }
-
-  return null;
+  return spriteSet[tierIndex] || spriteSet[Math.min(tierIndex, 1)] || spriteSet[0] || null;
 }
 
 // Helper to create default city state
