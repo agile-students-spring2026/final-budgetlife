@@ -68,6 +68,10 @@ function BudgetSetupModal({ username, onComplete }) {
                 startDate,
                 endDate,
             });
+            if (typeof window.refreshBuildingHealth === "function") {
+                window.refreshBuildingHealth();
+            }
+            window.dispatchEvent(new Event("budget:refresh"));
             onComplete();
         } catch (err) {
             setError(err.message || "Failed to save");

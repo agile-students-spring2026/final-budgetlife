@@ -341,12 +341,7 @@ export function DisplayMenu({ building, onClose }) {
     }
   };
 
-  const header = document.querySelector(".budget-header");
-  if (header) header.style.display = "none";
-
   const handleClose = () => {
-    const header = document.querySelector(".budget-header");
-    if (header) header.style.display = "";
     window.dispatchEvent(new Event("budget:refresh")); // re-fetch on close
     onClose();
   };
