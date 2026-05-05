@@ -1,0 +1,52 @@
+name: Deploy BudgetLife
+
+on:
+  push:
+    branches:
+      - master
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Test backend
+        working-directory: back-end
+        run: |
+          npm install
+          npm test
+
+      - name: Build frontend
+        working-directory: front-end
+        run: |
+          npm install
+          npm run build
+
+      - name: Set up SSH
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.DROPLET_SSH_KEY }}" > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+          ssh-keyscan -H ${{ secrets.DROPLET_HOST }} >> ~/.ssh/known_hosts
+
+      - name: Copy frontend build to Droplet
+        run: |
+          rsync -avz --delete \
+            -e "ssh -i ~/.ssh/deploy_key" \
+            front-end/dist/ \
+            ${{ secrets.DROPLET_USER }}@${{ secrets.DROPLET_HOST }}:/var/www/final-budgetlife/front-end/dist/
+
+      - name: Update backend and restart PM2
+        run: |
+          ssh -i ~/.ssh/deploy_key ${{ secrets.DROPLET_USER }}@${{ secrets.DROPLET_HOST }} << 'EOF'
+            cd /var/www/final-budgetlife
+            git pull
+            cd back-end
+            npm install
+            pm2 restart budgetlife-backend
+            pm2 save
+            sudo systemctl reload nginx
+          EOF

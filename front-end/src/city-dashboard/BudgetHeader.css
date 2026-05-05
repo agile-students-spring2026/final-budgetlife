@@ -16,6 +16,7 @@
 
 .budget-panel {
   flex: 1;
+  min-width: 0;
 }
 
 .budget-title {
@@ -121,30 +122,33 @@
 
 .budget-period-row {
   margin-top: 6px;
-  display: flex;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 122px;
   gap: 6px;
   width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
 }
 
 .budget-period,
 .budget-days-left {
+  min-width: 0;
   font-size: 12px;
   font-weight: 600;
   color: #cfd4ff;
   background: linear-gradient(145deg, #1b1f2e, #141726);
   border: 1px solid #2f3550;
   border-radius: 8px;
-  padding: 4px 10px;
+  padding: 4px 5px;
   text-align: center;
   box-sizing: border-box;
   white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  letter-spacing: 0.03em;
+  letter-spacing: 0;
 }
 
 .budget-period {
-  flex: 2;
+  overflow: hidden;
+  text-overflow: ellipsis;
   cursor: pointer;
 }
 
@@ -153,7 +157,8 @@
 }
 
 .budget-days-left {
-  flex: 1;
+  overflow: visible;
+  text-overflow: clip;
 }
 
 .budget-date-detail {
