@@ -3,10 +3,6 @@ import "./Building.css";
 import { useAuth } from "../context/Auth_Context";
 import { getBudgetGoals, updateBudgetGoal, updateBudgetDates } from "../api/budgetApi";
 
-// Maps building.healthCategory ("houses", "restaurant", ...) to the backend
-// budget category key ("housing", "food", ...). Duplicated from
-// BuildingManager.jsx to avoid a circular import (BuildingManager imports
-// BuildingBox from this file).
 const HEALTH_TO_BUDGET_CATEGORY = {
   cityhall: "total",
   houses: "housing",
@@ -15,7 +11,6 @@ const HEALTH_TO_BUDGET_CATEGORY = {
   cinema: "entertainment",
 };
 
-// Building class definition
 class Building {
   constructor({ type, level, name, category, budget, location }) {
     this.type = type;
@@ -27,62 +22,97 @@ class Building {
   }
 }
 
-// Shared editor for the user's total budget goal and budget period dates.
-// Used by City Hall (DisplayMenu) and by the BudgetHeader progress bar.
-export function TotalBudgetEditor({
-  username,
-  initialGoal,
-  initialStartDate,
-  initialEndDate,
-  minGoal = 0,
-  onSaved,
-  onCancel,
-}) {
+
+const T = {
+  bgBase:       "#0c0e14",
+  bgRaised:     "#141726",
+  bgSurface:    "#1b1f2e",
+  borderDim:    "#1f2338",
+  borderMid:    "#2f3550",
+  borderBright: "#3b4679",
+  textPrimary:  "#eef0ff",
+  textSecondary:"#cfd4ff",
+  textMuted:    "#7b83b8",
+  accentGrad:   "linear-gradient(135deg, #5f6dff 0%, #8b25ff 50%, #ab8cff 100%)",
+  accentFrom:   "#5f6dff",
+  accentTo:     "#ab8cff",
+  errorColor:   "#ff9b8a",
+};
+
+const inputStyle = {
+  width: "100%",
+  height: 42,
+  background: "#1b1f2e",
+  border: "1px solid #2f3550",
+  outline: "none",
+  borderRadius: 8,
+  padding: "0 12px",
+  fontSize: 16,
+  color: "#eef0ff",
+  boxSizing: "border-box",
+  fontFamily: "inherit",
+  transition: "border-color 0.15s ease",
+};
+
+const pillStyle = {
+  background: "#1b1f2e",
+  borderRadius: 8,
+  padding: "4px 12px",
+  fontWeight: 700,
+  color: "#cfd4ff",
+  border: "1px solid #2f3550",
+  fontSize: 13,
+  letterSpacing: "0.04em",
+};
+
+const btnPrimary = (disabled) => ({
+  flex: 1,
+  background: disabled ? "#1b1f2e" : "linear-gradient(135deg, #5f6dff 0%, #8b25ff 50%, #ab8cff 100%)",
+  color: "#ffffff",
+  border: "1px solid #3b4679",
+  borderRadius: 8,
+  padding: "10px 16px",
+  fontWeight: 700,
+  cursor: disabled ? "default" : "pointer",
+  opacity: disabled ? 0.45 : 1,
+  fontFamily: "inherit",
+  letterSpacing: "0.04em",
+  boxShadow: disabled ? "none" : "0 6px 14px rgba(95,109,255,0.3)",
+});
+
+const btnSecondary = (disabled) => ({
+  flex: 1,
+  background: "#1b1f2e",
+  color: "#cfd4ff",
+  border: "1px solid #2f3550",
+  borderRadius: 8,
+  padding: "10px 16px",
+  fontWeight: 700,
+  cursor: disabled ? "default" : "pointer",
+  opacity: disabled ? 0.45 : 1,
+  fontFamily: "inherit",
+});
+
+
+export function TotalBudgetEditor({ username, initialGoal, initialStartDate, initialEndDate, minGoal = 0, onSaved, onCancel }) {
   const [goal, setGoal] = useState(String(initialGoal ?? ""));
   const [startDate, setStartDate] = useState(initialStartDate || "");
   const [endDate, setEndDate] = useState(initialEndDate || "");
   const [error, setError] = useState("");
   const [saving, setSaving] = useState(false);
 
-  const inputStyle = {
-    width: "100%",
-    height: 42,
-    background: "#cfbda5",
-    border: "1px solid #b39f86",
-    outline: "none",
-    borderRadius: 8,
-    padding: "0 12px",
-    fontSize: 16,
-    color: "#2f241b",
-    boxSizing: "border-box",
-  };
-
   const handleSave = async () => {
     const numericGoal = Number(goal);
-    if (!Number.isFinite(numericGoal)) {
-      setError("Enter a valid number");
-      return;
-    }
-    if (numericGoal < minGoal) {
-      setError(`Total must be at least $${minGoal}`);
-      return;
-    }
-    if (!startDate || !endDate) {
-      setError("Please select both dates");
-      return;
-    }
-    if (startDate > endDate) {
-      setError("Start date must be before end date");
-      return;
-    }
+    if (!Number.isFinite(numericGoal)) { setError("Enter a valid number"); return; }
+    if (numericGoal < minGoal) { setError(`Total must be at least $${minGoal}`); return; }
+    if (!startDate || !endDate) { setError("Please select both dates"); return; }
+    if (startDate > endDate) { setError("Start date must be before end date"); return; }
     try {
       setSaving(true);
       await updateBudgetGoal(username, "total", numericGoal);
       await updateBudgetDates(username, startDate, endDate);
       setError("");
-      if (typeof window.refreshBuildingHealth === "function") {
-        window.refreshBuildingHealth();
-      }
+      if (typeof window.refreshBuildingHealth === "function") window.refreshBuildingHealth();
       window.dispatchEvent(new Event("budget:refresh"));
       onSaved?.({ goal: numericGoal, startDate, endDate });
     } catch (err) {
@@ -95,277 +125,117 @@ export function TotalBudgetEditor({
   return (
     <div>
       <div style={{ marginBottom: 10 }}>
-        <div style={{ fontSize: 13, color: "#6b5d4d", marginBottom: 4 }}>
+        <div style={{ fontSize: 11, color: T.textMuted, marginBottom: 4, textTransform: "uppercase", letterSpacing: "0.05em", fontWeight: 600 }}>
           Total budget goal
         </div>
-        <input
-          type="number"
-          value={goal}
-          onChange={(e) => setGoal(e.target.value)}
-          style={inputStyle}
-          autoFocus
-        />
+        <input type="number" value={goal} onChange={(e) => setGoal(e.target.value)} style={inputStyle} autoFocus />
       </div>
+
       <div style={{ display: "flex", gap: 8, marginBottom: 10 }}>
-        <div style={{ flex: 1 }}>
-          <div style={{ fontSize: 13, color: "#6b5d4d", marginBottom: 4 }}>
-            Start
+        {[["Start", startDate, setStartDate], ["End", endDate, setEndDate]].map(([label, val, setter]) => (
+          <div key={label} style={{ flex: 1 }}>
+            <div style={{ fontSize: 11, color: T.textMuted, marginBottom: 4, textTransform: "uppercase", letterSpacing: "0.05em", fontWeight: 600 }}>
+              {label}
+            </div>
+            <input type="date" value={val} onChange={(e) => setter(e.target.value)} style={inputStyle} />
           </div>
-          <input
-            type="date"
-            value={startDate}
-            onChange={(e) => setStartDate(e.target.value)}
-            style={inputStyle}
-          />
-        </div>
-        <div style={{ flex: 1 }}>
-          <div style={{ fontSize: 13, color: "#6b5d4d", marginBottom: 4 }}>
-            End
-          </div>
-          <input
-            type="date"
-            value={endDate}
-            onChange={(e) => setEndDate(e.target.value)}
-            style={inputStyle}
-          />
-        </div>
+        ))}
       </div>
+
       <div style={{ display: "flex", gap: 8 }}>
-        <button
-          type="button"
-          onClick={handleSave}
-          disabled={saving}
-          style={{
-            flex: 1,
-            background: "#7c3aed",
-            color: "#fff",
-            border: "none",
-            borderRadius: 8,
-            padding: "10px 16px",
-            fontWeight: 700,
-            cursor: saving ? "default" : "pointer",
-            opacity: saving ? 0.6 : 1,
-          }}
-        >
-          Save
-        </button>
-        <button
-          type="button"
-          onClick={onCancel}
-          disabled={saving}
-          style={{
-            flex: 1,
-            background: "#bfa88c",
-            color: "#2f241b",
-            border: "1px solid #b39f86",
-            borderRadius: 8,
-            padding: "10px 16px",
-            fontWeight: 700,
-            cursor: saving ? "default" : "pointer",
-            opacity: saving ? 0.6 : 1,
-          }}
-        >
-          Cancel
-        </button>
+        <button type="button" onClick={handleSave} disabled={saving} style={btnPrimary(saving)}>Save</button>
+        <button type="button" onClick={onCancel} disabled={saving} style={btnSecondary(saving)}>Cancel</button>
       </div>
-      <div style={{ marginTop: 6, fontSize: 13, color: "#6b5d4d" }}>
-        Minimum total: ${minGoal}
-      </div>
-      {error && (
-        <div style={{ marginTop: 6, fontSize: 13, color: "#ff6b6b" }}>
-          {error}
-        </div>
-      )}
+
+      <div style={{ marginTop: 6, fontSize: 12, color: T.textMuted }}>Minimum total: ${minGoal}</div>
+      {error && <div style={{ marginTop: 6, fontSize: 13, color: T.errorColor }}>{error}</div>}
     </div>
   );
 }
+
 
 export function BuildingBox({ building, onClick }) {
   const { i, budget, spent, name, type, showBudget, sprite, level = 1 } = building;
   const isPrimary = type === "primary";
   const boxSize = isPrimary ? 280 : 200;
-  const barWidth = boxSize;
   const fontSize = isPrimary ? "1.35rem" : "1.1rem";
   const upgradeTier = level >= 10 ? 2 : level >= 5 ? 1 : 0;
   const tierLabel = upgradeTier === 2 ? "Tier III" : upgradeTier === 1 ? "Tier II" : null;
+
   const placeholderTheme =
     upgradeTier === 2
       ? {
-          background: "linear-gradient(160deg, #f6e7b6 0%, #d6a84f 42%, #6e4a1f 100%)",
-          border: "3px solid #f5d36a",
-          boxShadow: "0 18px 30px rgba(91, 58, 14, 0.42)",
-          accent: "#fff4be",
-          labelBg: "rgba(87, 48, 6, 0.82)",
+          background: "linear-gradient(160deg, #1b1f2e 0%, #3b4679 42%, #5f6dff 100%)",
+          border: "3px solid #ab8cff",
+          boxShadow: "0 18px 30px rgba(95,109,255,0.35)",
+          accent: T.textPrimary,
+          labelBg: "rgba(11,13,26,0.85)",
           subtitle: "Skyline upgrade ready",
         }
       : upgradeTier === 1
         ? {
-            background: "linear-gradient(160deg, #d9ecff 0%, #78aef5 45%, #294f80 100%)",
-            border: "3px solid #d6ecff",
-            boxShadow: "0 14px 24px rgba(24, 54, 96, 0.36)",
-            accent: "#edf7ff",
-            labelBg: "rgba(17, 52, 96, 0.8)",
+            background: "linear-gradient(160deg, #141726 0%, #2f3550 45%, #3b4679 100%)",
+            border: "3px solid #3b4679",
+            boxShadow: "0 14px 24px rgba(59,70,121,0.45)",
+            accent: T.textSecondary,
+            labelBg: "rgba(11,13,26,0.8)",
             subtitle: "Neighborhood upgrade ready",
           }
         : null;
 
   return (
-    <div
-      style={{
-        position: "relative",
-        display: "inline-block",
-        width: boxSize,
-        height: boxSize,
-        overflow: "visible",
-      }}
-    >
+    <div style={{ position: "relative", display: "inline-block", width: boxSize, height: boxSize, overflow: "visible" }}>
       {showBudget && (
-        <div
-          style={{
-            position: "absolute",
-            left: "50%",
-            top: isPrimary ? "-44px" : "-32px",
-            transform: "translateX(-50%)",
-            zIndex: 10,
-            minWidth: isPrimary ? 180 : 120,
-            pointerEvents: "none",
-          }}
-        >
-          {displayBudget({ budget, spent, width: barWidth, isPrimary })}
+        <div style={{ position: "absolute", left: "50%", top: isPrimary ? "-44px" : "-32px", transform: "translateX(-50%)", zIndex: 10, minWidth: isPrimary ? 180 : 120, pointerEvents: "none" }}>
+          {displayBudget({ budget, spent, width: boxSize, isPrimary })}
         </div>
       )}
 
       <div
         className={sprite && upgradeTier === 0 ? undefined : "building-box"}
         style={{
-          width: boxSize,
-          height: boxSize,
-          fontSize,
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
+          width: boxSize, height: boxSize, fontSize,
+          display: "flex", alignItems: "center", justifyContent: "center",
           background: sprite && upgradeTier === 0 ? "none" : upgradeTier > 0 ? placeholderTheme.background : undefined,
           boxShadow: sprite && upgradeTier === 0 ? "none" : upgradeTier > 0 ? placeholderTheme.boxShadow : undefined,
           border: upgradeTier > 0 ? placeholderTheme.border : "none",
           borderRadius: upgradeTier > 0 ? 20 : undefined,
-          padding: 0,
-          margin: 0,
-          position: "relative",
-          overflow: "visible",
-          cursor: "pointer",
+          padding: 0, margin: 0, position: "relative", overflow: "visible", cursor: "pointer",
         }}
         onClick={onClick}
       >
         {sprite && upgradeTier === 0 ? (
-          <img
-            src={sprite}
-            alt={name}
-            style={{
-              position: "absolute",
-              left: "50%",
-              top: "50%",
-              width: boxSize * 2,
-              height: boxSize * 2,
-              transform: "translate(-50%, -50%)",
-              objectFit: "contain",
-              pointerEvents: "none",
-            }}
-          />
+          <img src={sprite} alt={name} style={{ position: "absolute", left: "50%", top: "50%", width: boxSize * 2, height: boxSize * 2, transform: "translate(-50%, -50%)", objectFit: "contain", pointerEvents: "none" }} />
         ) : upgradeTier > 0 ? (
-          <div
-            style={{
-              width: "100%",
-              height: "100%",
-              borderRadius: 18,
-              position: "relative",
-              overflow: "hidden",
-              color: placeholderTheme.accent,
-              padding: isPrimary ? 18 : 14,
-              display: "flex",
-              flexDirection: "column",
-              justifyContent: "space-between",
-              textAlign: "left",
-            }}
-          >
-            <div
-              style={{
-                position: "absolute",
-                inset: 10,
-                borderRadius: 14,
-                border: `1px solid ${placeholderTheme.accent}55`,
-                pointerEvents: "none",
-              }}
-            />
+          <div style={{ width: "100%", height: "100%", borderRadius: 18, position: "relative", overflow: "hidden", color: placeholderTheme.accent, padding: isPrimary ? 18 : 14, display: "flex", flexDirection: "column", justifyContent: "space-between", textAlign: "left" }}>
+            <div style={{ position: "absolute", inset: 10, borderRadius: 14, border: `1px solid ${placeholderTheme.accent}44`, pointerEvents: "none" }} />
             <div style={{ position: "relative", zIndex: 1 }}>
-              <div
-                style={{
-                  display: "inline-flex",
-                  alignItems: "center",
-                  padding: isPrimary ? "6px 12px" : "5px 10px",
-                  borderRadius: 999,
-                  background: placeholderTheme.labelBg,
-                  fontSize: isPrimary ? 14 : 12,
-                  fontWeight: 800,
-                  letterSpacing: 0.8,
-                  textTransform: "uppercase",
-                }}
-              >
+              <div style={{ display: "inline-flex", alignItems: "center", padding: isPrimary ? "6px 12px" : "5px 10px", borderRadius: 999, background: placeholderTheme.labelBg, fontSize: isPrimary ? 14 : 12, fontWeight: 800, letterSpacing: 0.8, textTransform: "uppercase", border: `1px solid ${T.borderBright}` }}>
                 {tierLabel}
               </div>
             </div>
-
             <div style={{ position: "relative", zIndex: 1 }}>
-              <div
-                style={{
-                  fontSize: isPrimary ? 34 : 26,
-                  fontWeight: 900,
-                  lineHeight: 1,
-                  marginBottom: 8,
-                  textShadow: "0 4px 12px rgba(0,0,0,0.24)",
-                }}
-              >
+              <div style={{ fontSize: isPrimary ? 34 : 26, fontWeight: 900, lineHeight: 1, marginBottom: 8, textShadow: "0 4px 12px rgba(0,0,0,0.4)" }}>
                 {name || `Building ${i}`}
               </div>
-              <div
-                style={{
-                  fontSize: isPrimary ? 16 : 13,
-                  fontWeight: 700,
-                  opacity: 0.92,
-                  marginBottom: 12,
-                }}
-              >
+              <div style={{ fontSize: isPrimary ? 16 : 13, fontWeight: 700, opacity: 0.85, marginBottom: 12, color: T.textMuted }}>
                 {placeholderTheme.subtitle}
               </div>
-              <div
-                style={{
-                  display: "flex",
-                  gap: 8,
-                  alignItems: "flex-end",
-                  height: isPrimary ? 82 : 64,
-                }}
-              >
+              <div style={{ display: "flex", gap: 8, alignItems: "flex-end", height: isPrimary ? 82 : 64 }}>
                 {[0.45, 0.65, 0.9, 0.72].map((height, index) => (
-                  <div
-                    key={index}
-                    style={{
-                      flex: 1,
-                      height: `${height * 100}%`,
-                      borderRadius: "10px 10px 4px 4px",
-                      background: "rgba(255,255,255,0.22)",
-                      border: `1px solid ${placeholderTheme.accent}33`,
-                    }}
-                  />
+                  <div key={index} style={{ flex: 1, height: `${height * 100}%`, borderRadius: "10px 10px 4px 4px", background: "rgba(95,109,255,0.18)", border: `1px solid ${T.accentFrom}44` }} />
                 ))}
               </div>
             </div>
           </div>
         ) : (
-          <div style={{ fontWeight: "bold" }}>{name || `Building ${i}`}</div>
+          <div style={{ fontWeight: "bold", color: T.textPrimary }}>{name || `Building ${i}`}</div>
         )}
       </div>
     </div>
   );
 }
+
 
 export function DisplayMenu({ building, onClose }) {
   const { currentUser } = useAuth();
@@ -386,8 +256,6 @@ export function DisplayMenu({ building, onClose }) {
     }
   }, [building]);
 
-  // Pull a fresh snapshot of all goals when entering edit mode so the cap
-  // (total - sum of other categories) reflects the latest backend state.
   useEffect(() => {
     if (!editingGoal || !currentUser?.username) return;
     let cancelled = false;
@@ -399,22 +267,18 @@ export function DisplayMenu({ building, onClose }) {
         if (!cancelled) setGoalError("Failed to load budget data");
       }
     })();
-    return () => {
-      cancelled = true;
-    };
+    return () => { cancelled = true; };
   }, [editingGoal, currentUser?.username]);
 
   if (!building) return null;
 
   const budgetCategory = HEALTH_TO_BUDGET_CATEGORY[building.healthCategory];
-  // School has no healthCategory mapping so it's non-editable; everything
-  // else (including City Hall / total) is editable.
   const isEditable = !!budgetCategory;
   const isTotal = budgetCategory === "total";
-
   const minAllowed = Math.max(0, building.spent || 0);
   let maxAllowed = null;
   let totalMinAllowed = minAllowed;
+
   if (goalsSnapshot && budgetCategory) {
     const totalGoal = goalsSnapshot.total?.goal || 0;
     let othersSum = 0;
@@ -423,9 +287,6 @@ export function DisplayMenu({ building, onClose }) {
       othersSum += entry?.goal || 0;
     }
     maxAllowed = Math.max(0, totalGoal - othersSum);
-
-    // Total must be at least (sum of all category goals) and at least
-    // what has already been spent overall.
     let allCategoriesSum = 0;
     for (const [cat, entry] of Object.entries(goalsSnapshot)) {
       if (cat === "total") continue;
@@ -440,36 +301,20 @@ export function DisplayMenu({ building, onClose }) {
     setGoalError("");
     setEditingGoal(true);
   };
-
-  const handleCancelEdit = () => {
-    setEditingGoal(false);
-    setGoalError("");
-  };
+  const handleCancelEdit = () => { setEditingGoal(false); setGoalError(""); };
 
   const handleSaveGoal = async () => {
     const value = Number(draftGoal);
-    if (!Number.isFinite(value)) {
-      setGoalError("Enter a valid number");
-      return;
-    }
-    if (value < minAllowed) {
-      setGoalError(`Cannot be less than current spent ($${minAllowed})`);
-      return;
-    }
-    if (maxAllowed !== null && value > maxAllowed) {
-      setGoalError(`Cannot exceed $${maxAllowed} (total budget cap)`);
-      return;
-    }
+    if (!Number.isFinite(value)) { setGoalError("Enter a valid number"); return; }
+    if (value < minAllowed) { setGoalError(`Cannot be less than current spent ($${minAllowed})`); return; }
+    if (maxAllowed !== null && value > maxAllowed) { setGoalError(`Cannot exceed $${maxAllowed} (total budget cap)`); return; }
     try {
       setSaving(true);
       await updateBudgetGoal(currentUser.username, budgetCategory, value);
       setLocalBudget(value);
       setEditingGoal(false);
       setGoalError("");
-      // Tell BuildingManager + BudgetHeader to re-fetch.
-      if (typeof window.refreshBuildingHealth === "function") {
-        window.refreshBuildingHealth();
-      }
+      if (typeof window.refreshBuildingHealth === "function") window.refreshBuildingHealth();
     } catch (err) {
       setGoalError(err.message || "Update failed");
     } finally {
@@ -483,136 +328,60 @@ export function DisplayMenu({ building, onClose }) {
   const handleClose = () => {
     const header = document.querySelector(".budget-header");
     if (header) header.style.display = "";
+    window.dispatchEvent(new Event("budget:refresh")); // re-fetch on close
     onClose();
   };
 
   const handleOverlayClick = (e) => {
-    if (e.target.classList.contains("display-menu-overlay")) {
-      handleClose();
-    }
+    if (e.target.classList.contains("display-menu-overlay")) handleClose();
   };
 
   return (
     <div
       className="display-menu-overlay"
       onClick={handleOverlayClick}
-      style={{
-        position: "fixed",
-        top: 0,
-        left: 0,
-        width: "100vw",
-        height: "40vh",
-        zIndex: 9999,
-        background: "transparent",
-      }}
+      style={{ position: "fixed", top: 0, left: 0, width: "100vw", height: "40vh", zIndex: 9999, background: "transparent" }}
     >
-      <div
-        style={{
-          background: "linear-gradient(180deg, #e2d6c6, #e0c7a6)",
-          color: "#2f241b",
-          borderBottomLeftRadius: 24,
-          borderBottomRightRadius: 24,
-          padding: "32px 24px 24px 24px",
-          transition: "transform 0.4s cubic-bezier(.77,0,.18,1)",
-          transform: "translateY(0)",
-          display: "flex",
-          flexDirection: "column",
-          alignItems: "center",
-          justifyContent: "flex-start",
-          maxWidth: 600,
-          width: "90vw",
-          margin: "0 auto",
-          border: "1px solid #b39f86",
-        }}
-      >
-        <h2
-          style={{
-            marginTop: 0,
-            marginBottom: 16,
-            fontSize: 32,
-            wordBreak: "break-word",
-            maxWidth: "100%",
-          }}
-        >
+      <div style={{
+        background: "linear-gradient(180deg, #0c0e14, #1b1f2e)",
+        color: T.textPrimary,
+        borderBottomLeftRadius: 24,
+        borderBottomRightRadius: 24,
+        padding: "32px 24px 24px",
+        transition: "transform 0.4s cubic-bezier(.77,0,.18,1)",
+        display: "flex", flexDirection: "column", alignItems: "center",
+        maxWidth: 600, width: "90vw", margin: "0 auto",
+        border: `1px solid ${T.borderMid}`,
+        borderTop: "none",
+        boxShadow: "0 25px 50px rgba(0,0,0,0.7), inset 0 1px 0 rgba(255,255,255,0.04)",
+      }}>
+
+        <h2 style={{ marginTop: 0, marginBottom: 16, fontSize: 32, wordBreak: "break-word", maxWidth: "100%", color: T.textPrimary, letterSpacing: "0.03em" }}>
           {building.name || `Building ${building.i}`}
         </h2>
 
         <div style={{ display: "flex", gap: 12, marginBottom: 16, flexWrap: "wrap" }}>
-          <span
-            style={{
-              background: "#cfbda5",
-              borderRadius: 8,
-              padding: "4px 12px",
-              fontWeight: 700,
-              color: "#2f241b",
-              border: "1px solid #b39f86",
-            }}
-          >
-            Level {building.level}
-          </span>
-
-          <span
-            style={{
-              background: "#cfbda5",
-              borderRadius: 8,
-              padding: "4px 12px",
-              fontWeight: 700,
-              color: "#2f241b",
-              border: "1px solid #b39f86",
-            }}
-          >
-            {building.category}
-          </span>
+          <span style={pillStyle}>Level {building.level}</span>
+          <span style={pillStyle}>{building.category}</span>
         </div>
 
-        <div
-          style={{
-            marginBottom: 18,
-            width: "100%",
-            maxWidth: 400,
-            cursor: "pointer",
-          }}
-          onClick={(e) => {
-            e.stopPropagation();
-            setShowExpBar((prev) => !prev);
-          }}
-        >
+        {/* Budget / EXP toggle */}
+        <div style={{ marginBottom: 18, width: "100%", maxWidth: 400, cursor: "pointer" }}
+          onClick={(e) => { e.stopPropagation(); setShowExpBar((p) => !p); }}>
           {showExpBar
-            ? displayExp({
-                currentExp: building.currentExp,
-                expToNextLevel: building.expToNextLevel,
-                width: "100%",
-                isPrimary: building.type === "primary",
-              })
-            : displayBudget({
-                budget: localBudget,
-                spent: building.spent,
-                width: "100%",
-                isPrimary: building.type === "primary",
-              })}
+            ? displayExp({ currentExp: building.currentExp, expToNextLevel: building.expToNextLevel, width: "100%", isPrimary: building.type === "primary" })
+            : displayBudget({ budget: localBudget, spent: building.spent, width: "100%", isPrimary: building.type === "primary" })}
         </div>
 
+        {/* Budget goal */}
         <div style={{ marginBottom: 18, width: "100%", maxWidth: 400 }}>
-          <div style={{ fontWeight: 700, fontSize: 18, marginBottom: 6 }}>
+          <div style={{ fontWeight: 700, fontSize: 11, marginBottom: 8, color: T.textMuted, textTransform: "uppercase", letterSpacing: "0.05em" }}>
             Budget goal
           </div>
 
           {!isEditable ? (
-            <div
-              style={{
-                background: "#cfbda5",
-                borderRadius: 8,
-                padding: "10px 16px",
-                fontSize: 16,
-                color: "#6b5d4d",
-                boxSizing: "border-box",
-                border: "1px solid #b39f86",
-              }}
-            >
-              ${localBudget}{" "}
-              <span style={{ opacity: 0.7, fontSize: 13 }}>
-                (not editable)
-              </span>
+            <div style={{ background: T.bgSurface, borderRadius: 8, padding: "10px 16px", fontSize: 16, color: T.textMuted, boxSizing: "border-box", border: `1px solid ${T.borderMid}` }}>
+              ${localBudget} <span style={{ opacity: 0.6, fontSize: 13 }}>(not editable)</span>
             </div>
           ) : isTotal && editingGoal ? (
             <TotalBudgetEditor
@@ -621,127 +390,37 @@ export function DisplayMenu({ building, onClose }) {
               initialStartDate={goalsSnapshot?.total?.startDate || ""}
               initialEndDate={goalsSnapshot?.total?.endDate || ""}
               minGoal={totalMinAllowed}
-              onSaved={({ goal }) => {
-                setLocalBudget(goal);
-                setEditingGoal(false);
-              }}
+              onSaved={({ goal }) => { setLocalBudget(goal); setEditingGoal(false); }}
               onCancel={handleCancelEdit}
             />
           ) : !editingGoal ? (
-            <button
-              type="button"
-              onClick={handleStartEdit}
-              style={{
-                width: "100%",
-                background: "#cfbda5",
-                border: "1px solid #b39f86",
-                outline: "none",
-                borderRadius: 8,
-                padding: "10px 16px",
-                fontSize: 16,
-                color: "#2f241b",
-                textAlign: "left",
-                cursor: "pointer",
-                boxSizing: "border-box",
-              }}
-            >
-              ${localBudget}{" "}
-              <span style={{ opacity: 0.6, fontSize: 13 }}>
-                — tap to edit
-              </span>
+            <button type="button" onClick={handleStartEdit} style={{ width: "100%", background: T.bgSurface, border: `1px solid ${T.borderMid}`, outline: "none", borderRadius: 8, padding: "10px 16px", fontSize: 16, color: T.textPrimary, textAlign: "left", cursor: "pointer", boxSizing: "border-box", fontFamily: "inherit" }}>
+              ${localBudget} <span style={{ opacity: 0.5, fontSize: 13, color: T.textMuted }}>— tap to edit</span>
             </button>
           ) : (
             <div>
               <div style={{ display: "flex", gap: 8 }}>
-                <input
-                  type="number"
-                  value={draftGoal}
-                  onChange={(e) => setDraftGoal(e.target.value)}
-                  autoFocus
-                  style={{
-                    flex: 1,
-                    minWidth: 0,
-                    height: 42,
-                    background: "#cfbda5",
-                    border: "1px solid #b39f86",
-                    outline: "none",
-                    borderRadius: 8,
-                    padding: "0 16px",
-                    fontSize: 16,
-                    color: "#2f241b",
-                    boxSizing: "border-box",
-                  }}
-                />
-                <button
-                  type="button"
-                  onClick={handleSaveGoal}
-                  disabled={saving}
-                  style={{
-                    background: "#7c3aed",
-                    color: "#fff",
-                    border: "none",
-                    borderRadius: 8,
-                    padding: "0 16px",
-                    fontWeight: 700,
-                    cursor: saving ? "default" : "pointer",
-                    opacity: saving ? 0.6 : 1,
-                  }}
-                >
-                  Save
-                </button>
-                <button
-                  type="button"
-                  onClick={handleCancelEdit}
-                  disabled={saving}
-                  style={{
-                    background: "#bfa88c",
-                    color: "#2f241b",
-                    border: "1px solid #b39f86",
-                    borderRadius: 8,
-                    padding: "0 16px",
-                    fontWeight: 700,
-                    cursor: saving ? "default" : "pointer",
-                    opacity: saving ? 0.6 : 1,
-                  }}
-                >
-                  Cancel
-                </button>
+                <input type="number" value={draftGoal} onChange={(e) => setDraftGoal(e.target.value)} autoFocus style={{ ...inputStyle, flex: 1, minWidth: 0 }} />
+                <button type="button" onClick={handleSaveGoal} disabled={saving} style={{ ...btnPrimary(saving), flex: "none", padding: "0 16px" }}>Save</button>
+                <button type="button" onClick={handleCancelEdit} disabled={saving} style={{ ...btnSecondary(saving), flex: "none", padding: "0 16px" }}>Cancel</button>
               </div>
-              <div style={{ marginTop: 6, fontSize: 13, color: "#6b5d4d" }}>
-                {maxAllowed === null
-                  ? "Loading limits…"
-                  : `Allowed range: $${minAllowed} – $${maxAllowed}`}
+              <div style={{ marginTop: 6, fontSize: 12, color: T.textMuted }}>
+                {maxAllowed === null ? "Loading limits…" : `Allowed range: $${minAllowed} – $${maxAllowed}`}
               </div>
-              {goalError && (
-                <div
-                  style={{ marginTop: 6, fontSize: 13, color: "#ff6b6b" }}
-                >
-                  {goalError}
-                </div>
-              )}
+              {goalError && <div style={{ marginTop: 6, fontSize: 13, color: T.errorColor }}>{goalError}</div>}
             </div>
           )}
         </div>
 
+        {/* History */}
         <div style={{ marginBottom: 18, width: "100%", maxWidth: 400 }}>
-          <div style={{ fontWeight: 700, fontSize: 18, marginBottom: 6 }}>
+          <div style={{ fontWeight: 700, fontSize: 11, marginBottom: 8, color: T.textMuted, textTransform: "uppercase", letterSpacing: "0.05em" }}>
             History
           </div>
-          <div
-            style={{
-              background: "#cfbda5",
-              borderRadius: 8,
-              padding: "8px 16px",
-              color: "#2f241b",
-              fontSize: 15,
-              border: "1px solid #b39f86",
-            }}
-          >
-            {building.history && building.history.length > 0 ? (
-              building.history.map((entry, index) => <div key={index}>{entry}</div>)
-            ) : (
-              <div>No history yet</div>
-            )}
+          <div style={{ background: T.bgSurface, borderRadius: 8, padding: "8px 16px", color: T.textSecondary, fontSize: 15, border: `1px solid ${T.borderMid}` }}>
+            {building.history?.length > 0
+              ? building.history.map((entry, index) => <div key={index}>{entry}</div>)
+              : <div style={{ color: T.textMuted }}>No history yet</div>}
           </div>
         </div>
       </div>
@@ -758,83 +437,82 @@ export function displayBudget({ budget, spent, width = 200, isPrimary = false })
   const fontSize = isPrimary ? 18 : 14;
 
   return (
-    <div style={{ width, marginBottom: 8, fontFamily: 'Poppins, Segoe UI, Arial, sans-serif', letterSpacing: 0.2, userSelect: 'none' }}>
-      <div
-        className="budget-values"
-        style={{
-          display: "flex",
-          width: "100%",
-          borderRadius: 14,
-          overflow: "visible",
-          height: barHeight,
-          boxShadow: "0 2px 12px rgba(80,0,120,0.10)",
-          border: "2px solid #3a185a",
-          background: "#23202e",
-          position: "relative"
-        }}
-      >
-        <div
-          className="budget-left"
-          style={{
-            width: spent > 0 ? `${leftPercent}%` : "100%",
-            background: "linear-gradient(90deg, #b47bff 0%, #7c3aed 100%)",
-            color: "#fff",
-            padding: isPrimary ? "10px 18px" : "7px 12px",
-            fontSize: fontSize + 2,
-            fontWeight: 600,
-            borderTopLeftRadius: 12,
-            borderBottomLeftRadius: 12,
-            borderTopRightRadius: spent > 0 ? 0 : 12,
-            borderBottomRightRadius: spent > 0 ? 0 : 12,
+    <div style={{ width, marginBottom: 8, userSelect: "none" }}>
+      <div style={{
+        display: "flex",
+        width: "100%",
+        borderRadius: 10,
+        overflow: "visible",
+        height: barHeight,
+        border: "1px solid #2f3550",
+        background: "#141726",
+        position: "relative",
+      }}>
+        {/* Left segment — remaining */}
+        <div style={{
+          width: spent > 0 ? `${leftPercent}%` : "100%",
+          background: "linear-gradient(135deg, #5f6dff 0%, #8b25ff 50%, #ab8cff 100%)",
+          borderTopLeftRadius: 9,
+          borderBottomLeftRadius: 9,
+          borderTopRightRadius: spent > 0 ? 0 : 9,
+          borderBottomRightRadius: spent > 0 ? 0 : 9,
+          transition: "width 0.5s cubic-bezier(.77,0,.18,1)",
+          boxSizing: "border-box",
+          height: "100%",
+          boxShadow: "inset 0 1px 0 rgba(255,255,255,0.15)",
+          overflow: "hidden",
+        }} />
+
+        {/* Right segment — spent */}
+        {spent > 0 && (
+          <div style={{
+            width: `${spentPercent}%`,
+            background: "linear-gradient(135deg, #1b1f2e 0%, #2f3550 100%)",
+            minWidth: 30,
+            borderTopRightRadius: 9,
+            borderBottomRightRadius: 9,
+            borderLeft: "1px solid #3b4679",
             transition: "width 0.5s cubic-bezier(.77,0,.18,1)",
-            textAlign: "left",
             boxSizing: "border-box",
-            display: "flex",
-            alignItems: "center",
+            overflow: "hidden",
             height: "100%",
-            boxShadow: "0 0 12px 0 #b47bff55 inset"
-          }}
-        >
-          <span style={{
-            textShadow: "0 2px 8px #3a185a99, 0 0 8px #fff2",
-            fontWeight: 700,
-            fontFamily: 'Poppins, Segoe UI, Arial, sans-serif',
-            fontSize: fontSize + 2,
-            letterSpacing: 0.3
-          }}>{left} <span style={{fontWeight:400, fontSize: fontSize-2, opacity:0.8}}>left</span></span>
+          }} />
+        )}
+
+        {/* Left label — always on top */}
+        <div style={{
+          position: "absolute",
+          top: 0, left: 0,
+          height: "100%",
+          display: "flex",
+          alignItems: "center",
+          paddingLeft: isPrimary ? 18 : 10,
+          pointerEvents: "none",
+          zIndex: 2,
+          whiteSpace: "nowrap",
+        }}>
+          <span style={{ fontSize: fontSize + 2, fontWeight: 700, color: "#ffffff", letterSpacing: 0.3, textShadow: "0 1px 4px rgba(0,0,0,0.7), 0 0 8px rgba(0,0,0,0.5)" }}>
+            {left}{" "}
+            <span style={{ fontWeight: 400, fontSize: fontSize - 2, opacity: 0.8 }}>left</span>
+          </span>
         </div>
 
+        {/* Right label — always on top */}
         {spent > 0 && (
-          <div
-            className="budget-right"
-            style={{
-              width: `${spentPercent}%`,
-              background: "linear-gradient(90deg, #ffb347 0%, #ff5252 100%)",
-              color: "#fff",
-              padding: isPrimary ? "10px 18px" : "7px 12px",
-              fontSize: fontSize + 2,
-              fontWeight: 600,
-              minWidth: 30,
-              textAlign: "center",
-              borderTopRightRadius: 12,
-              borderBottomRightRadius: 12,
-              transition: "width 0.5s cubic-bezier(.77,0,.18,1)",
-              boxSizing: "border-box",
-              overflow: "hidden",
-              whiteSpace: "nowrap",
-              display: "flex",
-              alignItems: "center",
-              height: "100%",
-              boxShadow: "0 0 12px 0 #ffb34755 inset"
-            }}
-          >
-            <span style={{
-              textShadow: "0 2px 8px #7c3aed99, 0 0 8px #fff2",
-              fontWeight: 700,
-              fontFamily: 'Poppins, Segoe UI, Arial, sans-serif',
-              fontSize: fontSize + 2,
-              letterSpacing: 0.3
-            }}>-${spent}</span>
+          <div style={{
+            position: "absolute",
+            top: 0, right: 0,
+            height: "100%",
+            display: "flex",
+            alignItems: "center",
+            paddingRight: isPrimary ? 18 : 10,
+            pointerEvents: "none",
+            zIndex: 2,
+            whiteSpace: "nowrap",
+          }}>
+            <span style={{ fontSize: fontSize + 2, fontWeight: 700, color: "#cfd4ff", letterSpacing: 0.3, textShadow: "0 1px 4px rgba(0,0,0,0.7), 0 0 8px rgba(0,0,0,0.5)" }}>
+              -${spent}
+            </span>
           </div>
         )}
       </div>
@@ -846,55 +524,13 @@ export function displayHealth({ health = 100, width = 200, isPrimary = false }) 
   const clamped = Math.max(0, Math.min(100, health));
   const barHeight = isPrimary ? 16 : 12;
   const fontSize = isPrimary ? 12 : 10;
-
-  // Color goes from green (full) → yellow (mid) → red (empty)
-  const color =
-    clamped >= 66 ? "#3cb371" : clamped >= 33 ? "#e6b800" : "#cc3b2a";
+  const color = clamped >= 66 ? "#3cb371" : clamped >= 33 ? "#e6b800" : "#cc3b2a";
 
   return (
-    <div
-      style={{
-        width,
-        marginTop: 8,
-        marginLeft: "auto",
-        marginRight: "auto",
-      }}
-    >
-      <div
-        style={{
-          position: "relative",
-          width: "100%",
-          height: barHeight,
-          background: "#222",
-          borderRadius: 6,
-          overflow: "hidden",
-          border: "1px solid #444",
-        }}
-      >
-        <div
-          style={{
-            width: `${clamped}%`,
-            height: "100%",
-            background: color,
-            transition: "width 0.4s, background 0.4s",
-          }}
-        />
-        <div
-          style={{
-            position: "absolute",
-            top: 0,
-            left: 0,
-            width: "100%",
-            height: "100%",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            fontSize,
-            fontWeight: 800,
-            color: "#fff",
-            textShadow: "0 1px 2px rgba(0,0,0,0.6)",
-          }}
-        >
+    <div style={{ width, marginTop: 8, marginLeft: "auto", marginRight: "auto" }}>
+      <div style={{ position: "relative", width: "100%", height: barHeight, background: T.bgBase, borderRadius: 6, overflow: "hidden", border: `1px solid ${T.borderMid}` }}>
+        <div style={{ width: `${clamped}%`, height: "100%", background: color, transition: "width 0.4s, background 0.4s" }} />
+        <div style={{ position: "absolute", top: 0, left: 0, width: "100%", height: "100%", display: "flex", alignItems: "center", justifyContent: "center", fontSize, fontWeight: 800, color: "#fff", textShadow: "0 1px 2px rgba(0,0,0,0.6)" }}>
           {clamped}% HP
         </div>
       </div>
@@ -902,12 +538,8 @@ export function displayHealth({ health = 100, width = 200, isPrimary = false }) 
   );
 }
 
-export function displayExp({
-  currentExp = 0,
-  expToNextLevel = 100,
-  width = 200,
-  isPrimary = false,
-}) {
+
+export function displayExp({ currentExp = 0, expToNextLevel = 100, width = 200, isPrimary = false }) {
   const total = Math.max(1, expToNextLevel);
   const clampedExp = Math.min(currentExp, total);
   const expPercent = (clampedExp / total) * 100;
@@ -917,50 +549,32 @@ export function displayExp({
 
   return (
     <div style={{ width, marginBottom: 8 }}>
-      <div
-        style={{
-          display: "flex",
-          width: "100%",
-          borderRadius: 8,
-          overflow: "hidden",
-          height: barHeight,
-        }}
-      >
-        <div
-          style={{
-            width: `${expPercent}%`,
-            background: "#1f4d99",
-            color: "#fff",
-            padding: isPrimary ? "10px 16px" : "6px 10px",
-            fontSize,
-            fontWeight: 800,
-            boxSizing: "border-box",
-            display: "flex",
-            alignItems: "center",
-            height: "100%",
-            whiteSpace: "nowrap",
-          }}
-        >
+      <div style={{ display: "flex", width: "100%", borderRadius: 10, overflow: "hidden", height: barHeight, border: `1px solid ${T.borderMid}` }}>
+        <div style={{
+          width: `${expPercent}%`,
+          background: "linear-gradient(135deg, #5f6dff 0%, #8b25ff 50%, #ab8cff 100%)",
+          color: "#ffffff",
+          padding: isPrimary ? "10px 16px" : "6px 10px",
+          fontSize, fontWeight: 800,
+          boxSizing: "border-box",
+          display: "flex", alignItems: "center",
+          height: "100%", whiteSpace: "nowrap",
+          boxShadow: "inset 0 1px 0 rgba(255,255,255,0.15)",
+        }}>
           {currentExp} EXP
         </div>
-
-        <div
-          style={{
-            width: `${remainingPercent}%`,
-            background: "#8aa9d6",
-            color: "#fff",
-            padding: isPrimary ? "10px 16px" : "6px 10px",
-            fontSize,
-            fontWeight: 800,
-            boxSizing: "border-box",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            height: "100%",
-            whiteSpace: "nowrap",
-          }}
-        >
-            {expToNextLevel} EXP
+        <div style={{
+          width: `${remainingPercent}%`,
+          background: T.bgSurface,
+          color: T.textMuted,
+          padding: isPrimary ? "10px 16px" : "6px 10px",
+          fontSize, fontWeight: 700,
+          boxSizing: "border-box",
+          display: "flex", alignItems: "center", justifyContent: "center",
+          height: "100%", whiteSpace: "nowrap",
+          borderLeft: `1px solid ${T.borderMid}`,
+        }}>
+          {expToNextLevel} EXP
         </div>
       </div>
     </div>
