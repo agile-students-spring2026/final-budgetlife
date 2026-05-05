@@ -5,6 +5,9 @@ import { useAuth } from "./Auth_Context";
 export const BuildingContext = createContext();
 
 const SECONDARY_BUILDING_RADIUS = 700;
+// Stretch horizontal-axis buildings (Housing, Hospital) further out without
+// affecting the vertical-axis buildings (Food Market, Cinema) whose x ≈ 0.
+const HORIZONTAL_STRETCH = 1.45;
 
 // Maps a building's category/name to the healthCategory key expected by
 // the budget APIs. Returns null for buildings that aren't tied to a
@@ -65,7 +68,7 @@ function normalizeCityLayout(city) {
     normalizedBuildings.push({
       ...building,
       location: {
-        x: Math.round(SECONDARY_BUILDING_RADIUS * Math.cos(angle)),
+        x: Math.round(SECONDARY_BUILDING_RADIUS * Math.cos(angle) * HORIZONTAL_STRETCH),
         y: Math.round(SECONDARY_BUILDING_RADIUS * Math.sin(angle)),
       },
     });

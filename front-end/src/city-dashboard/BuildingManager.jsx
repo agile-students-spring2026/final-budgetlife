@@ -1,9 +1,17 @@
 import { useContext, useEffect, useMemo, useRef, useState } from "react";
 import CityHallImg from "../../ArtAssets/Buildings/CityHall.png";
+import CityHallTier2Img from "../../ArtAssets/Buildings/CityHall2.png";
+import CityHallTier3Img from "../../ArtAssets/Buildings/CityHall3.png";
 import CinemaImg from "../../ArtAssets/Buildings/Secondary/Cinema.png";
+import CinemaTier2Img from "../../ArtAssets/Buildings/Secondary/Cinema2.png";
 import HospitalImg from "../../ArtAssets/Buildings/Secondary/Hospital.png";
+import HospitalTier2Img from "../../ArtAssets/Buildings/Secondary/Hospital2.png";
+import HospitalTier3Img from "../../ArtAssets/Buildings/Secondary/Hospital3.png";
 import HousesImg from "../../ArtAssets/Buildings/Secondary/Houses.png";
+import HousesTier2Img from "../../ArtAssets/Buildings/Secondary/Houses2.png";
 import RestaurantImg from "../../ArtAssets/Buildings/Secondary/Restraunt.png";
+import RestaurantTier2Img from "../../ArtAssets/Buildings/Secondary/Restraunt2.png";
+import RestaurantTier3Img from "../../ArtAssets/Buildings/Secondary/Restraunt3.png";
 import GrassBackground from "../../ArtAssets/GrassBackground.png";
 import { claimReward, getBudgetGoals, getBuildingHealth, getTransactions } from "../api/budgetApi";
 import { useAuth } from "../context/Auth_Context";
@@ -26,6 +34,14 @@ const HEALTH_TO_BUDGET_CATEGORY = {
   restaurant: "food",
   hospital:   "health",
   cinema:     "entertainment",
+};
+
+const BUILDING_SPRITES = {
+  cityhall: [CityHallImg, CityHallTier2Img, CityHallTier3Img],
+  houses: [HousesImg, HousesTier2Img, HousesTier2Img],
+  restaurant: [RestaurantImg, RestaurantTier2Img, RestaurantTier3Img],
+  hospital: [HospitalImg, HospitalTier2Img, HospitalTier3Img],
+  cinema: [CinemaImg, CinemaTier2Img, CinemaTier2Img],
 };
 
 function buildHistoryForBuilding(b, txMap) {
@@ -225,27 +241,17 @@ function buildPlaceholderTiles(city, cityWidth, cityHeight, tileSize) {
 }
 
 function getBuildingSprite(building) {
-  if (building.type === "primary") return CityHallImg;
+  const key = building.healthCategory || (building.type === "primary" ? "cityhall" : "");
+  const spriteSet = BUILDING_SPRITES[key];
 
-  const key = (building.name || building.category || "").toLowerCase();
-
-  if (key.includes("house") || key.includes("housing") || key.includes("residential")) {
-    return HousesImg;
+  if (!spriteSet) {
+    return null;
   }
 
-  if (key.includes("restaurant") || key.includes("food")) {
-    return RestaurantImg;
-  }
+  const level = Number(building.level) || 1;
+  const tierIndex = level >= 10 ? 2 : level >= 5 ? 1 : 0;
 
-  if (key.includes("hospital") || key.includes("health")) {
-    return HospitalImg;
-  }
-
-  if (key.includes("cinema") || key.includes("movie") || key.includes("entertainment")) {
-    return CinemaImg;
-  }
-
-  return null;
+  return spriteSet[tierIndex] || spriteSet[Math.min(tierIndex, 1)] || spriteSet[0] || null;
 }
 
 // Helper to create default city state
@@ -352,11 +358,6 @@ export function BuildingManager({
   const CITY_HEIGHT = 1600;
   const TILEMAP_WIDTH = CITY_WIDTH * TILEMAP_MULTIPLIER;
   const TILEMAP_HEIGHT = CITY_HEIGHT * TILEMAP_MULTIPLIER;
-
-  const placeholderTiles = useMemo(
-    () => buildPlaceholderTiles(cityWithSprites, TILEMAP_WIDTH, TILEMAP_HEIGHT, TILE_SIZE),
-    [cityWithSprites, TILEMAP_WIDTH, TILEMAP_HEIGHT]
-  );
 
   useEffect(() => {
     playerPosRef.current = playerPos;
@@ -1122,45 +1123,6 @@ export function BuildingManager({
             zIndex: 0,
           }}
         />
-
-        <div
-          aria-hidden
-          style={{
-            position: "absolute",
-            left: `${-(TILEMAP_WIDTH - CITY_WIDTH) / 2}px`,
-            top: `${-(TILEMAP_HEIGHT - CITY_HEIGHT) / 2}px`,
-            width: `${TILEMAP_WIDTH}px`,
-            height: `${TILEMAP_HEIGHT}px`,
-            backgroundColor: "rgba(112, 157, 92, 0.22)",
-            backgroundImage: [
-              `linear-gradient(rgba(63, 101, 49, 0.12) 1px, transparent 1px)`,
-              `linear-gradient(90deg, rgba(63, 101, 49, 0.12) 1px, transparent 1px)`,
-            ].join(", "),
-            backgroundSize: `${TILE_SIZE}px ${TILE_SIZE}px`,
-            pointerEvents: "none",
-            zIndex: 0,
-          }}
-        >
-          {placeholderTiles.map((tile) => {
-            const tileStyle = TILE_STYLES[tile.type];
-
-            return (
-              <div
-                key={tile.key}
-                style={{
-                  position: "absolute",
-                  left: tile.left,
-                  top: tile.top,
-                  width: TILE_SIZE,
-                  height: TILE_SIZE,
-                  background: tileStyle.background,
-                  border: tileStyle.border,
-                  boxSizing: "border-box",
-                }}
-              />
-            );
-          })}
-        </div>
 
         <PlayerBox
           x={CITY_WIDTH / 2 + playerPos.x}

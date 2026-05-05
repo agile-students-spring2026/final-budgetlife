@@ -1,4 +1,6 @@
 import React, { useEffect, useState } from "react";
+import BuildingLotImg from "../../ArtAssets/Buildings/building-lot.png";
+import IslandBgImg from "../../ArtAssets/island-bg.png";
 import "./Building.css";
 import { useAuth } from "../context/Auth_Context";
 import { getBudgetGoals, updateBudgetGoal, updateBudgetDates } from "../api/budgetApi";
@@ -158,6 +160,14 @@ export function BuildingBox({ building, onClick }) {
   const { i, budget, spent, name, type, showBudget, sprite, level = 1 } = building;
   const isPrimary = type === "primary";
   const boxSize = isPrimary ? 280 : 200;
+  const lotWidth = isPrimary ? boxSize * 2.1 : boxSize * 1.8;
+  const floatDuration = `${2.6 + (i % 5) * 0.45}s`;
+  const floatDelay = `${((i * 0.73) % 2.2).toFixed(2)}s`;
+  const floatStyle = { "--float-duration": floatDuration, "--float-delay": floatDelay };
+  const lotBottomOffset = isPrimary ? -184 : -102;
+  const islandWidth = lotWidth * 1.45;
+  const islandBottomOffset = isPrimary ? -370 : -200;
+  const hasSprite = Boolean(sprite);
   const fontSize = isPrimary ? "1.35rem" : "1.1rem";
   const upgradeTier = level >= 10 ? 2 : level >= 5 ? 1 : 0;
   const tierLabel = upgradeTier === 2 ? "Tier III" : upgradeTier === 1 ? "Tier II" : null;
@@ -185,6 +195,14 @@ export function BuildingBox({ building, onClick }) {
 
   return (
     <div style={{ position: "relative", display: "inline-block", width: boxSize, height: boxSize, overflow: "visible" }}>
+      <div
+        className="building-float"
+        style={{ position: "absolute", inset: 0, overflow: "visible", pointerEvents: "none", ...floatStyle }}
+      >
+        <img src={IslandBgImg} alt="" aria-hidden style={{ position: "absolute", left: "50%", bottom: islandBottomOffset, width: islandWidth, transform: "translateX(-50%)", objectFit: "contain", pointerEvents: "none", zIndex: -1 }} />
+        <img src={BuildingLotImg} alt="" aria-hidden style={{ position: "absolute", left: "50%", bottom: lotBottomOffset, width: lotWidth, transform: "translateX(-50%)", objectFit: "contain", pointerEvents: "none", zIndex: 0 }} />
+      </div>
+
       {showBudget && (
         <div style={{ position: "absolute", left: "50%", top: isPrimary ? "-44px" : "-32px", transform: "translateX(-50%)", zIndex: 10, minWidth: isPrimary ? 180 : 120, pointerEvents: "none" }}>
           {displayBudget({ budget, spent, width: boxSize, isPrimary })}
@@ -192,19 +210,20 @@ export function BuildingBox({ building, onClick }) {
       )}
 
       <div
-        className={sprite && upgradeTier === 0 ? undefined : "building-box"}
+        className={`building-float${hasSprite ? "" : " building-box"}`}
         style={{
           width: boxSize, height: boxSize, fontSize,
           display: "flex", alignItems: "center", justifyContent: "center",
-          background: sprite && upgradeTier === 0 ? "none" : upgradeTier > 0 ? placeholderTheme.background : undefined,
-          boxShadow: sprite && upgradeTier === 0 ? "none" : upgradeTier > 0 ? placeholderTheme.boxShadow : undefined,
-          border: upgradeTier > 0 ? placeholderTheme.border : "none",
-          borderRadius: upgradeTier > 0 ? 20 : undefined,
-          padding: 0, margin: 0, position: "relative", overflow: "visible", cursor: "pointer",
+          background: hasSprite ? "none" : upgradeTier > 0 ? placeholderTheme.background : undefined,
+          boxShadow: hasSprite ? "none" : upgradeTier > 0 ? placeholderTheme.boxShadow : undefined,
+          border: !hasSprite && upgradeTier > 0 ? placeholderTheme.border : "none",
+          borderRadius: !hasSprite && upgradeTier > 0 ? 20 : undefined,
+          padding: 0, margin: 0, position: "relative", zIndex: 1, overflow: "visible", cursor: "pointer",
+          ...floatStyle,
         }}
         onClick={onClick}
       >
-        {sprite && upgradeTier === 0 ? (
+        {hasSprite ? (
           <img src={sprite} alt={name} style={{ position: "absolute", left: "50%", top: "50%", width: boxSize * 2, height: boxSize * 2, transform: "translate(-50%, -50%)", objectFit: "contain", pointerEvents: "none" }} />
         ) : upgradeTier > 0 ? (
           <div style={{ width: "100%", height: "100%", borderRadius: 18, position: "relative", overflow: "hidden", color: placeholderTheme.accent, padding: isPrimary ? 18 : 14, display: "flex", flexDirection: "column", justifyContent: "space-between", textAlign: "left" }}>
