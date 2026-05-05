@@ -1,4 +1,3 @@
-
 .budget-header {
   width: 100%;
   min-height: 100px;
@@ -33,23 +32,23 @@
 }
 
 .budget-values {
+  position: relative;
   display: flex;
   width: 100%;
+  height: 36px;
   border-radius: 10px;
-  overflow: hidden;
+  overflow: visible;
   border: 1px solid #2f3550;
   background: #141726;
 }
 
 .budget-left {
   background: linear-gradient(135deg, #5f6dff 0%, #8b25ff 40%, #ab8cff 100%);
-  color: #ffffff;
-  padding: 8px 12px;
-  font-size: 14px;
-  font-weight: 800;
-  flex: 1;
-  box-shadow: inset 0 -3px 6px rgba(0, 0, 0, 0.45);
+  border-radius: 9px 0 0 9px;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.15);
   position: relative;
+  overflow: hidden;
+  transition: width 0.5s cubic-bezier(.77, 0, .18, 1);
 }
 
 .budget-left::after {
@@ -61,14 +60,52 @@
 }
 
 .budget-right {
-  background: linear-gradient(145deg, #1b1f2e, #141726);
-  color: #cfd4ff;
-  padding: 8px 12px;
+  background: linear-gradient(135deg, #1b1f2e 0%, #2f3550 100%);
+  border-radius: 0 9px 9px 0;
+  border-left: 1px solid #3b4679;
+  overflow: hidden;
+  transition: width 0.5s cubic-bezier(.77, 0, .18, 1);
+}
+
+.budget-label-left {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  gap: 5px;                  
+  padding-left: 12px;
+  pointer-events: none;
+  z-index: 2;
+  white-space: nowrap;
+  font-size: 14px;
+  font-weight: 800;
+  color: #ffffff;
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.7), 0 0 8px rgba(0, 0, 0, 0.5);
+  letter-spacing: 0.03em;
+}
+
+.budget-label-right {
+  position: absolute;
+  top: 0;
+  right: 0;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  padding-right: 12px;
+  pointer-events: none;
+  z-index: 2;
+  white-space: nowrap;
   font-size: 14px;
   font-weight: 700;
-  min-width: 70px;
-  text-align: center;
-  border-left: 1px solid #2f3550;
+  color: #cfd4ff;
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.7), 0 0 8px rgba(0, 0, 0, 0.5);
+  letter-spacing: 0.03em;
+}
+
+.budget-values:hover {
+  filter: brightness(1.06);
 }
 
 .player-menu-wrapper {
@@ -114,10 +151,6 @@
   box-shadow:
     0 16px 30px rgba(0, 0, 0, 0.75),
     inset 0 1px 0 rgba(255, 255, 255, 0.06);
-}
-
-.budget-values:hover {
-  filter: brightness(1.06);
 }
 
 .budget-period-row {
@@ -173,12 +206,11 @@
 }
 
 .budget-date-label {
-  font-size: 13px;
+  font-size: 11px;
   color: #7b83b8;
   font-weight: 600;
   letter-spacing: 0.05em;
   text-transform: uppercase;
-  font-size: 11px;
 }
 
 .budget-date-value {
