@@ -359,11 +359,6 @@ export function BuildingManager({
   const TILEMAP_WIDTH = CITY_WIDTH * TILEMAP_MULTIPLIER;
   const TILEMAP_HEIGHT = CITY_HEIGHT * TILEMAP_MULTIPLIER;
 
-  const placeholderTiles = useMemo(
-    () => buildPlaceholderTiles(cityWithSprites, TILEMAP_WIDTH, TILEMAP_HEIGHT, TILE_SIZE),
-    [cityWithSprites, TILEMAP_WIDTH, TILEMAP_HEIGHT]
-  );
-
   useEffect(() => {
     playerPosRef.current = playerPos;
   }, [playerPos]);
@@ -1128,45 +1123,6 @@ export function BuildingManager({
             zIndex: 0,
           }}
         />
-
-        <div
-          aria-hidden
-          style={{
-            position: "absolute",
-            left: `${-(TILEMAP_WIDTH - CITY_WIDTH) / 2}px`,
-            top: `${-(TILEMAP_HEIGHT - CITY_HEIGHT) / 2}px`,
-            width: `${TILEMAP_WIDTH}px`,
-            height: `${TILEMAP_HEIGHT}px`,
-            backgroundColor: "rgba(112, 157, 92, 0.22)",
-            backgroundImage: [
-              `linear-gradient(rgba(63, 101, 49, 0.12) 1px, transparent 1px)`,
-              `linear-gradient(90deg, rgba(63, 101, 49, 0.12) 1px, transparent 1px)`,
-            ].join(", "),
-            backgroundSize: `${TILE_SIZE}px ${TILE_SIZE}px`,
-            pointerEvents: "none",
-            zIndex: 0,
-          }}
-        >
-          {placeholderTiles.map((tile) => {
-            const tileStyle = TILE_STYLES[tile.type];
-
-            return (
-              <div
-                key={tile.key}
-                style={{
-                  position: "absolute",
-                  left: tile.left,
-                  top: tile.top,
-                  width: TILE_SIZE,
-                  height: TILE_SIZE,
-                  background: tileStyle.background,
-                  border: tileStyle.border,
-                  boxSizing: "border-box",
-                }}
-              />
-            );
-          })}
-        </div>
 
         <PlayerBox
           x={CITY_WIDTH / 2 + playerPos.x}

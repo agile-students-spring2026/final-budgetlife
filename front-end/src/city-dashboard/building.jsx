@@ -1,4 +1,6 @@
 import React, { useEffect, useState } from "react";
+import BuildingLotImg from "../../ArtAssets/Buildings/building-lot.png";
+import IslandBgImg from "../../ArtAssets/island-bg.png";
 import "./Building.css";
 import { useAuth } from "../context/Auth_Context";
 import { getBudgetGoals, updateBudgetGoal, updateBudgetDates } from "../api/budgetApi";
@@ -184,6 +186,14 @@ export function BuildingBox({ building, onClick }) {
   const { i, budget, spent, name, type, showBudget, sprite, level = 1 } = building;
   const isPrimary = type === "primary";
   const boxSize = isPrimary ? 280 : 200;
+  const lotWidth = isPrimary ? boxSize * 2.1 : boxSize * 1.8;
+  // Unique-but-stable float timing per building derived from its index
+  const floatDuration = `${2.6 + (i % 5) * 0.45}s`;
+  const floatDelay = `${((i * 0.73) % 2.2).toFixed(2)}s`;
+  const floatStyle = { "--float-duration": floatDuration, "--float-delay": floatDelay };
+  const lotBottomOffset = isPrimary ? -184 : -102;
+  const islandWidth = lotWidth * 1.45;
+  const islandBottomOffset = isPrimary ? -370 : -200;
   const barWidth = boxSize;
   const fontSize = isPrimary ? "1.35rem" : "1.1rem";
   const upgradeTier = level >= 10 ? 2 : level >= 5 ? 1 : 0;
@@ -220,6 +230,50 @@ export function BuildingBox({ building, onClick }) {
         overflow: "visible",
       }}
     >
+      <div
+        className="building-float"
+        style={{
+          position: "absolute",
+          inset: 0,
+          overflow: "visible",
+          pointerEvents: "none",
+          ...floatStyle,
+        }}
+      >
+      <img
+        src={IslandBgImg}
+        alt=""
+        aria-hidden
+        style={{
+          position: "absolute",
+          left: "50%",
+          bottom: islandBottomOffset,
+          width: islandWidth,
+          transform: "translateX(-50%)",
+          objectFit: "contain",
+          pointerEvents: "none",
+          zIndex: -1,
+        }}
+      />
+
+      <img
+        src={BuildingLotImg}
+        alt=""
+        aria-hidden
+        style={{
+          position: "absolute",
+          left: "50%",
+          bottom: lotBottomOffset,
+          width: lotWidth,
+          transform: "translateX(-50%)",
+          objectFit: "contain",
+          pointerEvents: "none",
+          zIndex: 0,
+        }}
+      />
+
+      </div>
+
       {showBudget && (
         <div
           style={{
@@ -237,7 +291,7 @@ export function BuildingBox({ building, onClick }) {
       )}
 
       <div
-        className={hasSprite ? undefined : "building-box"}
+        className={`building-float${hasSprite ? "" : " building-box"}`}
         style={{
           width: boxSize,
           height: boxSize,
@@ -252,8 +306,10 @@ export function BuildingBox({ building, onClick }) {
           padding: 0,
           margin: 0,
           position: "relative",
+          zIndex: 1,
           overflow: "visible",
           cursor: "pointer",
+          ...floatStyle,
         }}
         onClick={onClick}
       >

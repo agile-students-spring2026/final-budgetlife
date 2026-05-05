@@ -1,4 +1,14 @@
 
+@keyframes buildingFloat {
+  0%   { transform: translateY(0px); }
+  50%  { transform: translateY(-14px); }
+  100% { transform: translateY(0px); }
+}
+
+.building-float {
+  animation: buildingFloat var(--float-duration, 3s) ease-in-out var(--float-delay, 0s) infinite;
+}
+
 .building-box {
 	width: 200px;
 	height: 200px;
