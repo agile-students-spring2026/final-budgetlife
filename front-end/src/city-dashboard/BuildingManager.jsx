@@ -969,14 +969,14 @@ export function BuildingManager({
         <div
           onClick={closeRewardPopup}
           style={{
-            position: "absolute",
+            position: "fixed",
             inset: 0,
-            background: "rgba(17, 12, 8, 0.64)",
+            background: "rgba(8, 10, 16, 0.82)",
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
             padding: 20,
-            zIndex: 25,
+            zIndex: 9999,
           }}
         >
           <div
@@ -985,20 +985,20 @@ export function BuildingManager({
               width: "min(560px, 100%)",
               maxHeight: "80vh",
               overflowY: "auto",
-              background: "linear-gradient(180deg, #f4e4c8 0%, #dcc29c 100%)",
-              border: "2px solid #7f5c37",
+              background: "linear-gradient(180deg, #0c0e14, #1b1f2e)",
+              border: "1px solid #3b4679",
               borderRadius: 20,
-              boxShadow: "0 18px 50px rgba(0, 0, 0, 0.32)",
+              boxShadow: "0 25px 60px rgba(0, 0, 0, 0.7), inset 0 1px 0 rgba(255,255,255,0.04)",
               padding: 24,
-              color: "#2f241b",
+              color: "#eef0ff",
             }}
           >
             <div style={{ display: "flex", justifyContent: "space-between", gap: 16, marginBottom: 18 }}>
               <div>
-                <div style={{ fontSize: 13, fontWeight: 700, letterSpacing: 1.2, textTransform: "uppercase", color: "#7b5a34", marginBottom: 6 }}>
+                <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: "#7b83b8", marginBottom: 6 }}>
                   Budget Reward
                 </div>
-                <h2 style={{ margin: 0, fontSize: 30, lineHeight: 1.1 }}>
+                <h2 style={{ margin: 0, fontSize: 30, lineHeight: 1.1, color: "#eef0ff", letterSpacing: "0.03em" }}>
                   {rewardHasPenalty ? "Budget interval settled" : "Buildings leveled up"}
                 </h2>
               </div>
@@ -1010,11 +1010,12 @@ export function BuildingManager({
                   width: 38,
                   height: 38,
                   borderRadius: 999,
-                  border: "1px solid #a17d52",
-                  background: "rgba(255,255,255,0.45)",
-                  color: "#5c4327",
+                  border: "1px solid #2f3550",
+                  background: "#1b1f2e",
+                  color: "#cfd4ff",
                   fontSize: 20,
                   cursor: "pointer",
+                  lineHeight: 1,
                 }}
               >
                 ×
@@ -1022,50 +1023,53 @@ export function BuildingManager({
             </div>
 
             <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(120px, 1fr))", gap: 10, marginBottom: 18 }}>
-              <div style={{ background: "rgba(255,255,255,0.38)", borderRadius: 14, padding: 12, border: "1px solid #c5ab85" }}>
-                <div style={{ fontSize: 12, textTransform: "uppercase", color: "#7b5a34", marginBottom: 4 }}>Total XP</div>
-                <div style={{ fontSize: 28, fontWeight: 800 }}>{rewardPopup.xpAwarded}</div>
-              </div>
-              <div style={{ background: "rgba(255,255,255,0.38)", borderRadius: 14, padding: 12, border: "1px solid #c5ab85" }}>
-                <div style={{ fontSize: 12, textTransform: "uppercase", color: "#7b5a34", marginBottom: 4 }}>Interval</div>
-                <div style={{ fontSize: 28, fontWeight: 800 }}>{rewardPopup.intervalDays}d</div>
-              </div>
-              <div style={{ background: "rgba(255,255,255,0.38)", borderRadius: 14, padding: 12, border: "1px solid #c5ab85" }}>
-                <div style={{ fontSize: 12, textTransform: "uppercase", color: "#7b5a34", marginBottom: 4 }}>Streak</div>
-                <div style={{ fontSize: 28, fontWeight: 800 }}>{rewardPopup.streakCount || 1}</div>
-              </div>
-              <div style={{ background: "rgba(255,255,255,0.38)", borderRadius: 14, padding: 12, border: "1px solid #c5ab85" }}>
-                <div style={{ fontSize: 12, textTransform: "uppercase", color: "#7b5a34", marginBottom: 4 }}>Streak Bonus</div>
-                <div style={{ fontSize: 28, fontWeight: 800 }}>+{rewardPopup.streakBonusXpPerBuilding || 0}</div>
-              </div>
+              {[
+                { label: "Total XP", value: rewardPopup.xpAwarded },
+                { label: "Interval", value: `${rewardPopup.intervalDays}d` },
+                { label: "Streak", value: rewardPopup.streakCount || 1 },
+                { label: "Streak Bonus", value: `+${rewardPopup.streakBonusXpPerBuilding || 0}` },
+              ].map(({ label, value }) => (
+                <div key={label} style={{ background: "#141726", borderRadius: 12, padding: 12, border: "1px solid #2f3550" }}>
+                  <div style={{ fontSize: 11, textTransform: "uppercase", letterSpacing: "0.08em", fontWeight: 600, color: "#7b83b8", marginBottom: 4 }}>{label}</div>
+                  <div style={{ fontSize: 26, fontWeight: 800, color: "#eef0ff" }}>{value}</div>
+                </div>
+              ))}
             </div>
 
-            <div style={{ marginBottom: 16, fontSize: 15, lineHeight: 1.5, color: "#5c4327" }}>
+            <div style={{ marginBottom: 16, fontSize: 14, lineHeight: 1.6, color: "#7b83b8", background: "#141726", borderRadius: 10, padding: "10px 14px", border: "1px solid #1f2338" }}>
               {rewardPopup.message}
             </div>
 
-            <div style={{ display: "flex", flexDirection: "column", gap: 10, marginBottom: 20 }}>
+            <div style={{ display: "flex", flexDirection: "column", gap: 8, marginBottom: 20 }}>
               {rewardPopup.details?.map((detail) => (
                 <div
                   key={detail.buildingId}
                   style={{
-                    background: "rgba(255,255,255,0.42)",
-                    border: "1px solid #c5ab85",
-                    borderRadius: 14,
+                    background: "#141726",
+                    border: "1px solid #2f3550",
+                    borderRadius: 12,
                     padding: 14,
                   }}
                 >
                   <div style={{ display: "flex", justifyContent: "space-between", gap: 12, alignItems: "center", marginBottom: 6 }}>
-                    <div style={{ fontSize: 18, fontWeight: 800 }}>{detail.buildingName}</div>
-                    <div style={{ fontSize: 18, fontWeight: 800, color: detail.xpAwarded < 0 ? "#9e392c" : "#8b5e10" }}>
+                    <div style={{ fontSize: 16, fontWeight: 700, color: "#eef0ff" }}>{detail.buildingName}</div>
+                    <div style={{
+                      fontSize: 15,
+                      fontWeight: 800,
+                      color: detail.xpAwarded < 0 ? "#ff9b8a" : "#ab8cff",
+                      background: detail.xpAwarded < 0 ? "rgba(255,155,138,0.1)" : "rgba(171,140,255,0.1)",
+                      border: `1px solid ${detail.xpAwarded < 0 ? "rgba(255,155,138,0.3)" : "rgba(171,140,255,0.3)"}`,
+                      borderRadius: 8,
+                      padding: "2px 10px",
+                    }}>
                       {detail.xpAwarded > 0 ? "+" : ""}{detail.xpAwarded} XP
                     </div>
                   </div>
-                  <div style={{ fontSize: 14, color: "#6a5032", display: "flex", flexWrap: "wrap", gap: 12 }}>
+                  <div style={{ fontSize: 13, color: "#7b83b8", display: "flex", flexWrap: "wrap", gap: 10 }}>
                     <span>Base: {detail.baseXpAwarded > 0 ? "+" : ""}{detail.baseXpAwarded ?? detail.xpAwarded}</span>
                     {!!detail.streakBonusXpAwarded && <span>Streak: +{detail.streakBonusXpAwarded}</span>}
-                    {!!detail.overspendAmount && <span>Overspent: ${detail.overspendAmount}</span>}
-                    <span>Level {detail.levelBefore} to {detail.levelAfter}</span>
+                    {!!detail.overspendAmount && <span style={{ color: "#ff9b8a" }}>Overspent: ${detail.overspendAmount}</span>}
+                    <span>Lv {detail.levelBefore}→{detail.levelAfter}</span>
                     <span>{detail.currentExp}/{detail.expToNextLevel} EXP</span>
                   </div>
                 </div>
@@ -1077,14 +1081,16 @@ export function BuildingManager({
               onClick={closeRewardPopup}
               style={{
                 width: "100%",
-                border: "none",
+                border: "1px solid #3b4679",
                 borderRadius: 12,
-                background: "#7c5a2d",
-                color: "#fff9ef",
+                background: "linear-gradient(135deg, #5f6dff 0%, #8b25ff 50%, #ab8cff 100%)",
+                color: "#ffffff",
                 padding: "12px 16px",
                 fontSize: 16,
-                fontWeight: 800,
+                fontWeight: 700,
                 cursor: "pointer",
+                letterSpacing: "0.04em",
+                boxShadow: "0 6px 20px rgba(95,109,255,0.35)",
               }}
             >
               Continue
