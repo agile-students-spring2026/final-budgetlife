@@ -81,12 +81,95 @@ We use a feature-branch workflow. The main branch is always stable and deployabl
 
 ## Setting Up the Local Development Environment
 
-<!-- Fill in: step-by-step instructions so contributors can run the project locally -->
+To set up the project locally, first clone the repository and install dependencies for both the back-end and front-end.
 
-_TBD_
+```bash
+git clone https://github.com/agile-students-spring2026/final-budgetlife.git
+cd final-budgetlife
+```
+
+Install back-end dependencies:
+
+```bash
+cd back-end
+npm install
+```
+
+Install front-end dependencies:
+
+```bash
+cd ../front-end
+npm install
+```
+
+Create a local environment file for the back-end:
+
+```bash
+cp back-end/.env.example back-end/.env
+```
+
+Then edit `back-end/.env` and add the required MongoDB connection string. At minimum, `MONGODB_URI` must be set. Do not commit `.env` files or secrets to GitHub.
+
+To run the app locally, open two terminals.
+
+Terminal 1:
+
+```bash
+cd back-end
+npm run dev
+```
+
+Terminal 2:
+
+```bash
+cd front-end
+npm run dev
+```
+
+The back-end runs on `http://localhost:3000`, and the front-end runs on `http://localhost:5173`. Open `http://localhost:5173` in the browser to use the app.
+
+As an alternative, contributors can run the app with Docker:
+
+```bash
+docker compose up --build
+```
+
+To stop the Docker stack:
+
+```bash
+docker compose down
+```
 
 ## Building and Testing
 
-<!-- Fill in: once the project reaches that stage, add instructions for building and running tests -->
+Before opening a pull request, contributors should make sure the project runs locally and that relevant tests pass.
 
-_TBD_
+To run the back-end test suite:
+
+```bash
+cd back-end
+npm test
+```
+
+To run the coverage report:
+
+```bash
+cd back-end
+npm run coverage
+```
+
+To build the front-end for production:
+
+```bash
+cd front-end
+npm run build
+```
+
+To preview the production build locally:
+
+```bash
+cd front-end
+npm run preview
+```
+
+A pull request should not be merged if the app does not run, the front-end build fails, or the back-end tests fail. Contributors should also manually test any feature they changed, especially login, budgeting, city state saving, friends, account settings, and transaction flows.
