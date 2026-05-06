@@ -153,6 +153,14 @@ BudgetLife began as an exploration into how game design principles can be applie
 
 CONTRIBUTING.md contains the information about contributing.
 
+## Extra credit
+
+Our team completed all three extra credit deployment options:
+
+- **Docker container deployment:** We set up Docker support for BudgetLife so the app can be run in a containerized environment using Docker Compose.
+- **Continuous Integration:** We implemented a GitHub Actions workflow that automatically runs the project build and test process when code is pushed or when a pull request is opened.
+- **Continuous Deployment:** We implemented a GitHub Actions Continuous Deployment workflow that deploys updates to our DigitalOcean Droplet after changes are pushed to the deployment branch.
+
 ## Additional Documentation
 
 1. [App Map & Wireframes](instructions-0a-app-map-wireframes.md)
