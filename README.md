@@ -1,4 +1,4 @@
-# BudgetLife (working title)
+# BudgetLife 
 
 ## Product Vision Statement
 
@@ -20,6 +20,10 @@ BudgetLife is a gamified budgeting application designed for users who want a fun
 Users act as the mayor of a digital city. Each budget category—such as food, housing, or health—is represented as a building within the city. How responsibly users spend their real-world money determines whether these buildings upgrade, stagnate, or decay. Monthly budget outcomes drive city progression, giving users a clear and engaging visual reflection of their financial behavior.
 
 BudgetLife emphasizes non-predatory design, requires no paid currency, and avoids invasive data collection. Its goal is to encourage long-term financial mindfulness through playful, meaningful feedback rather than punishment or pressure.
+
+## Deployed Website
+
+BudgetLife is deployed and available here: [Link](http://159.89.235.75/)
 
 ## Building and Testing
 
