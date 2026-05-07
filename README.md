@@ -1,4 +1,4 @@
-# BudgetLife (working title)
+# BudgetLife 
 
 ## Product Vision Statement
 
@@ -20,6 +20,10 @@ BudgetLife is a gamified budgeting application designed for users who want a fun
 Users act as the mayor of a digital city. Each budget category—such as food, housing, or health—is represented as a building within the city. How responsibly users spend their real-world money determines whether these buildings upgrade, stagnate, or decay. Monthly budget outcomes drive city progression, giving users a clear and engaging visual reflection of their financial behavior.
 
 BudgetLife emphasizes non-predatory design, requires no paid currency, and avoids invasive data collection. Its goal is to encourage long-term financial mindfulness through playful, meaningful feedback rather than punishment or pressure.
+
+## Deployed Website
+
+BudgetLife is deployed and available here: [Link](http://159.89.235.75/)
 
 ## Building and Testing
 
@@ -152,6 +156,14 @@ npm run preview   # serve the production build locally
 BudgetLife began as an exploration into how game design principles can be applied to real-world behavioral change. The project evolved from a simple budgeting concept into a fully gamified city simulation focused on financial awareness, motivation, and accountability.The project builds on well-established budgeting app patterns while differentiating itself through interactive feedback and playful systems.
 
 CONTRIBUTING.md contains the information about contributing.
+
+## Extra credit
+
+Our team completed all three extra credit deployment options:
+
+- **Docker container deployment:** We set up Docker support for BudgetLife so the app can be run in a containerized environment using Docker Compose.
+- **Continuous Integration:** We implemented a GitHub Actions workflow that automatically runs the project build and test process when code is pushed or when a pull request is opened.
+- **Continuous Deployment:** We implemented a GitHub Actions Continuous Deployment workflow that deploys updates to our DigitalOcean Droplet after changes are pushed to the deployment branch.
 
 ## Additional Documentation
 
