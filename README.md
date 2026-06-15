@@ -25,7 +25,7 @@ BudgetLife emphasizes non-predatory design, requires no paid currency, and avoid
 
 BudgetLife is deployed and available here: [Link](http://159.89.235.75/)
 
-Note: The website is designed to be used in a simulated mobile device screen using F12 (DevTools) on desktop. We used the dimensions of an iPhone 14 Pro Max
+Note: The website is designed to be used in a simulated mobile device screen using F12 (DevTools) on desktop. We used the dimensions of an iPhone 14 Pro Max.
 
 ## Building and Testing
 
